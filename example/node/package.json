@@ -1,0 +1,13 @@
+{
+  "name": "ng112-js-example-node",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-only",
+  "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js"
+  },
+  "dependencies": {
+    "ng112-js": "file:../.."
+  }
+}

@@ -1,0 +1,10 @@
+SIP/2.0 200 OK
+{{VIA}};rport=34680;received=10.0.0.1
+To: <sip:user@dec112.at>;tag=4cf34e5a3539dd26d7dd810a9eee205b.3b4f0000
+From: <sip:psap@dec112.at>;{{FROM_TAG}}
+{{CALL_ID}}
+CSeq: 1 REGISTER
+Contact: <{{CONTACT_SIP}}>;expires=600;received="sip:10.0.0.1:34680;transport=ws";{{SIP_INSTANCE}};reg-id=1
+Server: kamailio (5.5.0-dev4 (x86_64/linux))
+Content-Length: 0
+

@@ -1,0 +1,9 @@
+SIP/2.0 100 Trying
+{{VIA}};rport=34758;received=10.0.0.1
+To: <sip:1234@dec112.at>
+From: <sip:user@dec112.at>;{{FROM_TAG}}
+{{CALL_ID}}
+{{CSEQ}}
+Server: kamailio (5.5.0-dev3 (x86_64/linux))
+Content-Length: 0
+

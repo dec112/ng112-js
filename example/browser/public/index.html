@@ -1,0 +1,156 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ng112-js web example</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css"
+    integrity="sha512-EZLkOqwILORob+p0BXZc+Vm3RgJBOe1Iq/0fiI7r/wJgzOFZMlsqTa29UEl6v6U6gsV4uIpsNZoV32YZqrCRCQ=="
+    crossorigin="anonymous" />
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <main class="container">
+    <h1>ng112-js web chat</h1>
+
+
+    <fieldset>
+      <legend>Connection Data</legend>
+
+      <div class="row">
+        <label class="four columns">
+          Domain
+          <input id="txtDomain" type="url" placeholder="service.dec112.eu" />
+        </label>
+
+        <label class="eight columns">
+          Websocket Endpoint
+          <input id="txtEndpoint" type="url" placeholder="ws://example.com" />
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>User Data</legend>
+
+      <div class="row">
+        <div class="four columns">
+          <label>
+            User
+            <input id="txtUser" type="text" placeholder="123456qwerty" />
+          </label>
+          <label>
+            Password
+            <input id="txtPassword" type="text" placeholder="xxxxxxxxx" />
+          </label>
+          <label>
+            From
+            <input id="txtFrom" type="text" placeholder="sip:user@domain.com" />
+          </label>
+        </div>
+
+        <div class="four columns">
+          <label>Registration API v1
+            <input type="radio" name="reg-api-version" value="1" />
+          </label>
+          <label>Registration API v2
+            <input type="radio" name="reg-api-version" value="2" />
+          </label>
+        </div>
+
+        <div class="four columns">
+          <label>
+            Reg ID
+            <input id="txtRegistration" type="text" placeholder="123456qwerty" />
+          </label>
+          <div>
+            <button id="btnRegister" class="button-primary">Register</button>
+            <button id="btnUnregister" class="button">Unregister</button>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Call Actions</legend>
+
+      <div class="row">
+        <label class="four columns">
+          Call
+          <input id="txtCall" type="text" placeholder="sip:1234@dec112.eu" />
+        </label>
+
+        <label class="two columns">
+          Is Test?
+          <input id="cbIsTest" type="checkbox" />
+        </label>
+
+        <div class="two columns">
+          <label>Last Message</label>
+          <div id="lastMessage"></div>
+        </div>
+
+        <div class="four columns">
+          <div>
+            <button id="btnStart" class="button-primary">Start</button>
+            <button id="btnEnd" class="button">End</button>
+          </div>
+        </div>
+      </div>
+
+    </fieldset>
+
+    <fieldset>
+      <legend>Geo Data</legend>
+
+      <div class="row">
+        <label class="four columns">
+          Latitude
+          <input id="txtLatitude" type="number" placeholder="48.1799778" />
+        </label>
+
+        <label class="four columns">
+          Longitude
+          <input id="txtLongitude" type="number" placeholder="16.341437" />
+        </label>
+
+        <label class="four columns">
+          Radius
+          <input id="txtRadius" type="number" placeholder="10" />
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <div class="twelve columns">
+        <iframe hidden id="iframe" src="" style="width: 100%; height: 300px;"
+          allow="camera; microphone; fullscreen; display-capture"></iframe>
+      </div>
+      <div class="twelve columns">
+        <fieldset>
+          <label>
+            URI
+            <input id="txtUri" type="url" />
+          </label>
+          <label>
+            Message
+            <textarea id="txtMessage" class="message-area"></textarea>
+          </label>
+
+          <button id="btnSend" class="button-primary">Send</button>
+        </fieldset>
+      </div>
+    </div>
+
+    <pre id="chatarea" class="chat-area"></pre>
+  </main>
+
+  <script src="main.js"></script>
+</body>
+
+</html>

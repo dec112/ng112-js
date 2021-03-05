@@ -1,0 +1,71 @@
+import { OutgoingEvent } from 'jssip/lib/RTCSession';
+import type { PidfLo } from 'pidf-lo';
+import { Conversation } from './conversation';
+import { VCard } from './vcard';
+
+export enum MessageOrigin {
+  /**
+   * Incoming message
+   */
+  REMOTE = 'remote',
+  /**
+   * Outgoing message
+   */
+  LOCAL = 'local',
+  /**
+   * System generated message (by JsSIP)
+   */
+  SYSTEM = 'system',
+}
+
+// TODO: Create a separate class for messages so we can also have getters and setters
+export interface Message {
+  /**
+   * If message is outgoing (LOCAL): An incremental, unique id (parseable as number)\
+   * If message is incoming (REMOTE): A unique id\
+   * This is because according to the standard both unique numbers or strings are allowed\
+   * However, this library ALWAYS uses numbers for outgoing messages
+   */
+  id: number | string,
+  /**
+   * Where the message was sent from (LOCAL or REMOTE)
+   */
+  origin: MessageOrigin,
+  /**
+   * The ETSI TS 103 698 message type
+   */
+  type: number,
+  /**
+   * Promise that's resolved if the message was received by the other communicating party
+   */
+  promise: Promise<OutgoingEvent | void>,
+  /**
+   * Date and time when the message was sent/received
+   */
+  dateTime: Date,
+  /**
+   * The corresponding conversation
+   */
+  conversation: Conversation,
+  /**
+   * Chat message text
+   */
+  text?: string,
+  /**
+   * The caller's location at time of sending the message
+   */
+  location?: PidfLo,
+  /**
+   * The caller's vcard at time of sending the message
+   */
+  vcard?: VCard,
+  /**
+   * A list of URIs
+   */
+  uris?: string[],
+  /**
+   * The corresponding raw message from the SIP stack `JsSIP`\
+   * For outgoing messages this will only be resolved after property `promise` is resolved
+   */
+  jssipMessage?: JsSIP.UserAgentNewMessageEvent
+}

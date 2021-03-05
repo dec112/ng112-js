@@ -1,0 +1,19 @@
+MESSAGE {{CONTACT_SIP}} SIP/2.0
+{{VIA}}
+Max-Forwards: 67
+To: <sip:user@dec112.at>
+From: "DECTS" <sip:1234@dec112.at>;tag=qb74m7psal
+Call-ID: 9qqe88llo4ic2ruu7g2o
+CSeq: 3483 MESSAGE
+Reply-To: sip:psap@dec112.at
+Call-Info: <urn:emergency:uid:callid:{{MESSAGE_ID}}:dec112.at>; purpose=EmergencyCallData.CallId
+Call-Info: <urn:emergency:service:uid:msgid:1:service.dec112.at>; purpose=EmergencyCallData.MsgId
+Call-Info: <urn:emergency:service:uid:msgtype:257:service.dec112.at>; purpose=EmergencyCallData.MsgType
+Content-Type: text/plain
+Allow: INVITE,ACK,CANCEL,BYE,UPDATE,MESSAGE,OPTIONS,REFER,INFO,NOTIFY
+Supported: outbound
+User-Agent: JsSIP 3.5.7
+Content-Length: 13
+P-hint: outbound tcp only
+
+hello dec112!

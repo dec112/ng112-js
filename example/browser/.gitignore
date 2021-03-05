@@ -1,0 +1,4 @@
+deploy.sh
+
+public/config/*
+!public/config/example.config.json
