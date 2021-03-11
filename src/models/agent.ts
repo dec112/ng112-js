@@ -185,11 +185,11 @@ export class Agent {
       const timeout = setTimeout(() => resolve(), 1000);
 
       const unregisterPromise = new Promise<void>(resolveUnregister => {
-        this._agent.on('unregistered', () => resolveUnregister());
+        this._agent.once('unregistered', () => resolveUnregister());
       });
 
       const disconnectPromise = new Promise<void>(resolveDisconnct => {
-        this._agent.on('disconnected', () => resolveDisconnct());
+        this._agent.once('disconnected', () => resolveDisconnct());
       });
 
       await Promise.all([
@@ -198,6 +198,7 @@ export class Agent {
       ]);
 
       clearTimeout(timeout);
+      resolve();
     });
 
     this._agent.unregister();
