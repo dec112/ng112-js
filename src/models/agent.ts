@@ -54,11 +54,21 @@ export interface AgentConfiguration {
   customSipHeaders?: CustomSipHeaders,
 }
 
+export enum AgentState {
+  CONNECTING = 'connecting',
+  CONNECTED = 'connected',
+  DISCONNECTED = 'disconnected',
+  REGISTERED = 'registered',
+  UNREGISTERED = 'unregistered',
+  REGISTRATION_FAILED = 'registrationFailed',
+}
+
 /**
  * Main instance for establishing connection with an ETSI/DEC112 infrastructure
  */
 export class Agent {
   private _agent: UA;
+  private _stateListeners: ((state: AgentState) => void)[] = [];
 
   private _mapper: {
     default: NamespacedConversation,
@@ -151,18 +161,22 @@ export class Agent {
   /**
    * Initializes the agent's internals sends a `REGISTER` to the ESRP
    * This has to be called before any other interaction with the library
+   * If registration fails, promise will be rejected
    */
   initialize = (): Promise<Agent> => {
+    const newState = this._notifyStateListeners;
+
     const promise = new Promise<Agent>((resolve, reject) => {
-      // TODO: issue an event when the stack is restarting/reconnecting
-      // this._agent.on('connecting', () => console.log('ws connecting'));
-      // this._agent.on('connected', () => console.log('ws connected'));
-      // this._agent.on('disconnected', () => console.log('ws disconnected'));
+      this._agent.on('connecting', () => newState(AgentState.CONNECTING));
+      this._agent.on('connected', () => newState(AgentState.CONNECTED));
+      this._agent.on('disconnected', () => newState(AgentState.DISCONNECTED));
       this._agent.on('registered', () => {
+        newState(AgentState.REGISTERED);
         resolve(this);
       });
-      // this._agent.on('unregistered', () => console.log('unregistered'));
+      this._agent.on('unregistered', () => newState(AgentState.UNREGISTERED));
       this._agent.on('registrationFailed', (evt) => {
+        newState(AgentState.REGISTRATION_FAILED);
         reject(evt);
       });
       this._agent.on('newMessage', (evt: any) => this._handleMessageEvent(evt));
@@ -313,6 +327,21 @@ export class Agent {
    */
   addConversationListener = (callback: (conversation: Conversation) => void): void => {
     this._conversationListeners.push(callback);
+  }
+
+  /**
+   * Registers a new listener for agent state changes
+   * 
+   * @param callback Callback function that is called each time the agent's state changes
+   */
+  addStateListener = (callback: (state: AgentState) => unknown) => {
+    this._stateListeners.push(callback);
+  }
+
+  private _notifyStateListeners = (state: AgentState): void => {
+    for (const listener of this._stateListeners) {
+      listener(state);
+    }
   }
 
   /**
