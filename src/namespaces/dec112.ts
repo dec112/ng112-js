@@ -3,9 +3,8 @@ import { CALL_INFO } from '../constants/headers';
 import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
 import { ConversationEndpointType } from '../models/conversation';
-import { generatePidf, Header, parsePidf } from '../utils';
+import { Header } from '../utils';
 import type { PidfLo } from 'pidf-lo'
-import PidfLoCompat from '../compatibility/pidf-lo'
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, NamespacedConversation, NamespaceSpecifics } from './interfaces';
 
@@ -47,25 +46,16 @@ export class DEC112Mapper implements NamespacedConversation {
     endpointType,
     text,
     uris,
-    originSipUri,
     replyToSipUri,
     location,
     vcard,
   }: MessagePartsParams): MessageParts => {
-    let pidfLoXmlString: string | undefined = undefined;
-    if (location) {
-      const simpleLoc = location.simple;
-
-      if (simpleLoc)
-        pidfLoXmlString = generatePidf(originSipUri, simpleLoc);
-    }
-
     const common = EmergencyMapper.createCommonParts(
       endpointType,
       replyToSipUri,
       text,
       uris,
-      pidfLoXmlString,
+      location,
       vcard,
     );
 
@@ -111,14 +101,7 @@ export class DEC112Mapper implements NamespacedConversation {
     };
   }
 
-  tryParsePidfLo = (value: string): PidfLo | undefined => {
-    const parsed = parsePidf(value);
-
-    if (parsed)
-      return PidfLoCompat.PidfLo.fromSimpleLocation(parsed);
-
-    return undefined;
-  }
+  tryParsePidfLo = (value: string): PidfLo | undefined => EmergencyMapper.tryParsePidfLo(value);
 
   isCompatible = (headers: string[]): boolean =>
     // checks if at least one element satisfies DEC112 call info headers

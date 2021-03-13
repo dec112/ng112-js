@@ -21,8 +21,6 @@ export interface MessagePartsParams {
   isTest: boolean,
   text?: string,
   uris?: string[],
-  // TODO: this parameter is only used in DEC112Mapper for creating legacy PidfLo and should be removed
-  originSipUri: string,
   replyToSipUri: string,
   location?: PidfLo,
   vcard?: VCard,

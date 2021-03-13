@@ -47,7 +47,7 @@ export class EmergencyMapper implements NamespacedConversation {
     replyToSipUri: string,
     text?: string,
     uris?: string[],
-    pidfLoXmlString?: string,
+    location?: PidfLo,
     vcard?: VCard,
     // TODO: TS 103 698 -> 6.1.2.11 -> support DIDs
   ): MessageParts => {
@@ -74,7 +74,7 @@ export class EmergencyMapper implements NamespacedConversation {
     }
 
     // TODO: Only send pidf and vcard if they were not changed since last time
-    if (pidfLoXmlString) {
+    if (location) {
       const locationContentId = `${getRandomString(12)}@dec112.app`;
 
       extraHeaders = extraHeaders.concat([
@@ -87,7 +87,7 @@ export class EmergencyMapper implements NamespacedConversation {
           { key: CONTENT_TYPE, value: PIDF_LO },
           { key: CONTENT_ID, value: `<${locationContentId}>` },
         ],
-        body: pidfLoXmlString,
+        body: PidfLoCompat.XMLCompat.toXMLString(location.toXML()),
       });
     }
 
@@ -147,18 +147,12 @@ export class EmergencyMapper implements NamespacedConversation {
     location,
     vcard,
   }: MessagePartsParams): MessageParts => {
-    let pidfLoXmlString: string | undefined = undefined;
-
-    if (location) {
-      pidfLoXmlString = PidfLoCompat.XMLCompat.toXMLString(location.toXML());
-    }
-
     const common = EmergencyMapper.createCommonParts(
       endpointType,
       replyToSipUri,
       text,
       uris,
-      pidfLoXmlString,
+      location,
       vcard,
     );
 
@@ -184,7 +178,9 @@ export class EmergencyMapper implements NamespacedConversation {
     };
   }
 
-  tryParsePidfLo = (value: string): PidfLo | undefined => PidfLoCompat.PidfLo.fromXML(value);
+  // static, because it's also used by DEC112Mapper
+  static tryParsePidfLo = (value: string): PidfLo | undefined => PidfLoCompat.PidfLo.fromXML(value);
+  tryParsePidfLo = (value: string): PidfLo | undefined => EmergencyMapper.tryParsePidfLo(value);
 
   isCompatible = (headers: string[]): boolean =>
     // checks if at least one element satisfies ETSI call info headers

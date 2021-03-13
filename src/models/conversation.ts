@@ -172,7 +172,6 @@ export class Conversation {
       endpointType: this._endpointType,
       text: message.text,
       uris: message.uris,
-      originSipUri: this._store.originSipUri,
       replyToSipUri,
       location: message.location,
       vcard: message.vcard,
