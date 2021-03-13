@@ -90,6 +90,14 @@ export class Conversation {
    */
   public get requestedUri() { return this._requestedUri }
   private _requestedUri?: string;
+  
+  /**
+   * This is the other communicating party's display name (if sent) \
+   * \
+   * Keep in mind that this property is only set after the first remote message was processed!
+   */
+  public get remoteDisplayName() { return this._remoteDisplayName }
+  private _remoteDisplayName?: string;
 
   /**
    * Date and time of the first sent/received message
@@ -366,7 +374,7 @@ export class Conversation {
       this._created = now;
 
     const { originator, request } = evt;
-    const { body } = request;
+    const { from, to, body } = request;
     const origin = originator as MessageOrigin;
 
     const contentType = evt.request.getHeader(CONTENT_TYPE);
@@ -478,7 +486,8 @@ export class Conversation {
         this._targetUri = request.getHeader(REPLY_TO);
 
       // TODO: check if this should only be set the first time the clients sends a message
-      this._requestedUri = request.to.uri.toString();
+      this._requestedUri = to.uri.toString();
+      this._remoteDisplayName = from.display_name;
 
       this._notifyQueue();
 
