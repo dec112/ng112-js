@@ -6,7 +6,7 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store } from './store';
-import { Message, MessageOrigin } from './message';
+import { Message, MessageOrigin, MessageState } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, CRLF } from './multipart';
@@ -325,6 +325,7 @@ export class Conversation {
       conversation: this,
       dateTime: new Date(),
       type,
+      state: MessageState.PENDING,
       text,
       uris,
       // This is just a dummy value to satisfy TypeScript
@@ -334,6 +335,8 @@ export class Conversation {
     this._updateMessagePropsIfIsClient(message);
 
     const promise = new Promise<OutgoingEvent>((resolve, reject) => {
+      // this code is called before the outer function returns the message object
+      // so it is perfectly safe :-)
       this._queue.push({
         message,
         resolve,
@@ -341,9 +344,11 @@ export class Conversation {
       });
     });
 
-    // this code is called before the outer function returns the message object
-    // so it is perfectly safe :-)
     message.promise = promise;
+
+    promise
+      .then(() => message.state = MessageState.SUCCESS)
+      .catch(() => message.state = MessageState.ERROR);
 
     this._addNewMessage(message);
     this._notifyQueue();
@@ -483,6 +488,7 @@ export class Conversation {
         conversation: this,
         dateTime: now,
         type: emergencyMessageType,
+        state: MessageState.SUCCESS,
         text: parsedText,
         uris: parsedUris,
         promise: Promise.resolve(),

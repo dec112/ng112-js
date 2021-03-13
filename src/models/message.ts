@@ -18,6 +18,12 @@ export enum MessageOrigin {
   SYSTEM = 'system',
 }
 
+export enum MessageState {
+  PENDING = 'pending',
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
+
 // TODO: Create a separate class for messages so we can also have getters and setters
 export interface Message {
   /**
@@ -35,6 +41,10 @@ export interface Message {
    * The ETSI TS 103 698 message type
    */
   type: number,
+  /**
+   * The message's state
+   */
+  state: MessageState,
   /**
    * Promise that's resolved if the message was received by the other communicating party
    */
