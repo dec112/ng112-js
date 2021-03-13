@@ -73,6 +73,7 @@ export class EmergencyMapper implements NamespacedConversation {
       })
     }
 
+    // TODO: Only send pidf and vcard if they were not changed since last time
     if (pidfLoXmlString) {
       const locationContentId = `${getRandomString(12)}@dec112.app`;
 
