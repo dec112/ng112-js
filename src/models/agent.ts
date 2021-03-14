@@ -11,6 +11,7 @@ import { VCard } from './vcard';
 import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
+import { USER_AGENT } from '../constants';
 
 export interface AgentConfiguration {
   /**
@@ -107,6 +108,7 @@ export class Agent {
       password,
       display_name: displayName,
       register: true,
+      user_agent: USER_AGENT,
     });
 
     this._store = new Store(
