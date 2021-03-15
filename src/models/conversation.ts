@@ -67,6 +67,9 @@ export class Conversation {
   private _messageListeners: ((message: Message) => void)[] = [];
   private _stateListeners: ((state: ConversationState) => void)[] = [];
 
+  private _lastSentLocation?: PidfLo = undefined;
+  private _lastSentVCard?: VCard = undefined;
+
   private _hasBeenStarted: boolean = false;
 
   /**
@@ -90,7 +93,7 @@ export class Conversation {
    */
   public get requestedUri() { return this._requestedUri }
   private _requestedUri?: string;
-  
+
   /**
    * This is the other communicating party's display name (if sent) \
    * \
@@ -139,10 +142,20 @@ export class Conversation {
 
   private _updateMessagePropsIfIsClient = (message: Message) => {
     // only clients can send location and vcard
+    // update the message with latest information
     if (this._endpointType === ConversationEndpointType.CLIENT) {
-      // update the message with latest information
-      message.location = this._store.getLocation();
-      message.vcard = this._store.getVCard();
+
+      const currentLocation = this._store.getLocation();
+      if (currentLocation) {
+        if (!this._lastSentLocation || !this._lastSentLocation.equals(currentLocation))
+          this._lastSentLocation = message.location = currentLocation;
+      }
+
+      const currentVCard = this._store.getVCard();
+      if (currentVCard) {
+        if (!this._lastSentVCard || !this._lastSentVCard.equals(currentVCard))
+          this._lastSentVCard = message.vcard = currentVCard;
+      }
     }
     else
       message.location = message.vcard = undefined;

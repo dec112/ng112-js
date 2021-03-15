@@ -104,10 +104,12 @@ export class EmergencyMapper implements NamespacedConversation {
       const data = doc.createElement(`${infoPrefix}:SubscriberData`);
       const vcards = doc.createElement(`${vcardPrefix}:vcards`);
 
-      const vcardNode = vcard.toXML(vcardPrefix);
-      vcards.appendChild(vcardNode);
-      data.appendChild(vcards);
-      root.appendChild(data);
+      const vcardNode = vcard.toXML(vcardPrefix).firstChild;
+
+      if (vcardNode) {
+        vcards.appendChild(vcardNode);
+        data.appendChild(vcards);
+        root.appendChild(data);
       doc.appendChild(root);
 
       multi.addPart({
@@ -116,6 +118,7 @@ export class EmergencyMapper implements NamespacedConversation {
         ],
         body: PidfLoCompat.XMLCompat.toXMLString(doc),
       });
+    }
     }
 
     const multiObj = multi.create();

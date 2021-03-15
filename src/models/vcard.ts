@@ -88,14 +88,15 @@ export class VCard {
   get code(): string | undefined { return this.get(KeyId.ADDRESS_CODE); }
   get country(): string | undefined { return this.get(KeyId.ADDRESS_COUNTRY); }
 
-  toXML = (namespacePrefix?: string): Element => {
+  toXML = (namespacePrefix?: string): XMLDocument => {
     const doc = PidfLoCompat.XMLCompat.createDocument();
     const rootNode = writeXmlElement(xmlVCard, doc, this, namespacePrefix);
 
     if (!rootNode)
       throw new Error('Error while creating XML VCard.');
 
-    return rootNode;
+    doc.appendChild(rootNode);
+    return doc;
   }
 
   static fromXML = (xml: string): VCard => {
@@ -111,6 +112,8 @@ export class VCard {
 
     return vcard;
   }
+
+  equals = (vCard: VCard): boolean => PidfLoCompat.XMLCompat.toXMLString(this.toXML()) === PidfLoCompat.XMLCompat.toXMLString(vCard.toXML());
 }
 
 const stringParser = (value: string | undefined): string | undefined => value;
