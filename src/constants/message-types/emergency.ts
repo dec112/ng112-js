@@ -24,7 +24,9 @@ export abstract class EmergencyMessageType {
    * 
    * @param bitmask ETSI TS 103 698 message type bitmask
    */
-  static isStarted = (bitmask: number) => hasBits(bitmask, EmergencyMessageType.START);
+  static isStarted = (bitmask: number) =>
+    hasBits(bitmask, EmergencyMessageType.START) ||
+    hasBits(bitmask, EmergencyMessageType.HEARTBEAT);
 
   /**
    * Returns true, if conversation is stopped
@@ -32,7 +34,7 @@ export abstract class EmergencyMessageType {
    * @param bitmask ETSI TS 103 698 message type bitmask
    */
   static isStopped = (bitmask: number) => hasBits(bitmask, EmergencyMessageType.STOP) && (!hasBits(bitmask, EmergencyMessageType.START));
-  
+
   /**
    * Returns true, if conversation is in one of the following states \
    * * STOPPED
