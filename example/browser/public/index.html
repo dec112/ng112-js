@@ -65,6 +65,10 @@
 
         <div class="four columns">
           <label>
+            Display Name
+            <input id="txtDisplayName" type="text" placeholder="Alice Smith" />
+          </label>
+          <label>
             Reg ID
             <input id="txtRegistration" type="text" placeholder="123456qwerty" />
           </label>
@@ -139,11 +143,18 @@
           </label>
           <label>
             Message
+            <span id="txtRemoteDisplayName"></span>
             <textarea id="txtMessage" class="message-area"></textarea>
           </label>
-
-          <button id="btnSend" class="button-primary">Send</button>
         </fieldset>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="six columns">
+        <button id="btnSend" class="button-primary">Send</button>
+      </div>
+      <div class="six columns">
       </div>
     </div>
 

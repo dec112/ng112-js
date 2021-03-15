@@ -55,6 +55,7 @@ const disable = (element, value) => {
   const user = el('txtUser', config.user);
   const password = el('txtPassword', config.password);
   const from = el('txtFrom', config.from);
+  const displayName = el('txtDisplayName');
 
   const registration = el('txtRegistration', config.registrationId);
   const registrationApiVersionName = 'reg-api-version';
@@ -80,6 +81,7 @@ const disable = (element, value) => {
   const iframe = el('iframe');
   const message = el('txtMessage');
   const send = el('btnSend');
+  const remoteDisplayName = el('txtRemoteDisplayName');
 
   const chatarea = el('chatarea');
 
@@ -163,6 +165,8 @@ const disable = (element, value) => {
       iframe.hidden = false;
       iframe.setAttribute('src', msg.uris[0]);
     }
+
+    remoteDisplayName.textContent = `(${msg.conversation.remoteDisplayName || 'Unknown'})`;
   }
 
   register.addEventListener('click', async () => {
@@ -191,6 +195,7 @@ const disable = (element, value) => {
       password: password.value,
       // debugMode: true,
       namespaceSpecifics,
+      displayName: displayName.value,
       customSipHeaders: {
         from: from.value,
       },
