@@ -183,40 +183,43 @@ export class Conversation {
     // right before sending the message we update the timestamp to be more accurate
     message.dateTime = new Date();
 
-    // TODO: only send location and vcard, if it has changed to the last message
-    const { body, headers, contentType } = this.mapper.createMessageParts({
-      conversationId: this.id,
-      isTest: this.isTest,
-      // for outgoing messages we know message id will ALWAYS be of type `number`
-      messageId: message.id as number,
-      messageType: message.type,
-      endpointType: this._endpointType,
-      text: message.text,
-      uris: message.uris,
-      replyToSipUri,
-      location: message.location,
-      vcard: message.vcard,
-    });
+    try {
+      const { body, headers, contentType } = this.mapper.createMessageParts({
+        conversationId: this.id,
+        isTest: this.isTest,
+        // for outgoing messages we know message id will ALWAYS be of type `number`
+        messageId: message.id as number,
+        messageType: message.type,
+        endpointType: this._endpointType,
+        text: message.text,
+        uris: message.uris,
+        replyToSipUri,
+        location: message.location,
+        vcard: message.vcard,
+      });
 
-    // we can not just pass the plain string to `sendMessage` as this causes problems with encoded parameters
-    // therfore we have to call URI.parse (which is a jssip function!) to ensure correct transmission
-    this._agent.sendMessage(URI.parse(this._targetUri), body, {
-      contentType,
-      extraHeaders: headers.map(h => getHeaderString(h)),
-      eventHandlers: {
-        succeeded: (evt) => resolve(evt),
-        failed: (evt) => {
-          // set to error state, if there was an issue while sending the message
-          // and the error was reported by the remote endpoint
-          // in other cases, we assume the conversation is still up, but the message got lost
-          const origin = evt.originator as unknown as Origin;
-          if (origin === Origin.REMOTE)
-            this._setState(ConversationState.ERROR, origin)();
+      // we can not just pass the plain string to `sendMessage` as this causes problems with encoded parameters
+      // therfore we have to call URI.parse (which is a jssip function!) to ensure correct transmission
+      this._agent.sendMessage(URI.parse(this._targetUri), body, {
+        contentType,
+        extraHeaders: headers.map(h => getHeaderString(h)),
+        eventHandlers: {
+          succeeded: (evt) => resolve(evt),
+          failed: (evt) => {
+            // set to error state, if there was an issue while sending the message
+            // and the error was reported by the remote endpoint
+            // in other cases, we assume the conversation is still up, but the message got lost
+            const origin = evt.originator as unknown as Origin;
+            if (origin === Origin.REMOTE)
+              this._setState(ConversationState.ERROR, origin)();
 
-          reject(evt);
-        },
-      }
-    });
+            reject(evt);
+          },
+        }
+      });
+    } catch (ex) {
+      reject(ex);
+    }
   }
 
   private _addNewMessage = (message: Message) => {
@@ -249,6 +252,7 @@ export class Conversation {
     if (this._heartbeatInterval || !this._isHeartbeatEnabled())
       return;
 
+    // TODO: Error handling if sendMessage fails
     this._heartbeatInterval = setInterval(
       this._store.getHeartbeatInterval(),
       () => this.sendMessage({

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.2] - 2021-03-15
+### Fixed
+- Unhandled promise error while messages with invalid location or VCard
+
 ## [0.11.1] - 2021-03-15
 ### Fixed
 - JsSIP version in user agent 

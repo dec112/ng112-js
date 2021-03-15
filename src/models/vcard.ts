@@ -113,7 +113,13 @@ export class VCard {
     return vcard;
   }
 
-  equals = (vCard: VCard): boolean => PidfLoCompat.XMLCompat.toXMLString(this.toXML()) === PidfLoCompat.XMLCompat.toXMLString(vCard.toXML());
+  equals = (vCard: VCard): boolean => {
+    try {
+      return PidfLoCompat.XMLCompat.toXMLString(this.toXML()) === PidfLoCompat.XMLCompat.toXMLString(vCard.toXML());
+    } catch {
+      return false;
+    }
+  }
 }
 
 const stringParser = (value: string | undefined): string | undefined => value;
