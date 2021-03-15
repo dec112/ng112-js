@@ -1,4 +1,4 @@
-import { ConversationState } from "./conversation";
+import { StateObject } from "./conversation";
 
 export interface ConversationConfiguration {
   /**
@@ -15,7 +15,7 @@ export interface ConversationConfiguration {
    * Initial state of this conversation
    * Can be used to restore a conversation from storage, if client or PSAP was suspended
    */
-  state?: ConversationState,
+  state?: StateObject,
 }
 
 export type MessageFailedEvent = JsSIP.MessageFailedEvent;

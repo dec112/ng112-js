@@ -5,7 +5,7 @@ import {
   EmergencyMessageType,
   Gender,
   LocationMethod,
-  MessageOrigin,
+  Origin,
   VCard,
 } from 'ng112-js/dist/browser';
 
@@ -141,7 +141,7 @@ const disable = (element, value) => {
     const spanMeta = document.createElement('span');
     div.appendChild(spanMeta);
 
-    if (msg.origin === MessageOrigin.LOCAL) {
+    if (msg.origin === Origin.LOCAL) {
       const spanStatus = document.createElement('span');
       spanStatus.textContent = 'sending...';
       spanMeta.appendChild(spanStatus);
@@ -201,8 +201,8 @@ const disable = (element, value) => {
 
       conversation.addMessageListener(handleNewMessage);
       conversation.messages.forEach(handleNewMessage);
-      conversation.addStateListener((state) => {
-        const isStarted = state === ConversationState.STARTED;
+      conversation.addStateListener((stateObj) => {
+        const isStarted = stateObj.value === ConversationState.STARTED;
 
         if (!isStarted) {
           conversation = undefined;

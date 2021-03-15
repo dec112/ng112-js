@@ -3,17 +3,17 @@ import type { PidfLo } from 'pidf-lo';
 import { Conversation } from './conversation';
 import { VCard } from './vcard';
 
-export enum MessageOrigin {
+export enum Origin {
   /**
-   * Incoming message
+   * Remote
    */
   REMOTE = 'remote',
   /**
-   * Outgoing message
+   * Local
    */
   LOCAL = 'local',
   /**
-   * System generated message (by JsSIP)
+   * System generated (by JsSIP)
    */
   SYSTEM = 'system',
 }
@@ -36,7 +36,7 @@ export interface Message {
   /**
    * Where the message was sent from (LOCAL or REMOTE)
    */
-  origin: MessageOrigin,
+  origin: Origin,
   /**
    * The ETSI TS 103 698 message type
    */

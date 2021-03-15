@@ -5,7 +5,7 @@ export {
 
 export {
   Message,
-  MessageOrigin,
+  Origin,
 } from './models/message';
 
 export {
@@ -20,6 +20,7 @@ export {
 export {
   Conversation,
   ConversationState,
+  StateObject,
 } from './models/conversation';
 
 export {

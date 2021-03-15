@@ -175,8 +175,8 @@ agent.addConversationListener((conversation) => {
   });
 
   // listen for conversation state updates
-  conversation.addStateListener((state) => {
-    switch(state) {
+  conversation.addStateListener((stateObj) => {
+    switch(stateObj.value) {
       case ConversationState.STOPPED:
         console.log('The emergency call has ended!');
         break;

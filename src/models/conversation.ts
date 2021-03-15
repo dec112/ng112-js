@@ -6,7 +6,7 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store } from './store';
-import { Message, MessageOrigin, MessageState } from './message';
+import { Message, Origin, MessageState } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, CRLF } from './multipart';
@@ -52,6 +52,11 @@ export interface SendMessageObject {
   messageId?: number,
 }
 
+export interface StateObject {
+  value: ConversationState,
+  origin: Origin,
+}
+
 export class Conversation {
   /**
    * A unique conversation id\
@@ -65,7 +70,7 @@ export class Conversation {
 
   private _queue: QueueItem[];
   private _messageListeners: ((message: Message) => void)[] = [];
-  private _stateListeners: ((state: ConversationState) => void)[] = [];
+  private _stateListeners: ((state: StateObject) => void)[] = [];
 
   private _lastSentLocation?: PidfLo = undefined;
   private _lastSentVCard?: VCard = undefined;
@@ -79,10 +84,10 @@ export class Conversation {
   private _messages: Message[] = [];
 
   /**
-   * Current ConversationState
+   * Current conversation's state
    */
   public get state() { return this._state }
-  private _state: ConversationState;
+  private _state: StateObject;
 
   /**
    * This is the uri that was requested by the other communicating party
@@ -136,7 +141,10 @@ export class Conversation {
     this._queue = [];
 
     this.id = config?.id ?? getRandomString(30);
-    this._state = config?.state ?? ConversationState.UNKNOWN;
+    this._state = config?.state ?? {
+      value: ConversationState.UNKNOWN,
+      origin: Origin.SYSTEM,
+    };
     this.isTest = config?.isTest ?? false;
   }
 
@@ -201,8 +209,9 @@ export class Conversation {
           // set to error state, if there was an issue while sending the message
           // and the error was reported by the remote endpoint
           // in other cases, we assume the conversation is still up, but the message got lost
-          if ((evt.originator as unknown as MessageOrigin) === MessageOrigin.REMOTE)
-            this._setState(ConversationState.ERROR)();
+          const origin = evt.originator as unknown as Origin;
+          if (origin === Origin.REMOTE)
+            this._setState(ConversationState.ERROR, origin)();
 
           reject(evt);
         },
@@ -222,7 +231,7 @@ export class Conversation {
     // stopping messages can happen, if the PSAP is transferring to another PSAP
     // or if call is stopped entirely (captain obvious ;-))
     // if this is the case, we are only allowed to send START messages
-    let queue = this._state === ConversationState.STARTED ?
+    let queue = this._state.value === ConversationState.STARTED ?
       [...this._queue] :
       [...this._queue.filter(x => x.message.type === EmergencyMessageType.START)];
 
@@ -264,11 +273,17 @@ export class Conversation {
    * 
    * @returns function to notify all listeners
    */
-  private _setState = (state: ConversationState): () => void => {
-    if (state === this._state)
+  private _setState = (state: ConversationState, origin: Origin = Origin.SYSTEM): () => void => {
+    if (
+      state === this._state.value &&
+      origin === this._state.origin
+    )
       return () => undefined;
 
-    this._state = state;
+    this._state = {
+      value: state,
+      origin,
+    }
 
     if (state === ConversationState.STARTED) {
       this._hasBeenStarted = true;
@@ -279,7 +294,7 @@ export class Conversation {
 
     return () => {
       for (const listener of this._stateListeners) {
-        listener(state);
+        listener(this._state);
       }
     };
   }
@@ -341,7 +356,7 @@ export class Conversation {
     const message: Message = {
       // if no message id is specified, use the internal sequence
       id: messageId ?? this._messageId++,
-      origin: MessageOrigin.LOCAL,
+      origin: Origin.LOCAL,
       conversation: this,
       dateTime: new Date(),
       type,
@@ -387,7 +402,7 @@ export class Conversation {
 
     const { originator, request } = evt;
     const { from, to, body } = request;
-    const origin = originator as MessageOrigin;
+    const origin = originator as Origin;
 
     const contentType = evt.request.getHeader(CONTENT_TYPE);
     let parsedText: string | undefined = undefined;
@@ -467,14 +482,14 @@ export class Conversation {
           this._endpointType === ConversationEndpointType.CLIENT &&
           !this.mapper.isStartConversationByClientAllowed() &&
           emergencyMessageType === EmergencyMessageType.START &&
-          origin === MessageOrigin.REMOTE
+          origin === Origin.REMOTE
         ) ||
         // psap conversation is only allowed to be started by PSAP
         (
           this._endpointType === ConversationEndpointType.PSAP &&
           !this.mapper.isStartConversationByClientAllowed() &&
           emergencyMessageType === EmergencyMessageType.START &&
-          origin === MessageOrigin.LOCAL
+          origin === Origin.LOCAL
         ) ||
         // DEC112 environments
         (
@@ -482,18 +497,18 @@ export class Conversation {
           EmergencyMessageType.isStarted(emergencyMessageType)
         )
       )
-        stateCallback = this._setState(ConversationState.STARTED);
+        stateCallback = this._setState(ConversationState.STARTED, origin);
     }
     else {
       if (EmergencyMessageType.isStopped(emergencyMessageType))
-        stateCallback = this._setState(ConversationState.STOPPED);
+        stateCallback = this._setState(ConversationState.STOPPED, origin);
       else if (EmergencyMessageType.isStarted(emergencyMessageType))
-        stateCallback = this._setState(ConversationState.STARTED);
+        stateCallback = this._setState(ConversationState.STARTED, origin);
       else
-        stateCallback = this._setState(ConversationState.INTERRUPTED);
+        stateCallback = this._setState(ConversationState.INTERRUPTED, origin);
     }
 
-    if (origin === MessageOrigin.REMOTE) {
+    if (origin === Origin.REMOTE) {
       if (request.hasHeader(REPLY_TO))
         this._targetUri = request.getHeader(REPLY_TO);
 
@@ -540,7 +555,7 @@ export class Conversation {
    * 
    * @param callback Callback function that is called each time the conversation's state changes
    */
-  addStateListener = (callback: (state: ConversationState) => unknown) => {
+  addStateListener = (callback: (state: StateObject) => unknown) => {
     this._stateListeners.push(callback);
   }
 

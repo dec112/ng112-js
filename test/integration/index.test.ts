@@ -1,5 +1,5 @@
 import { getAgent, server } from '..';
-import { Agent, ConversationState, EmergencyMessageType, MessageOrigin } from '../../dist/node';
+import { Agent, ConversationState, EmergencyMessageType, Origin } from '../../dist/node';
 
 // jest.setTimeout(10000);
 
@@ -47,11 +47,11 @@ describe('ng112-js', () => {
     const msg = conversation.start();
     expect(msg.conversation).toBe(conversation);
     expect(msg.id).toBe(1);
-    expect(msg.origin).toBe(MessageOrigin.LOCAL);
+    expect(msg.origin).toBe(Origin.LOCAL);
     expect(msg.text).not.toBeUndefined();
     expect(msg.type).toBe(EmergencyMessageType.START);
 
-    expect(conversation.state).toBe(ConversationState.UNKNOWN);
+    expect(conversation.state.value).toBe(ConversationState.UNKNOWN);
 
     const outgoingMessage = await server.expect.message();
     expect(outgoingMessage).toContain('From: "Alice"');
@@ -59,7 +59,7 @@ describe('ng112-js', () => {
     const promise = new Promise<void>(resolve => {
       conversation.addMessageListener((message) => {
         expect(message.text).toBe('hello dec112!');
-        expect(conversation.state).toBe(ConversationState.STARTED);
+        expect(conversation.state.value).toBe(ConversationState.STARTED);
 
         resolve();
       });
