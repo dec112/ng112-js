@@ -59,13 +59,6 @@ export class EmergencyMapper implements NamespacedConversation {
       extraHeaders.push({ key: REPLY_TO, value: replyToSipUri })
     }
 
-    if (text) {
-      multi.addPart({
-        headers: [{ key: CONTENT_TYPE, value: TEXT_PLAIN }],
-        body: text,
-      });
-    }
-
     if (uris) {
       multi.addPart({
         headers: [{ key: CONTENT_TYPE, value: TEXT_URI_LIST }],
@@ -110,15 +103,28 @@ export class EmergencyMapper implements NamespacedConversation {
         vcards.appendChild(vcardNode);
         data.appendChild(vcards);
         root.appendChild(data);
-      doc.appendChild(root);
+        doc.appendChild(root);
 
-      multi.addPart({
-        headers: [
-          { key: CONTENT_TYPE, value: CALL_SUB },
-        ],
-        body: PidfLoCompat.XMLCompat.toXMLString(doc),
-      });
+        multi.addPart({
+          headers: [
+            { key: CONTENT_TYPE, value: CALL_SUB },
+          ],
+          body: PidfLoCompat.XMLCompat.toXMLString(doc),
+        });
+      }
     }
+
+    // if no other multipart part is sent, we at least include an empty text message
+    // TODO: I don't know if this is correct, but otherwise the DEC112 border declines our message
+    // TODO: Also check, if our current implementation of a completely empty multipart mime is correct
+    if (!text && multi.parts.length === 0)
+      text = '';
+
+    if (text !== undefined) {
+      multi.addPart({
+        headers: [{ key: CONTENT_TYPE, value: TEXT_PLAIN }],
+        body: text,
+      });
     }
 
     const multiObj = multi.create();

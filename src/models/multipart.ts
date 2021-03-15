@@ -28,6 +28,7 @@ const split = (value: string, separator: string | RegExp) => {
 }
 
 export class Multipart {
+  public get parts() { return this._parts }
   private _parts: MultipartPart[] = [];
 
   addPart = (part: MultipartPart) => {
