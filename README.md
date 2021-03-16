@@ -30,6 +30,12 @@ import * from 'ng112-js/dist/browser';
 import * from 'ng112-js/dist/node';
 ```
 
+In addition, node environments will also need to install `jssip-node-websocket`, which is a peer dependency of `ng112-js`
+
+```bash
+npm install jssip-node-websocket
+```
+
 ## Examples
 
 Most complete examples can be found in both browser and node example projects in `./example/browser` and `./example/node`

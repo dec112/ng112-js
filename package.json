@@ -50,5 +50,8 @@
     "jssip": "^3.5.10",
     "pidf-lo": "^0.3.2",
     "xmldom": "^0.4.0"
+  },
+  "peerDependencies": {
+    "jssip-node-websocket": "^3.0.0"
   }
 }
