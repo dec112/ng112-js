@@ -1,3 +1,5 @@
+import { EmergencyMessageType } from '../constants/message-types/emergency';
+import { ConversationEndpointType } from '../models/conversation';
 import { EmergencyMapper } from './emergency';
 
 describe('Checking call info headers', () => {
@@ -31,4 +33,22 @@ describe('Checking call info headers', () => {
   it.each(invalidCallIdHeaders)('should handle invalid call info header %s', (header) => {
     expect(mapper.getCallIdFromHeaders([header])).toBe(undefined);
   });
-})
+});
+
+describe('Messaging functionality', () => {
+  const mapper = new EmergencyMapper();
+
+  it('creates an empty message correctly', () => {
+    const parts = mapper.createMessageParts({
+      conversationId: '1234',
+      endpointType: ConversationEndpointType.CLIENT,
+      isTest: false,
+      messageId: 1,
+      messageType: EmergencyMessageType.HEARTBEAT,
+      replyToSipUri: 'sip:test@domain.com',
+    });
+
+    // only outputs the end of multipart
+    expect(/--[\w\d]+--/.test(parts.body)).toBe(true);
+  });
+});

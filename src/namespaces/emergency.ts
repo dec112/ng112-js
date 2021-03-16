@@ -66,7 +66,6 @@ export class EmergencyMapper implements NamespacedConversation {
       })
     }
 
-    // TODO: Only send pidf and vcard if they were not changed since last time
     if (location) {
       const locationContentId = `${getRandomString(12)}@dec112.app`;
 
@@ -114,18 +113,16 @@ export class EmergencyMapper implements NamespacedConversation {
       }
     }
 
-    // if no other multipart part is sent, we at least include an empty text message
-    // TODO: I don't know if this is correct, but otherwise the DEC112 border declines our message
-    // TODO: Also check, if our current implementation of a completely empty multipart mime is correct
-    if (!text && multi.parts.length === 0)
-      text = '';
-
-    if (text !== undefined) {
+    if (text) {
       multi.addPart({
         headers: [{ key: CONTENT_TYPE, value: TEXT_PLAIN }],
         body: text,
       });
     }
+
+    // TODO: what if, at this point, no parts have been added? So basically an empty multipart object
+    // what should we do? Sending an empty object seems strange, but maybe it's perfectly fine
+    // That's something that should be investigated
 
     const multiObj = multi.create();
 
