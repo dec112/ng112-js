@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.5] - 2021-03-16
+### Changed
+- Always send location updates on DEC112 environments
+### Added
+- Optionally load jssip-node-websocket, if available, on node environments
+### Fixed
+- Send empty multipart body if no changes to location or VCard happened and if text and URIs are empty
+
 ## [0.11.4] - 2021-03-16
 ### Added
 - Export for `MessageState`
