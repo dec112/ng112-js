@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.4] - 2021-03-16
+### Added
+- Export for `MessageState`
+
 ## [0.11.3] - 2021-03-16
 ### Fixed
 - Included `jssip-node-websocket` as peer dependency and re-enabled differentiation for websocket implementation (node vs. browser)

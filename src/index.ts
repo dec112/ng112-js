@@ -5,6 +5,7 @@ export {
 
 export {
   Message,
+  MessageState,
   Origin,
 } from './models/message';
 
