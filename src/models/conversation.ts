@@ -15,7 +15,6 @@ import { clearInterval, setInterval, Timeout } from '../utils';
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
-import { DEC112Mapper } from '../namespaces/dec112';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -158,9 +157,7 @@ export class Conversation {
       if (currentLocation) {
         if (
           !this._lastSentLocation ||
-          !this._lastSentLocation.equals(currentLocation) ||
-          // DEC112 environments always get their location sent, no matter if it was changed or not
-          this.mapper instanceof DEC112Mapper
+          !this._lastSentLocation.equals(currentLocation)
         )
           this._lastSentLocation = message.location = currentLocation;
       }

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.7] - 2021-03-17
+### Changed
+- Only send location updates if they are really updated on DEC112 environments
+### Fixed
+- Correct multipart message if no multiparts are available
+
 ## [0.11.6] - 2021-03-17
 ### Fixed
 - More resilient handling of invalid SimpleLocations
