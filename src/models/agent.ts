@@ -294,7 +294,7 @@ export class Agent {
    * @param location New location object (may be `undefined`)
    */
   updateLocation = (location?: PidfLo | SimpleLocation): void => {
-    let pidflo: PidfLo | undefined;
+    let pidflo: PidfLo | undefined = undefined;
 
     if (location) {
       if (!(location instanceof PidfLoCompat.PidfLo)) {
