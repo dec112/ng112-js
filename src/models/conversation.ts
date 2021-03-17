@@ -154,7 +154,7 @@ export class Conversation {
     if (this._endpointType === ConversationEndpointType.CLIENT) {
 
       const currentLocation = this._store.getLocation();
-      if (currentLocation) {
+      if (currentLocation && this._lastSentLocation) {
         if (
           !this._lastSentLocation ||
           !this._lastSentLocation.equals(currentLocation)
