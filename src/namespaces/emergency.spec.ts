@@ -48,7 +48,8 @@ describe('Messaging functionality', () => {
       replyToSipUri: 'sip:test@domain.com',
     });
 
-    // only outputs the end of multipart
-    expect(/--[\w\d]+--/.test(parts.body)).toBe(true);
+    // no output, not even multipart closing delimiter
+    // just an empty string
+    expect(parts.body).toBe('');
   });
 });

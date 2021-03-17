@@ -61,7 +61,10 @@ export class Multipart {
       res.push(`${CRLF}${part.body}`);
     }
 
-    res.push(`--${boundary}--`);
+    // only if there are other parts available, we'll include a closing delimiter
+    // otherwise, DEC112 border will not accept the message
+    if (res.length > 0)
+      res.push(`--${boundary}--`);
 
     return {
       headers,
