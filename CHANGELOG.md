@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.8] - 2021-03-18
+### Fixed
+- Fixed jssip version to 3.5.11. This is due to an incompatibility of JsSIP 3.7.3 with Expo.
+
 ## [0.11.7] - 2021-03-17
 ### Changed
 - Only send location updates if they are really updated on DEC112 environments

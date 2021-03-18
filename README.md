@@ -6,7 +6,8 @@ It handles SIP communication, message types, heartbeats, PIDF-LO, VCards, Multip
 
 Please keep in mind this is still in development and does not cover standards entirely!
 
-SIP communication is powered by [JsSIP](https://jssip.net/) under the hood.
+SIP communication is powered by [JsSIP](https://jssip.net/) under the hood. \
+Currently JsSIP version 3.5.11 is used. This is due to an incompatibility of JsSIP 3.7.3 with Expo.
 
 License: GNU AGPL-3.0 \
 Proprietary licenses are available on request. \
