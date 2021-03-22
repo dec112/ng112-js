@@ -113,20 +113,33 @@
       <legend>Geo Data</legend>
 
       <div class="row">
-        <label class="four columns">
-          Latitude
-          <input id="txtLatitude" type="number" placeholder="48.1799778" />
-        </label>
+        <div class="four columns">
+          <label>
+            Latitude
+            <input id="txtLatitude" type="number" placeholder="48.1799778" />
+          </label>
 
-        <label class="four columns">
-          Longitude
-          <input id="txtLongitude" type="number" placeholder="16.341437" />
-        </label>
+          <label>
+            Longitude
+            <input id="txtLongitude" type="number" placeholder="16.341437" />
+          </label>
+        </div>
 
         <label class="four columns">
           Radius
           <input id="txtRadius" type="number" placeholder="10" />
         </label>
+
+        <div class="four columns">
+          <label>
+            Method
+            <select id="selLocationMethod">
+            </select>
+          </label>
+
+          <button id="btnUpdateLocation" class="button-primary">Update Location</button>
+        </div>
+
       </div>
     </fieldset>
 
@@ -149,7 +162,7 @@
         </fieldset>
       </div>
     </div>
-    
+
     <div class="row">
       <div class="six columns">
         <button id="btnSend" class="button-primary">Send</button>

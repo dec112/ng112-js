@@ -67,6 +67,16 @@ const disable = (element, value) => {
   const latitude = el('txtLatitude', config.latitude);
   const longitude = el('txtLongitude', config.longitude);
   const radius = el('txtRadius', config.radius);
+  const locationMethod = el('selLocationMethod');
+  el('btnUpdateLocation').addEventListener('click', () => updateLocation());
+
+  for (const prop in LocationMethod) {
+    const opt = document.createElement('option');
+    opt.value = prop;
+    opt.textContent = prop;
+
+    locationMethod.appendChild(opt);
+  }
 
   const call = el('txtCall', config.call);
   const isTest = el('cbIsTest', config.isTest);
@@ -100,7 +110,7 @@ const disable = (element, value) => {
       latitude: parseFloat(latitude.value),
       longitude: parseFloat(longitude.value),
       radius: parseFloat(radius.value),
-      method: LocationMethod.GPS,
+      method: locationMethod.value,
     });
   }
 
@@ -275,8 +285,6 @@ const disable = (element, value) => {
   send.addEventListener('click', () => {
     if (!conversation)
       return;
-
-    updateLocation();
 
     let uris = undefined;
 
