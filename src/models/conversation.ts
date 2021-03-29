@@ -250,9 +250,14 @@ export class Conversation {
     }
   }
 
-  private _isHeartbeatEnabled = () => this._endpointType === ConversationEndpointType.CLIENT;
+  // Heartbeat is only allowed for clients. PSAPs must not send hearbeat messages
+  // Also, if `heartbeatInterval` is set to `0` it means heartbeat is disabled
+  private _isHeartbeatAllowed = () =>
+    this._endpointType === ConversationEndpointType.CLIENT &&
+    this._store.getHeartbeatInterval() > 0;
+
   private _startHeartbeat = () => {
-    if (this._heartbeatInterval || !this._isHeartbeatEnabled())
+    if (this._heartbeatInterval || !this._isHeartbeatAllowed())
       return;
 
     // TODO: Error handling if sendMessage fails

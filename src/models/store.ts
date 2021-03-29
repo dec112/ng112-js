@@ -15,11 +15,14 @@ export interface CustomSipHeaders {
    */
   replyTo?: CustomSipHeader,
 }
+
+export const defaultHeartbeatInterval = 15000; // TS 103 698, 6.2.5: at least every 20 seconds
+
 export class Store {
   public readonly conversations: Conversation[] = [];
 
   private _lastKnownLocation?: PidfLo;
-  private _heartbeatInterval: number = 15000; // TS 103 698, 6.2.5: at least every 20 seconds
+  private _heartbeatInterval: number = defaultHeartbeatInterval;
   private _vcard?: VCard;
 
   constructor(
@@ -40,15 +43,14 @@ export class Store {
   /**
    * Sets the update interval for heartbeat messages that are sent automatically
    * 
-   * @param interval New interval to be used (in milliseconds)\
-   * Values between (including) `1000` and `20000` are allowed only (due to ETSI spcification requirements)!
+   * @param interval New interval to be used (in milliseconds) \
+   * Values between (including) `0` and `20000` are allowed only (due to ETSI spcification requirements)! \
+   * If value `0` is specified, automatic heartbeats will be disabled. \
+   * If no value is specified, a default interval of `15000` milliseconds will be applied.
    */
-  setHeartbeatInterval = (interval: number) => {
-    if (interval < 1000)
-      throw new Error('Intervals lower than 1000 milliseconds are not allowed.');
-
-    if (interval > 20000)
-      throw new Error('TS 103 698 does not allow intervals greater than 20000 milliseconds.');
+  setHeartbeatInterval = (interval: number = defaultHeartbeatInterval) => {
+    if (interval > 20000 || interval < 0)
+      throw new Error('TS 103 698 does not allow intervals greater than 20000 or smaller than 0 milliseconds.');
 
     this._heartbeatInterval = interval;
   }

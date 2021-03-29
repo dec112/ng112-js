@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.9] - 2021-03-29
+### Changed
+- Less restrictive heartbeat interval settings
+### Added
+- Ability to call `setHeartbeatInterval` without parameter, thus resetting it to the default value
+
 ## [0.11.8] - 2021-03-18
 ### Fixed
 - Fixed jssip version to 3.5.11. This is due to an incompatibility of JsSIP 3.7.3 with Expo.
