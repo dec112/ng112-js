@@ -253,6 +253,7 @@ export class Conversation {
   // Heartbeat is only allowed for clients. PSAPs must not send hearbeat messages
   // Also, if `heartbeatInterval` is set to `0` it means heartbeat is disabled
   private _isHeartbeatAllowed = () =>
+    this._state.value === ConversationState.STARTED &&
     this._endpointType === ConversationEndpointType.CLIENT &&
     this._store.getHeartbeatInterval() > 0;
 
@@ -271,10 +272,23 @@ export class Conversation {
 
   private _stopHeartbeat = () => {
     if (!this._heartbeatInterval)
-      return
+      return;
 
     clearInterval(this._heartbeatInterval);
     this._heartbeatInterval = undefined;
+  }
+
+  private _manageHeartbeat = () => {
+    // this will ensure heartbeat is updated with latest settings
+    // e.g. if heartbeat interval was changed...
+    this._stopHeartbeat();
+
+    if (this._isHeartbeatAllowed())
+      this._startHeartbeat();
+  }
+
+  private _onUpdateHeartbeatInterval = () => {
+    this._manageHeartbeat();
   }
 
   /**
@@ -299,10 +313,12 @@ export class Conversation {
 
     if (state === ConversationState.STARTED) {
       this._hasBeenStarted = true;
-      this._startHeartbeat();
+      this._store.addHeartbeatIntervalListener(this._onUpdateHeartbeatInterval);
     }
-    else if (state === ConversationState.STOPPED)
-      this._stopHeartbeat();
+    else
+      this._store.removeHeartbeatIntervalListener(this._onUpdateHeartbeatInterval);
+
+    this._manageHeartbeat();
 
     return () => {
       for (const listener of this._stateListeners) {

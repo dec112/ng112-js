@@ -25,6 +25,8 @@ export class Store {
   private _heartbeatInterval: number = defaultHeartbeatInterval;
   private _vcard?: VCard;
 
+  private _heartbeatIntervalListeners: ((interval: number) => unknown)[] = [];
+
   constructor(
     public readonly originSipUri: string,
     public readonly customSipHeaders?: CustomSipHeaders,
@@ -52,6 +54,23 @@ export class Store {
     if (interval > 20000 || interval < 0)
       throw new Error('TS 103 698 does not allow intervals greater than 20000 or smaller than 0 milliseconds.');
 
-    this._heartbeatInterval = interval;
+    if (interval !== this._heartbeatInterval) {
+      this._heartbeatInterval = interval;
+
+      for (const listener of this._heartbeatIntervalListeners) {
+        listener(interval);
+      }
+    }
+  }
+
+  addHeartbeatIntervalListener = (callback: (interval: number) => unknown) => {
+    this._heartbeatIntervalListeners.push(callback);
+  }
+
+  removeHeartbeatIntervalListener = (callback: (interval: number) => unknown) => {
+    const found = this._heartbeatIntervalListeners.indexOf(callback);
+
+    if (found !== -1)
+      this._heartbeatIntervalListeners.splice(found, 1);
   }
 }
