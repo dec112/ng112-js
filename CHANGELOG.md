@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.11] - 2021-03-30
+### Fixed
+- Typo in agent's `setHeartbeatInterval`
+
 ## [0.11.10] - 2021-03-29
 ### Fixed
 - Heartbeat can also be enabled/disabled/updated while a conversation is already ongoing

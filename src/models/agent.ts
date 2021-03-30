@@ -318,7 +318,7 @@ export class Agent {
    * See {@link Store.setHeartbeatInterval} for implementation details
    */
   // tsdoc should be done via @inheritdoc, but obviously this is currently not working with typedoc
-  setHearbeatInterval = (interval?: number): void => {
+  setHeartbeatInterval = (interval?: number): void => {
     this._store.setHeartbeatInterval(interval);
   }
 
