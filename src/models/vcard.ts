@@ -17,6 +17,7 @@ enum KeyId {
   ADDRESS_COUNTRY = 'country',
   TELEPHONE = 'tel',
   EMAIL = 'email',
+  NOTE = 'note',
 }
 
 interface KeyValue {
@@ -71,6 +72,8 @@ export class VCard {
   addCode = (value: string) => this.add(KeyId.ADDRESS_CODE, value);
   addCountry = (value: string) => this.add(KeyId.ADDRESS_COUNTRY, value);
 
+  addNote = (value: string) => this.add(KeyId.NOTE, value);
+
   // get functions
   get fullName(): string | undefined { return this.get(KeyId.FULL_NAME); }
   get firstname(): string | undefined { return this.get(KeyId.FIRST_NAME); }
@@ -87,6 +90,8 @@ export class VCard {
   get region(): string | undefined { return this.get(KeyId.ADDRESS_REGION); }
   get code(): string | undefined { return this.get(KeyId.ADDRESS_CODE); }
   get country(): string | undefined { return this.get(KeyId.ADDRESS_COUNTRY); }
+
+  get note(): string | undefined { return this.get(KeyId.NOTE); }
 
   toXML = (namespacePrefix?: string): XMLDocument => {
     const doc = PidfLoCompat.XMLCompat.createDocument();
@@ -298,6 +303,17 @@ const xmlVCard: XMLNode = {
       nodeName: KeyId.BIRTHDAY,
       parser: (value) => value ? new Date(value) : value,
       writer: (value: Date) => value.toISOString(),
+    },
+    {
+      nodeName: KeyId.NOTE,
+      leafs: [
+        {
+          nodeName: 'text',
+          keyId: KeyId.NOTE,
+          parser: stringParser,
+          writer: stringWriter,
+        },
+      ],
     },
   ]
 }
