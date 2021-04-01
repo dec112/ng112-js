@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.12] - 2021-04-01
+### Added
+- Note in VCards
+
 ## [0.11.11] - 2021-03-30
 ### Fixed
 - Typo in agent's `setHeartbeatInterval`
