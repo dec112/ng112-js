@@ -264,13 +264,18 @@ const disable = (element, value) => {
       .addCountry('Austria')
       .addTelephone('+4366412345678')
       .addEmail('alice.smith@dec112.at')
+      .addNote(JSON.stringify({
+        some: 'additional',
+        data: 'to',
+        be: 'sent',
+      }))
     );
 
     conversation = agent.createConversation(call.value, {
       isTest: isTest.checked,
     });
 
-    conversation.start();
+    await conversation.start().promise;
   });
   disable(start, true);
 
