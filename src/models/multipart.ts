@@ -2,7 +2,7 @@ import { MULTIPART_MIXED } from '../constants/content-types';
 import { CONTENT_TYPE, MIME_VERSION } from '../constants/headers';
 import { getHeaderString, getRandomString, Header, parseHeader } from '../utils';
 
-interface MultipartPart {
+export interface MultipartPart {
   headers: Header[],
   body: string,
 }
@@ -31,8 +31,12 @@ export class Multipart {
   public get parts() { return this._parts }
   private _parts: MultipartPart[] = [];
 
-  addPart = (part: MultipartPart) => {
+  add = (part: MultipartPart) => {
     this._parts.push(part);
+  }
+
+  addAll = (parts: MultipartPart[]) => {
+    this._parts = this._parts.concat(parts);
   }
 
   create = (): MultipartObject => {
@@ -124,7 +128,7 @@ export class Multipart {
         }
       }
 
-      multi.addPart({
+      multi.add({
         body,
         headers,
       });

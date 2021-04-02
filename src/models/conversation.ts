@@ -9,7 +9,7 @@ import { Store } from './store';
 import { Message, Origin, MessageState } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
-import { Multipart, CRLF } from './multipart';
+import { Multipart, MultipartPart, CRLF } from './multipart';
 import { ConversationConfiguration } from './interfaces';
 import { clearInterval, setInterval, Timeout } from '../utils';
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
@@ -38,6 +38,10 @@ export interface SendMessageObject {
    * URIs to send along with the message (e.g. for deep linking something)
    */
   uris?: string[],
+  /**
+   * Additional (custom) Multipart MIME parts to add to the message
+   */
+  extraParts?: MultipartPart[],
   /**
    * Message type (bitmask) according to ETSI TS 103 698\
    * Defaults to `EmergencyMessageType.IN_CHAT`\
@@ -196,6 +200,7 @@ export class Conversation {
         endpointType: this._endpointType,
         text: message.text,
         uris: message.uris,
+        extraParts: message.extraParts,
         replyToSipUri,
         location: message.location,
         vcard: message.vcard,
@@ -363,6 +368,7 @@ export class Conversation {
   sendMessage = ({
     text,
     uris,
+    extraParts,
     type = EmergencyMessageType.IN_CHAT,
     messageId,
   }: SendMessageObject): Message => {
@@ -391,6 +397,7 @@ export class Conversation {
       state: MessageState.PENDING,
       text,
       uris,
+      extraParts,
       // This is just a dummy value to satisfy TypeScript
       promise: new Promise(() => { }),
     };

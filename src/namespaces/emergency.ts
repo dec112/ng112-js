@@ -5,7 +5,7 @@ import PidfLoCompat from '../compatibility/pidf-lo';
 import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST } from '../constants/content-types';
 import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, REPLY_TO } from '../constants/headers';
 import { ConversationEndpointType } from '../models/conversation';
-import { CRLF, Multipart } from '../models/multipart';
+import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
 import { MessageParts, MessagePartsParams, NamespacedConversation } from './interfaces'
 
@@ -47,6 +47,7 @@ export class EmergencyMapper implements NamespacedConversation {
     replyToSipUri: string,
     text?: string,
     uris?: string[],
+    extraParts?: MultipartPart[],
     location?: PidfLo,
     vcard?: VCard,
     // TODO: TS 103 698 -> 6.1.2.11 -> support DIDs
@@ -55,12 +56,16 @@ export class EmergencyMapper implements NamespacedConversation {
     let extraHeaders: Header[] = [];
     const multi = new Multipart();
 
+    if (extraParts) {
+      multi.addAll(extraParts);
+    }
+
     if (endpointType === ConversationEndpointType.PSAP) {
       extraHeaders.push({ key: REPLY_TO, value: replyToSipUri })
     }
 
     if (uris) {
-      multi.addPart({
+      multi.add({
         headers: [{ key: CONTENT_TYPE, value: TEXT_URI_LIST }],
         body: uris.join(CRLF),
       })
@@ -74,7 +79,7 @@ export class EmergencyMapper implements NamespacedConversation {
         { key: GEOLOCATION, value: `<cid:${locationContentId}>` },
       ]);
 
-      multi.addPart({
+      multi.add({
         headers: [
           { key: CONTENT_TYPE, value: PIDF_LO },
           { key: CONTENT_ID, value: `<${locationContentId}>` },
@@ -104,7 +109,7 @@ export class EmergencyMapper implements NamespacedConversation {
         root.appendChild(data);
         doc.appendChild(root);
 
-        multi.addPart({
+        multi.add({
           headers: [
             { key: CONTENT_TYPE, value: CALL_SUB },
           ],
@@ -114,7 +119,7 @@ export class EmergencyMapper implements NamespacedConversation {
     }
 
     if (text) {
-      multi.addPart({
+      multi.add({
         headers: [{ key: CONTENT_TYPE, value: TEXT_PLAIN }],
         body: text,
       });
@@ -149,6 +154,7 @@ export class EmergencyMapper implements NamespacedConversation {
     endpointType,
     text,
     uris,
+    extraParts,
     replyToSipUri,
     location,
     vcard,
@@ -158,6 +164,7 @@ export class EmergencyMapper implements NamespacedConversation {
       replyToSipUri,
       text,
       uris,
+      extraParts,
       location,
       vcard,
     );

@@ -1,6 +1,7 @@
 import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import type { PidfLo } from 'pidf-lo';
 import { ConversationEndpointType } from '../models/conversation';
+import { MultipartPart } from '../models/multipart';
 import { VCard } from '../models/vcard';
 import { Header } from '../utils';
 
@@ -21,6 +22,7 @@ export interface MessagePartsParams {
   isTest: boolean,
   text?: string,
   uris?: string[],
+  extraParts?: MultipartPart[],
   replyToSipUri: string,
   location?: PidfLo,
   vcard?: VCard,

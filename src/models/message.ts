@@ -1,6 +1,7 @@
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import type { PidfLo } from 'pidf-lo';
 import { Conversation } from './conversation';
+import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
 
 export enum Origin {
@@ -73,6 +74,10 @@ export interface Message {
    * A list of URIs
    */
   uris?: string[],
+  /**
+   * Additional (custom) Multipart MIME parts to add to the message
+   */
+  extraParts?: MultipartPart[],
   /**
    * The corresponding raw message from the SIP stack `JsSIP`\
    * For outgoing messages this will only be resolved after property `promise` is resolved

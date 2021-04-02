@@ -46,6 +46,7 @@ export class DEC112Mapper implements NamespacedConversation {
     endpointType,
     text,
     uris,
+    extraParts,
     replyToSipUri,
     location,
     vcard,
@@ -55,6 +56,7 @@ export class DEC112Mapper implements NamespacedConversation {
       replyToSipUri,
       text,
       uris,
+      extraParts,
       location,
       vcard,
     );
