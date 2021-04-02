@@ -52,6 +52,8 @@ export class VCard {
   }
 
   // this is the generic implementation that can also be used from outside
+  // TODO: somehow process items that were added without an already existing KeyId
+  // at the moment, they are not put into the XML structure
   add = (key: KeyId, value: any) => this._push(key, value);
   get = (key: KeyId) => this._items.find(x => x.key === key)?.value;
 
@@ -98,7 +100,7 @@ export class VCard {
     const rootNode = writeXmlElement(xmlVCard, doc, this, namespacePrefix);
 
     if (!rootNode)
-      throw new Error('Error while creating XML VCard.');
+      throw new Error('Could not create VCard root node. Did you provide any data?');
 
     doc.appendChild(rootNode);
     return doc;
@@ -155,7 +157,8 @@ const writeXmlElement = (
         el.appendChild(node);
     }
 
-    if (el.children.length > 0)
+    // use childNodes instead of children as childNodes is the DOM level2 compatible implementation
+    if (el.childNodes.length > 0)
       return el;
   }
 

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.13] - 2021-04-02
+### Fixed
+- VCard's XML implementation. DOM standard (used by `xmldom`) uses only supports `childNodes` not `children`
+
 ## [0.11.12] - 2021-04-01
 ### Added
 - Note in VCards
