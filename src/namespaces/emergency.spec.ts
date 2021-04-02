@@ -43,8 +43,8 @@ describe('Messaging functionality', () => {
       conversationId: '1234',
       endpointType: ConversationEndpointType.CLIENT,
       isTest: false,
-      messageId: 1,
-      messageType: EmergencyMessageType.HEARTBEAT,
+      id: 1,
+      type: EmergencyMessageType.HEARTBEAT,
       replyToSipUri: 'sip:test@domain.com',
     });
 

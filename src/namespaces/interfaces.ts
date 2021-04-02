@@ -1,9 +1,9 @@
 import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import type { PidfLo } from 'pidf-lo';
 import { ConversationEndpointType } from '../models/conversation';
-import { MultipartPart } from '../models/multipart';
-import { VCard } from '../models/vcard';
+import { Message } from '../models/message';
 import { Header } from '../utils';
+import { OmitStrict } from '../utils/ts-utils';
 
 export interface NamespaceSpecifics { }
 
@@ -13,19 +13,17 @@ export interface MessageParts {
   body: string,
 }
 
-export interface MessagePartsParams {
+export type MessagePartsParams = OmitStrict<Message,
+  'origin' |
+  'state' |
+  'promise' |
+  'dateTime' |
+  'conversation'
+> & {
   conversationId: string,
-  messageId: number,
-  // bitmask of "EMERGENCY" namespace will be used here
-  messageType: number,
   endpointType: ConversationEndpointType,
   isTest: boolean,
-  text?: string,
-  uris?: string[],
-  extraParts?: MultipartPart[],
   replyToSipUri: string,
-  location?: PidfLo,
-  vcard?: VCard,
 }
 
 export interface NamespacedConversation {

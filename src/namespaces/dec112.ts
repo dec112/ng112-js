@@ -41,8 +41,8 @@ export class DEC112Mapper implements NamespacedConversation {
   createMessageParts = ({
     conversationId,
     isTest,
-    messageId,
-    messageType,
+    id,
+    type,
     endpointType,
     text,
     uris,
@@ -61,7 +61,7 @@ export class DEC112Mapper implements NamespacedConversation {
       vcard,
     );
 
-    const dec112MessageType = fromEmergencyMessageType(messageType, {
+    const dec112MessageType = fromEmergencyMessageType(type, {
       hasVCard: !!vcard,
       hasLocation: !!location,
       hasTextMessage: !!text,
@@ -70,7 +70,7 @@ export class DEC112Mapper implements NamespacedConversation {
     const extraHeaders: Header[] = [
       ...common.headers,
       { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, dec112Domain) },
-      { key: CALL_INFO, value: getMessageIdHeaderValue(messageId.toString(), dec112Domain) },
+      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), dec112Domain) },
       { key: CALL_INFO, value: getMessageTypeHeaderValue(dec112MessageType.toString(), dec112Domain) },
     ];
 

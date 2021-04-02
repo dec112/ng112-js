@@ -192,18 +192,11 @@ export class Conversation {
 
     try {
       const { body, headers, contentType } = this.mapper.createMessageParts({
+        ...message,
         conversationId: this.id,
         isTest: this.isTest,
-        // for outgoing messages we know message id will ALWAYS be of type `number`
-        messageId: message.id as number,
-        messageType: message.type,
-        endpointType: this._endpointType,
-        text: message.text,
-        uris: message.uris,
-        extraParts: message.extraParts,
         replyToSipUri,
-        location: message.location,
-        vcard: message.vcard,
+        endpointType: this._endpointType,
       });
 
       // we can not just pass the plain string to `sendMessage` as this causes problems with encoded parameters

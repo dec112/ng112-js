@@ -149,8 +149,8 @@ export class EmergencyMapper implements NamespacedConversation {
   createMessageParts = ({
     conversationId,
     isTest,
-    messageId,
-    messageType,
+    id,
+    type,
     endpointType,
     text,
     uris,
@@ -171,8 +171,8 @@ export class EmergencyMapper implements NamespacedConversation {
 
     const extraHeaders = [
       { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, 'dec112.at') },
-      { key: CALL_INFO, value: getMessageIdHeaderValue(messageId.toString(), 'service.dec112.at') },
-      { key: CALL_INFO, value: getMessageTypeHeaderValue(messageType.toString(), 'service.dec112.at') },
+      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), 'service.dec112.at') },
+      { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), 'service.dec112.at') },
       ...common.headers,
     ];
 
