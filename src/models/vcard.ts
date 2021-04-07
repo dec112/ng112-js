@@ -21,7 +21,7 @@ enum KeyId {
 }
 
 interface KeyValue {
-  key: KeyId,
+  key: KeyId | string,
   value: any,
 }
 
@@ -36,7 +36,7 @@ export enum Gender {
 export class VCard {
   private _items: KeyValue[] = [];
 
-  private _push = (key: KeyId, value: any): VCard => {
+  private _push = (key: KeyId | string, value: any): VCard => {
     this._items.push({
       key,
       value,
@@ -54,8 +54,8 @@ export class VCard {
   // this is the generic implementation that can also be used from outside
   // TODO: somehow process items that were added without an already existing KeyId
   // at the moment, they are not put into the XML structure
-  add = (key: KeyId, value: any) => this._push(key, value);
-  get = (key: KeyId) => this._items.find(x => x.key === key)?.value;
+  add = (key: KeyId | string, value: any) => this._push(key, value);
+  get = (key: KeyId | string) => this._items.find(x => x.key === key)?.value;
 
   // add functions
 
@@ -180,17 +180,44 @@ export class VCard {
 
   toXML = (namespacePrefix?: string): XMLDocument => {
     const doc = PidfLoCompat.XMLCompat.createDocument();
-    const rootNode = writeXmlElement(xmlVCard, doc, this, namespacePrefix);
+    // we clone the array because we remove all items that have already been processed by `writeXmlElement`
+    // This helps us finding unknown items so we can process them separately
+    const clonedItems = Array.from(this._items);
 
-    if (!rootNode)
+    const rootNode = createPrefixedElement(doc, 'vcard', namespacePrefix);
+
+    for (const node of vcardNodes) {
+      const el = writeXmlElement(node, doc, clonedItems, namespacePrefix);
+
+      if (el)
+        rootNode.appendChild(el);
+    }
+
+    // here we take care of all unknown items that were added via the general `add` function
+    // the xml structure we assume for them is `<unknown-item><text>%content%</text></unknown-item>
+    for (const item of clonedItems) {
+      const parent = createPrefixedElement(doc, item.key, namespacePrefix);
+      const child = createPrefixedElement(doc, 'text', namespacePrefix);
+      child.textContent = item.value;
+
+      parent.appendChild(child);
+      rootNode.appendChild(parent);
+    }
+
+    if (rootNode.childNodes.length === 0)
       throw new Error('Could not create VCard root node. Did you provide any data?');
 
     doc.appendChild(rootNode);
     return doc;
   }
 
+  toXMLString = (namespacePrefix?: string): string => {
+    return PidfLoCompat.XMLCompat.toXMLString(this.toXML(namespacePrefix));
+  }
+
   static fromXML = (xml: string): VCard => {
     const doc = PidfLoCompat.XMLCompat.getDocumentFromString(xml);
+    const docElement = doc.documentElement;
     const vcard = new VCard();
 
     const namespacePrefixResult = new RegExp(`xmlns:(\\w+)="${VCARD_XML_NAMESPACE.replace('.', '\\.')}"`).exec(xml);
@@ -198,7 +225,23 @@ export class VCard {
     if (namespacePrefixResult && namespacePrefixResult.length > 1)
       namespacePrefix = namespacePrefixResult[1];
 
-    parseXmlElement(xmlVCard, doc.documentElement, vcard, namespacePrefix);
+    for (const node of vcardNodes) {
+      parseXmlElement(node, docElement, vcard, namespacePrefix);
+    }
+
+    // now we parse VCard items that are unknown
+    for (const element of getPrefixedElements(docElement, 'text', namespacePrefix)) {
+      const parent = element.parentNode;
+
+      if (!parent)
+        continue;
+
+      // TypeScript does not have "localName" in its types even though it is specified in DOM level2
+      // https://github.com/xmldom/xmldom#dom-level2-method-and-attribute
+      // @ts-expect-error
+      vcard.add(parent.localName, element.textContent);
+      parent.parentNode?.removeChild(parent);
+    }
 
     return vcard;
   }
@@ -215,19 +258,27 @@ export class VCard {
 const stringParser = (value: string | undefined): string | undefined => value;
 const stringWriter = (value: string) => value;
 
+const createPrefixedElement = (document: Document, tagName: string, namespace?: string) => {
+  return document.createElement(`${namespace ? `${namespace}:` : ''}${tagName}`);
+}
+
 const writeXmlElement = (
   node: XMLNode,
   doc: Document,
-  vcard: VCard,
+  vcardItems: KeyValue[],
   namespace?: string,
 ): Element | undefined => {
-  const el = doc.createElement(`${namespace ? `${namespace}:` : ''}${node.nodeName}`);
+  const el = createPrefixedElement(doc, node.nodeName, namespace);
 
   if (node.writer) {
-    const value = vcard.get(node.keyId ?? (node.nodeName as KeyId));
+    const index = vcardItems.findIndex((x) => x.key === node.keyId || x.key === node.nodeName);
 
-    if (value !== undefined) {
-      el.textContent = node.writer(value);
+    if (index > -1) {
+      const value = vcardItems[index].value;
+      vcardItems.splice(index, 1);
+
+      if (value !== undefined)
+        el.textContent = node.writer(value);
 
       return el;
     }
@@ -235,7 +286,7 @@ const writeXmlElement = (
 
   if (node.leafs) {
     for (const leaf of node.leafs) {
-      const node = writeXmlElement(leaf, doc, vcard, namespace);
+      const node = writeXmlElement(leaf, doc, vcardItems, namespace);
       if (node)
         el.appendChild(node);
     }
@@ -248,14 +299,18 @@ const writeXmlElement = (
   return undefined;
 }
 
+const getPrefixedElements = (parentElement: Element, tagName: string, namespacePrefix?: string) => {
+  const pref = namespacePrefix ? `${namespacePrefix}:` : '';
+  return Array.from(parentElement.getElementsByTagName(`${pref}${tagName}`));
+}
+
 const parseXmlElement = (
   node: XMLNode,
   parentElement: Element,
   vcard: VCard,
   namespacePrefix?: string,
 ) => {
-  const pref = namespacePrefix ? `${namespacePrefix}:` : '';
-  const foundElement = parentElement.getElementsByTagName(`${pref}${node.nodeName}`)[0];
+  const foundElement = getPrefixedElements(parentElement, node.nodeName, namespacePrefix)[0];
 
   if (!foundElement)
     return;
@@ -266,6 +321,10 @@ const parseXmlElement = (
     const value = node.parser(rawString === null ? undefined : rawString);
 
     vcard.add(keyId, value);
+
+    // we remove all processed items so only unprocessed remain left
+    // all unprocessed (unknown) items are processed separately
+    foundElement.parentNode?.removeChild(foundElement);
   }
 
   if (node.leafs) {
@@ -283,123 +342,120 @@ interface XMLNode {
   leafs?: XMLNode[];
 }
 
-const xmlVCard: XMLNode = {
-  nodeName: 'vcard',
-  leafs: [
-    {
-      nodeName: 'adr',
-      leafs: [
-        {
-          nodeName: KeyId.ADDRESS_CODE,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-        {
-          nodeName: KeyId.ADDRESS_COUNTRY,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-        {
-          nodeName: KeyId.ADDRESS_LOCALITY,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-        {
-          nodeName: KeyId.ADDRESS_REGION,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-        {
-          nodeName: KeyId.ADDRESS_STREET,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-      ],
-    },
-    {
-      nodeName: 'n',
-      leafs: [
-        {
-          nodeName: KeyId.NAME_PREFIX,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-        {
-          nodeName: KeyId.NAME_SUFFIX,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-        {
-          nodeName: KeyId.LAST_NAME,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-        {
-          nodeName: KeyId.FIRST_NAME,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-      ]
-    },
-    {
-      nodeName: KeyId.FULL_NAME,
-      leafs: [
-        {
-          nodeName: 'text',
-          keyId: KeyId.FULL_NAME,
-          parser: stringParser,
-          writer: stringWriter,
-        }
-      ]
-    },
-    {
-      nodeName: KeyId.TELEPHONE,
-      leafs: [
-        {
-          nodeName: 'text',
-          keyId: KeyId.TELEPHONE,
-          parser: stringParser,
-          writer: stringWriter,
-        }
-      ]
-    },
-    {
-      nodeName: KeyId.EMAIL,
-      leafs: [
-        {
-          nodeName: 'text',
-          keyId: KeyId.EMAIL,
-          parser: stringParser,
-          writer: stringWriter,
-        }
-      ]
-    },
-    {
-      nodeName: KeyId.GENDER,
-      leafs: [
-        {
-          nodeName: 'sex',
-          keyId: KeyId.GENDER,
-          parser: (value) => value as Gender,
-          writer: (value: Gender) => value,
-        }
-      ]
-    },
-    {
-      nodeName: KeyId.BIRTHDAY,
-      parser: (value) => value ? new Date(value) : value,
-      writer: (value: Date) => value.toISOString(),
-    },
-    {
-      nodeName: KeyId.NOTE,
-      leafs: [
-        {
-          nodeName: 'text',
-          keyId: KeyId.NOTE,
-          parser: stringParser,
-          writer: stringWriter,
-        },
-      ],
-    },
-  ]
-}
+const vcardNodes: XMLNode[] = [
+  {
+    nodeName: 'adr',
+    leafs: [
+      {
+        nodeName: KeyId.ADDRESS_CODE,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+      {
+        nodeName: KeyId.ADDRESS_COUNTRY,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+      {
+        nodeName: KeyId.ADDRESS_LOCALITY,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+      {
+        nodeName: KeyId.ADDRESS_REGION,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+      {
+        nodeName: KeyId.ADDRESS_STREET,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+    ],
+  },
+  {
+    nodeName: 'n',
+    leafs: [
+      {
+        nodeName: KeyId.NAME_PREFIX,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+      {
+        nodeName: KeyId.NAME_SUFFIX,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+      {
+        nodeName: KeyId.LAST_NAME,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+      {
+        nodeName: KeyId.FIRST_NAME,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+    ]
+  },
+  {
+    nodeName: KeyId.FULL_NAME,
+    leafs: [
+      {
+        nodeName: 'text',
+        keyId: KeyId.FULL_NAME,
+        parser: stringParser,
+        writer: stringWriter,
+      }
+    ]
+  },
+  {
+    nodeName: KeyId.TELEPHONE,
+    leafs: [
+      {
+        nodeName: 'text',
+        keyId: KeyId.TELEPHONE,
+        parser: stringParser,
+        writer: stringWriter,
+      }
+    ]
+  },
+  {
+    nodeName: KeyId.EMAIL,
+    leafs: [
+      {
+        nodeName: 'text',
+        keyId: KeyId.EMAIL,
+        parser: stringParser,
+        writer: stringWriter,
+      }
+    ]
+  },
+  {
+    nodeName: KeyId.GENDER,
+    leafs: [
+      {
+        nodeName: 'sex',
+        keyId: KeyId.GENDER,
+        parser: (value) => value as Gender,
+        writer: (value: Gender) => value,
+      }
+    ]
+  },
+  {
+    nodeName: KeyId.BIRTHDAY,
+    parser: (value) => value ? new Date(value) : value,
+    writer: (value: Date) => value.toISOString(),
+  },
+  {
+    nodeName: KeyId.NOTE,
+    leafs: [
+      {
+        nodeName: 'text',
+        keyId: KeyId.NOTE,
+        parser: stringParser,
+        writer: stringWriter,
+      },
+    ],
+  },
+];
