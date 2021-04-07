@@ -58,22 +58,105 @@ export class VCard {
   get = (key: KeyId) => this._items.find(x => x.key === key)?.value;
 
   // add functions
+
+  /**
+   * The VCard's `fn` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addFullName = (value: string) => this.add(KeyId.FULL_NAME, value);
+  /**
+   * The VCard's `surname` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addFirstname = (value: string) => this.add(KeyId.FIRST_NAME, value);
+  /**
+   * The VCard's `given` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addLastname = (value: string) => this.add(KeyId.LAST_NAME, value);
+  /**
+   * The VCard's `prefix` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addNamePrefix = (value: string) => this.add(KeyId.NAME_PREFIX, value);
+  /**
+   * The VCard's `suffix` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addNameSuffix = (value: string) => this.add(KeyId.NAME_SUFFIX, value);
+  /**
+   * The VCard's `bday` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addBirthday = (value: Date) => this.add(KeyId.BIRTHDAY, value);
+  /**
+   * The VCard's `gender` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addGender = (value: Gender) => this.add(KeyId.GENDER, value);
+  /**
+   * The VCard's `tel` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addTelephone = (value: string) => this.add(KeyId.TELEPHONE, value);
+  /**
+   * The VCard's `email` object
+   * 
+   * @returns VCard for chaining function calls
+   */
   addEmail = (value: string) => this.add(KeyId.EMAIL, value);
 
+  /**
+   * The VCard's `adr` `street` object
+   * e.g. the street address
+   * 
+   * @returns VCard for chaining function calls
+   */
   addStreet = (value: string) => this.add(KeyId.ADDRESS_STREET, value);
+  /**
+   * The VCard's `adr` `locality` object
+   * e.g. city
+   * 
+   * @returns VCard for chaining function calls
+   */
   addLocality = (value: string) => this.add(KeyId.ADDRESS_LOCALITY, value);
+  /**
+   * The VCard's `adr` `region` object
+   * e.g. state or province
+   * 
+   * @returns VCard for chaining function calls
+   */
   addRegion = (value: string) => this.add(KeyId.ADDRESS_REGION, value);
+  /**
+   * The VCard's `adr` `code` object
+   * e.g. the postal code
+   * 
+   * @returns VCard for chaining function calls
+   */
   addCode = (value: string) => this.add(KeyId.ADDRESS_CODE, value);
+  /**
+   * The VCard's `adr` `country` object
+   * e.g. the country name
+   * 
+   * @returns VCard for chaining function calls
+   */
   addCountry = (value: string) => this.add(KeyId.ADDRESS_COUNTRY, value);
 
+  /**
+   * The VCard's `note` object
+   * e.g. any arbitrary additional information
+   * Can also be a JSON or XML encoded string for passing structured data
+   * 
+   * @returns VCard for chaining function calls
+   */
   addNote = (value: string) => this.add(KeyId.NOTE, value);
 
   // get functions
