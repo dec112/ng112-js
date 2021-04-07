@@ -270,7 +270,7 @@ const writeXmlElement = (
 ): Element | undefined => {
   const el = createPrefixedElement(doc, node.nodeName, namespace);
 
-  if (node.writer) {
+  if (!node.leafs) {
     const index = vcardItems.findIndex((x) => x.key === node.keyId || x.key === node.nodeName);
 
     if (index > -1) {
@@ -278,13 +278,11 @@ const writeXmlElement = (
       vcardItems.splice(index, 1);
 
       if (value !== undefined)
-        el.textContent = node.writer(value);
+        el.textContent = (node.writer ?? stringWriter)(value);
 
       return el;
     }
-  }
-
-  if (node.leafs) {
+  } else {
     for (const leaf of node.leafs) {
       const node = writeXmlElement(leaf, doc, vcardItems, namespace);
       if (node)
@@ -315,19 +313,17 @@ const parseXmlElement = (
   if (!foundElement)
     return;
 
-  if (node.parser) {
+  if (!node.leafs) {
     const rawString = foundElement.textContent;
     const keyId: KeyId = node.keyId ?? node.nodeName as KeyId;
-    const value = node.parser(rawString === null ? undefined : rawString);
+    const value = (node.parser ?? stringParser)(rawString === null ? undefined : rawString);
 
     vcard.add(keyId, value);
 
     // we remove all processed items so only unprocessed remain left
     // all unprocessed (unknown) items are processed separately
     foundElement.parentNode?.removeChild(foundElement);
-  }
-
-  if (node.leafs) {
+  } else {
     for (const leaf of node.leafs) {
       parseXmlElement(leaf, foundElement, vcard, namespacePrefix);
     }
@@ -346,56 +342,20 @@ const vcardNodes: XMLNode[] = [
   {
     nodeName: 'adr',
     leafs: [
-      {
-        nodeName: KeyId.ADDRESS_CODE,
-        parser: stringParser,
-        writer: stringWriter,
-      },
-      {
-        nodeName: KeyId.ADDRESS_COUNTRY,
-        parser: stringParser,
-        writer: stringWriter,
-      },
-      {
-        nodeName: KeyId.ADDRESS_LOCALITY,
-        parser: stringParser,
-        writer: stringWriter,
-      },
-      {
-        nodeName: KeyId.ADDRESS_REGION,
-        parser: stringParser,
-        writer: stringWriter,
-      },
-      {
-        nodeName: KeyId.ADDRESS_STREET,
-        parser: stringParser,
-        writer: stringWriter,
-      },
+      { nodeName: KeyId.ADDRESS_CODE, },
+      { nodeName: KeyId.ADDRESS_COUNTRY, },
+      { nodeName: KeyId.ADDRESS_LOCALITY, },
+      { nodeName: KeyId.ADDRESS_REGION, },
+      { nodeName: KeyId.ADDRESS_STREET, },
     ],
   },
   {
     nodeName: 'n',
     leafs: [
-      {
-        nodeName: KeyId.NAME_PREFIX,
-        parser: stringParser,
-        writer: stringWriter,
-      },
-      {
-        nodeName: KeyId.NAME_SUFFIX,
-        parser: stringParser,
-        writer: stringWriter,
-      },
-      {
-        nodeName: KeyId.LAST_NAME,
-        parser: stringParser,
-        writer: stringWriter,
-      },
-      {
-        nodeName: KeyId.FIRST_NAME,
-        parser: stringParser,
-        writer: stringWriter,
-      },
+      { nodeName: KeyId.NAME_PREFIX, },
+      { nodeName: KeyId.NAME_SUFFIX, },
+      { nodeName: KeyId.LAST_NAME, },
+      { nodeName: KeyId.FIRST_NAME, },
     ]
   },
   {
@@ -404,8 +364,6 @@ const vcardNodes: XMLNode[] = [
       {
         nodeName: 'text',
         keyId: KeyId.FULL_NAME,
-        parser: stringParser,
-        writer: stringWriter,
       }
     ]
   },
@@ -415,8 +373,6 @@ const vcardNodes: XMLNode[] = [
       {
         nodeName: 'text',
         keyId: KeyId.TELEPHONE,
-        parser: stringParser,
-        writer: stringWriter,
       }
     ]
   },
@@ -426,8 +382,6 @@ const vcardNodes: XMLNode[] = [
       {
         nodeName: 'text',
         keyId: KeyId.EMAIL,
-        parser: stringParser,
-        writer: stringWriter,
       }
     ]
   },
@@ -453,8 +407,6 @@ const vcardNodes: XMLNode[] = [
       {
         nodeName: 'text',
         keyId: KeyId.NOTE,
-        parser: stringParser,
-        writer: stringWriter,
       },
     ],
   },

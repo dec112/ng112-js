@@ -11,6 +11,10 @@ const getValidVCardObject = () => {
   return VCard.fromXML(xmlVcard);
 }
 
+const getValidVCardSmallString = () => {
+  return fs.readFileSync(path.join(res, 'valid-vcard_small.xml'), { encoding: 'utf-8' });
+}
+
 describe('VCard functionality', () => {
   it('should parse known VCard entries', () => {
     const vcard = getValidVCardObject();
@@ -51,5 +55,14 @@ describe('VCard functionality', () => {
 
   it('throws an error for invalid data', () => {
     expect(() => new VCard().toXMLString()).toThrowError();
-  })
+  });
+
+  it('does not write unnecessary stuff', () => {
+    const vcard = new VCard();
+
+    vcard.addFullName('Alice Smith');
+    vcard.addStreet('Example Street 3');
+
+    expect(vcard.toXMLString()).toBe(getValidVCardSmallString());
+  });
 });
