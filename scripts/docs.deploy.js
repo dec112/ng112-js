@@ -26,4 +26,7 @@ catch {
 }
 
 // whitespaces must be escaped in paths, otherwise linux considers following strings as the next parameter
-proc.execSync(`rsync -va ${path.join(localDir, '*').replace(/\s/g, '\\ ')} ${host}:${saveDir}`);
+proc.execSync(
+  `rsync -va ${path.join(localDir, '*').replace(/\s/g, '\\ ')} ${host}:${saveDir}`,
+  { stdio: 'inherit' }
+);

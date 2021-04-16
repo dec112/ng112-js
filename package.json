@@ -19,7 +19,7 @@
     "build:browser": "ENV_TYPE=browser tsdx build --target web --format esm --name index",
     "build:node": "ENV_TYPE=node tsdx build --target node --format cjs --name index",
     "docs": "typedoc",
-    "docs-deploy": "./scripts/docs.deploy.sh",
+    "docs-deploy": "node scripts/docs.deploy.js",
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "npm run build",
