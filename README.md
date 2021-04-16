@@ -46,6 +46,7 @@ Most complete examples can be found in both browser and node example projects in
 ```javascript
 import { 
   Agent,
+  DEC112Specifics,
   LocationMethod,
   VCard,
 } from 'ng112-js/dist/browser';
@@ -59,6 +60,21 @@ const agent = new Agent({
   // ETSI TS 103 698: optional
   // DEC112: required. Must be set with a verified telephone number, due to legal requirements
   displayName: '004366412345678',
+  // DEC112: required. Used to specify additional properties for DEC112 environments
+  // either device id or registration id is required
+  // in ETSI TS 103 698 environments, `namespaceSpecifics` must not be specified
+  namespaceSpecifics: new DEC112Specifics(
+    // device id (registration API version 1; deprecated)
+    undefined,
+    // registration id (registration API version 2)
+    'registrationId',
+    // user device language (ISO639-1 two letter language code; optional)
+    'en',
+    // client version (e.g. version of application, where ng112-js is used in; optional)
+    '1.0.4',
+  ),
+  // if set to `true` verbose log messages will be printed to STDOUT (console)
+  debugMode: false,
 });
 
 // set the agent's vcard
