@@ -56,8 +56,9 @@ const agent = new Agent({
   domain: 'example.com',
   user: 'user1234',
   password: 'supersecretpassword',
-  // optional, but recommended
-  displayName: 'Alice',
+  // ETSI TS 103 698: optional
+  // DEC112: required. Must be set with a verified telephone number, due to legal requirements
+  displayName: '004366412345678',
 });
 
 // set the agent's vcard
@@ -207,6 +208,8 @@ agent.addConversationListener((conversation) => {
 ```
 
 ## Documentation
+
+Documentation can be found at https://www.dec112.at/docs/ng112-js
 
 Generate documentation by using the following command. It will be saved in folder `./docs`
 
