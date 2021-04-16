@@ -20,9 +20,23 @@ const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader([
 
 export class DEC112Specifics implements NamespaceSpecifics {
   constructor(
+    /**
+     * @deprecated
+     * 
+     * Registration identifier of registration API version 1
+     */
     public deviceId?: string,
+    /**
+     * Registration identifier of registration API version 2
+     */
     public registrationId?: string,
+    /**
+     * User device language (ISO639-1 two letter language code)
+     */
     public langauge?: string,
+    /**
+     * Client version as SEMVER version code (version of application, where ng112-js is used in; e.g. `1.0.4`)
+     */
     public clientVersion?: string,
   ) { }
   // TODO: support did
