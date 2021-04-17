@@ -101,7 +101,7 @@ export class DEC112Mapper implements NamespacedConversation {
         extraHeaders.push({ key: CALL_INFO, value: getCallInfoHeader(['uid', 'clientversion'], spec.clientVersion, dec112Domain, 'ClientVer') });
 
       if (spec?.langauge)
-        extraHeaders.push({ key: CALL_INFO, value: getCallInfoHeader(['uid', 'regid'], spec.langauge, dec112Domain, 'Lang') });
+        extraHeaders.push({ key: CALL_INFO, value: getCallInfoHeader(['uid', 'language'], spec.langauge, dec112Domain, 'Lang') });
     }
 
     if (isTest)

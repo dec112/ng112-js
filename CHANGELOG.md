@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.16] - 2021-04-17
+### Fixed
+- DEC112 language header
+
 ## [0.11.15] - 2021-04-16
 ### Added
 - TypeDoc for VCard helper methods
