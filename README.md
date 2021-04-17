@@ -39,7 +39,9 @@ npm install jssip-node-websocket
 
 ## Examples
 
-Most complete examples can be found in both browser and node example projects in `./example/browser` and `./example/node`
+Most complete examples can be found in both browser and node example projects in `./example/browser` and `./example/node`.
+
+Examples of specific use-cases can be found in `./example/snippets`.
 
 ### Use as a calling device (e.g. in a smartphone app)
 
