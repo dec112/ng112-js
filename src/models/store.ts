@@ -1,4 +1,5 @@
 import type { PidfLo } from 'pidf-lo';
+import { AgentMode } from './agent';
 import { Conversation } from './conversation';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
@@ -25,6 +26,7 @@ export class Store {
   private _lastKnownLocation?: PidfLo;
   private _heartbeatInterval: number = defaultHeartbeatInterval;
   private _vcard?: VCard;
+  private _mode: AgentMode = AgentMode.ACTIVE;
 
   private _heartbeatIntervalListeners: ((interval: number) => unknown)[] = [];
 
@@ -41,6 +43,7 @@ export class Store {
 
   getVCard = () => this._vcard;
   getLocation = () => this._lastKnownLocation;
+  getMode = () => this._mode;
 
   getHeartbeatInterval = () => this._heartbeatInterval;
 
@@ -64,6 +67,8 @@ export class Store {
       }
     }
   }
+
+  setMode = (mode = AgentMode.ACTIVE) => this._mode = mode;
 
   addHeartbeatIntervalListener = (callback: (interval: number) => unknown) => {
     this._heartbeatIntervalListeners.push(callback);

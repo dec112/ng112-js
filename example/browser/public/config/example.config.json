@@ -10,5 +10,6 @@
   "longitude": 7.04820156097412,
 
   "call": "sip:112@dec112.at",
-  "isTest": true
+  "isTest": true,
+  "isActive": true
 }

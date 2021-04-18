@@ -1,5 +1,6 @@
 import {
   Agent,
+  AgentMode,
   ConversationState,
   DEC112Specifics,
   EmergencyMessageType,
@@ -80,6 +81,7 @@ const disable = (element, value) => {
 
   const call = el('txtCall', config.call);
   const isTest = el('cbIsTest', config.isTest);
+  const isActive = el('cbIsActive', config.isActive);
 
   const start = el('btnStart');
   const end = el('btnEnd');
@@ -112,6 +114,15 @@ const disable = (element, value) => {
       radius: parseFloat(radius.value),
       method: locationMethod.value,
     });
+  }
+
+  const updateMode = async () => {
+    if (!agent)
+      return;
+
+    new Agent().setMode(
+      isActive.checked ? AgentMode.ACTIVE : AgentMode.INACTIVE
+    );
   }
 
   const handleNewMessage = (msg) => {
@@ -250,6 +261,7 @@ const disable = (element, value) => {
     chatarea.innerHTML = '';
 
     updateLocation();
+    updateMode();
 
     // TODO: that should be made configurable
     agent.updateVCard(new VCard()
@@ -304,6 +316,8 @@ const disable = (element, value) => {
     message.value = '';
   });
   disable(send, true);
+
+  isActive.addEventListener('change', () => updateMode());
 
   setInterval(() => {
     let res;

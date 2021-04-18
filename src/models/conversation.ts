@@ -15,6 +15,7 @@ import { clearInterval, setInterval, Timeout } from '../utils';
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
+import { AgentMode } from './agent';
 import { Logger } from './logger';
 
 export enum ConversationEndpointType {
@@ -179,6 +180,15 @@ export class Conversation {
         if (!this._lastSentVCard || !this._lastSentVCard.equals(currentVCard))
           this._lastSentVCard = message.vcard = currentVCard;
       }
+
+      // According to ETSI TS 103 698 6.2.5, we may add the INACTIVE bit if app is running in the background
+      if (EmergencyMessageType.isHeartbeat(message.type) && this._store.getMode() === AgentMode.INACTIVE)
+        // adds INACTIVE bit
+        message.type |= EmergencyMessageType.INACTIVE;
+      else
+        // in all other cases we must remove this particular bit
+        // clears INACTIVE bit
+        message.type &= ~EmergencyMessageType.INACTIVE;
     }
     else
       message.location = message.vcard = undefined;

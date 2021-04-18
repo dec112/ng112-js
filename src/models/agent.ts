@@ -66,6 +66,11 @@ export enum AgentState {
   REGISTRATION_FAILED = 'registrationFailed',
 }
 
+export enum AgentMode {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 /**
  * Main instance for establishing connection with an ETSI/DEC112 infrastructure
  */
@@ -337,6 +342,15 @@ export class Agent {
   // tsdoc should be done via @inheritdoc, but obviously this is currently not working with typedoc
   setHeartbeatInterval = (interval?: number): void => {
     this._store.setHeartbeatInterval(interval);
+  }
+
+  /**
+   * Set the agent's mode. This is particularly important if an app is going into background mode. \
+   * According to ETSI TS 103 698 6.2.5, keep-alive messages may be sent with an inactive flag, if the app is in background.
+   * @param mode The agent's mode
+   */
+  setMode = (mode?: AgentMode) => {
+    this._store.setMode(mode);
   }
 
   /**

@@ -21,7 +21,6 @@ export const fromEmergencyMessageType = (
 
   if (
     hasBits(mt, EmergencyMessageType.IN_CHAT) ||
-    hasBits(mt, EmergencyMessageType.INACTIVE) ||
     hasBits(mt, EmergencyMessageType.HEARTBEAT)
   )
     res = IN_CHAT;
