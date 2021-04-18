@@ -150,6 +150,10 @@ export class Conversation {
       origin: Origin.SYSTEM,
     };
     this.isTest = config?.isTest ?? false;
+
+    // manageHeartbeat is necessary here as someone could have already set the conversation's
+    // state to `STARTED` which means also heartbeat has to be started
+    this._manageHeartbeat();
   }
 
   private _updateMessagePropsIfIsClient = (message: Message) => {

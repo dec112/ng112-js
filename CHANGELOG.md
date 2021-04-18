@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.18] - 2021-04-18
+### Fixed
+- Fixed heartbeat for continued conversations
+
 ## [0.11.17] - 2021-04-18
 ### Fixed
 - Unfixed version for JsSIP. Bug with Expo was fixed in version 3.7.3
