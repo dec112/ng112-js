@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.11.19] - 2021-04-19
 ### Added
 - JsSIP version in UserAgent string
+- Expose package version
 
 ## [0.11.18] - 2021-04-18
 ### Fixed

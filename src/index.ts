@@ -1,3 +1,6 @@
+import { getPackageInfo } from './utils/package-utils';
+export const version = getPackageInfo().version;
+
 export {
   Agent,
   AgentConfiguration,
