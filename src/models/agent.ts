@@ -1,4 +1,4 @@
-import { UA, debug } from 'jssip';
+import { UA, debug as jssipDebug } from 'jssip';
 import { getSocketInterface } from '../jssip/socket-interface';
 import { CALL_INFO } from '../constants/headers';
 import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
@@ -12,6 +12,7 @@ import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
 import { USER_AGENT } from '../constants';
+import { Logger, LogLevel } from './logger';
 
 export interface AgentConfiguration {
   /**
@@ -40,9 +41,10 @@ export interface AgentConfiguration {
    */
   displayName?: string,
   /**
-   * If `debugMode` is set to `true`, verbose log messages will be printed to the console
+   * If `debug` is set to `true`, verbose log messages will be printed to the console \
+   * If `debug` is set to a callback, this callback will be called for each debug statement
    */
-  debugMode?: boolean,
+  debug?: number | ((level: number, ...values: any[]) => unknown),
   /**
    * Configuration object for cross compatibility between ETSI and DEC112 environments.\
    * Currently, only {@link DEC112Specifics | DEC112Specifics} is supported.\
@@ -78,6 +80,7 @@ export class Agent {
   };
 
   private _store: Store;
+  private _logger: Logger;
 
   private _conversationListeners: ((conversation: Conversation) => void)[] = [];
 
@@ -90,7 +93,7 @@ export class Agent {
     user,
     password,
     displayName,
-    debugMode = false,
+    debug = LogLevel.NONE,
     namespaceSpecifics,
     customSipHeaders,
   }: AgentConfiguration) {
@@ -111,8 +114,15 @@ export class Agent {
       user_agent: USER_AGENT,
     });
 
+    const debugFunction = typeof debug === 'function' ? debug : undefined;
+    // TypeScript does not get that this is already type safe
+    // It says we should do the typecheck another time, but this is not necessary
+    // @ts-expect-error
+    this._logger = new Logger(debugFunction ? LogLevel.ALL : debug, debugFunction);
+
     this._store = new Store(
       originSipUri,
+      this._logger,
       customSipHeaders,
     );
 
@@ -127,8 +137,11 @@ export class Agent {
       dec112,
     }
 
-    // enable or disable JsSIP debugging
-    debug[debugMode ? 'enable' : 'disable']('JsSIP:*');
+    // we can only activate jssip debugging if we log to the console (our fallback)
+    // because jssip does not let us piping log messages somewhere else
+    if (!debugFunction)
+      // enable or disable JsSIP debugging
+      jssipDebug[debug ? 'enable' : 'disable']('JsSIP:*');
   }
 
   private _handleMessageEvent = (evt: JsSIP.UserAgentNewMessageEvent) => {
@@ -142,7 +155,7 @@ export class Agent {
     else if (this._mapper.etsi.isCompatible(callInfoHeaders))
       mapper = this._mapper.etsi;
     else {
-      console.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore not be processed.');
+      this._logger.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore not be processed.');
       return;
     }
 
@@ -157,7 +170,7 @@ export class Agent {
       conversation.handleMessageEvent(evt);
     }
     else
-      console.warn('Can not process message due to missing call id.');
+      this._logger.warn('Can not process message due to missing call id.');
   }
 
   /**
@@ -196,9 +209,13 @@ export class Agent {
   dispose = async (): Promise<void> => {
     // TODO: should also close open calls
 
+    const timeoutValue = 1000;
     const promise = new Promise<void>(async resolve => {
       // we give a maximum of 1000 ms to unregister after which we just terminate the session
-      const timeout = setTimeout(() => resolve(), 1000);
+      const timeout = setTimeout(() => {
+        this._logger.error(`Could not unregister agent. Timeout after ${timeoutValue}ms.`);
+        resolve();
+      }, timeoutValue);
 
       const unregisterPromise = new Promise<void>(resolveUnregister => {
         this._agent.once('unregistered', () => resolveUnregister());

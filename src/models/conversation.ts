@@ -15,6 +15,7 @@ import { clearInterval, setInterval, Timeout } from '../utils';
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
+import { Logger } from './logger';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -62,6 +63,7 @@ export interface StateObject {
 }
 
 export class Conversation {
+  private _logger: Logger;
   /**
    * A unique conversation id\
    * according to spec, 30 characters is the longest allowed string
@@ -151,6 +153,8 @@ export class Conversation {
     };
     this.isTest = config?.isTest ?? false;
 
+    this._logger = this._store.logger;
+
     // manageHeartbeat is necessary here as someone could have already set the conversation's
     // state to `STARTED` which means also heartbeat has to be started
     this._manageHeartbeat();
@@ -218,11 +222,13 @@ export class Conversation {
             if (origin === Origin.REMOTE)
               this._setState(ConversationState.ERROR, origin)();
 
+            this._logger.error('Could not send SIP message.', evt);
             reject(evt);
           },
         }
       });
     } catch (ex) {
+      this._logger.error(ex);
       reject(ex);
     }
   }
@@ -496,7 +502,7 @@ export class Conversation {
     const emergencyMessageType = this.mapper.getMessageTypeFromHeaders(callInfoHeaders, parsedText);
 
     if (!emergencyMessageType) {
-      console.warn('Could not find message type in SIP MESSAGE. Can not handle this SIP MESSAGE.');
+      this._logger.warn('Could not find message type in SIP MESSAGE. Can not handle this SIP MESSAGE.');
       return;
     }
 

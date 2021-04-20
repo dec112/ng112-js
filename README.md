@@ -103,8 +103,9 @@ const agent = new Agent({
     // client version (e.g. version of application, where ng112-js is used in; optional)
     '1.0.4',
   ),
-  // if set to `true` verbose log messages will be printed to STDOUT (console)
-  debugMode: false,
+  // If `debug` is set to `true`, verbose log messages will be printed to the console
+  // If `debug` is set to a callback, this callback will be called for each debug statement
+  debug: false,
 });
 
 // set the agent's vcard
