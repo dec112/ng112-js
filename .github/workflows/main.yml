@@ -19,8 +19,11 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install deps and build (with cache)
+      - name: Install deps
         uses: bahmutov/npm-install@v1
+
+      - name: Build package
+        run: npm run build
 
       - name: Test
         run: npm run test
