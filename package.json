@@ -22,7 +22,7 @@
     "docs-deploy": "node scripts/docs.deploy.js",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "npm run build",
+    "prepare": "npm run docs-deploy && npm run build",
     "size": "size-limit",
     "analyze": "size-limit --why"
   },
