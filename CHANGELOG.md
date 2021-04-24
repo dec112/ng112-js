@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  
 ## [Unreleased]
 
+## [0.11.21] - 2021-04-24
+### Added
+- Missing export for `AgentState`
+
 ## [0.11.19] - 2021-04-19
 ### Added
 - JsSIP version in UserAgent string
