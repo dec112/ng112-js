@@ -84,3 +84,7 @@ export interface Message {
    */
   jssipMessage?: JsSIP.UserAgentNewMessageEvent
 }
+
+export interface MessageFailed {
+  origin: Origin,
+}
