@@ -34,12 +34,15 @@
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.7.0",
+    "@types/jssip": "^3.3.1",
     "@types/xmldom": "^0.1.30",
     "find-root": "^1.1.0",
     "husky": "^4.3.0",
     "jest-websocket-mock": "^2.2.0",
+    "jssip": "^3.7.5",
     "mock-socket": "^9.0.3",
     "rollup-plugin-replace": "^2.2.0",
+    "sip.js": "^0.20.0",
     "size-limit": "^4.7.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.3",
@@ -47,13 +50,12 @@
     "typescript": "^4.2.2"
   },
   "dependencies": {
-    "@types/jssip": "^3.3.1",
-    "jssip": "^3.7.5",
     "pidf-lo": "^0.3.3",
-    "sip.js": "^0.20.0",
     "xmldom": "^0.4.0"
   },
   "peerDependencies": {
-    "jssip-node-websocket": "^3.0.0"
+    "jssip": "^3.7.5",
+    "jssip-node-websocket": "^3.0.0",
+    "sip.js": "^0.20.0"
   }
 }
