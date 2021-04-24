@@ -7,15 +7,13 @@ it('Shows how to send heartbeats manually', async () => {
   const conversation = agent.createConversation('sip:144@dec112.eu');
 
   try {
-    await conversation.start().promise;
-
-    // converstaion has been started successfully
+    // should be awaited!
+    conversation.start();
+    
+    // should be awaited!
     const msg = conversation.sendMessage({
       text: 'Hello world!',
     });
-
-    await msg.promise;
-    // message has been forwarded by the SIP proxy successfully if promise was resolved
 
     // message state can also be queried manually
     switch (msg.state) {

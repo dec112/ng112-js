@@ -16,6 +16,7 @@ it('Shows how to reconnect to an already existing conversation', async () => {
     },
   });
 
+  // should be awaited!
   conversation.sendMessage({
     text: 'I am back again!',
   });
