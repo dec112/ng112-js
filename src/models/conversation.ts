@@ -1,4 +1,3 @@
-import { UA, URI } from 'jssip';
 import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import { getHeaderString, getRandomString } from '../utils';
 import type { PidfLo } from 'pidf-lo';
@@ -6,17 +5,17 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store } from './store';
-import { Message, Origin, MessageState } from './message';
+import { Message, Origin, MessageState, MessageFailed } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, MultipartPart, CRLF } from './multipart';
 import { ConversationConfiguration } from './interfaces';
 import { clearInterval, setInterval, Timeout } from '../utils';
-import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
 import { AgentMode } from './agent';
 import { Logger } from './logger';
+import { NewMessageEvent, SipAgent } from './sip-agent';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -129,7 +128,7 @@ export class Conversation {
   public get targetUri() { return this._targetUri }
 
   public constructor(
-    private _agent: UA,
+    private _agent: SipAgent,
     private _store: Store,
 
     private _targetUri: string,
@@ -217,29 +216,23 @@ export class Conversation {
         endpointType: this._endpointType,
       });
 
-      // we can not just pass the plain string to `sendMessage` as this causes problems with encoded parameters
-      // therfore we have to call URI.parse (which is a jssip function!) to ensure correct transmission
-      this._agent.sendMessage(URI.parse(this._targetUri), body, {
+      this._agent.message(this._targetUri, body, {
         contentType,
         extraHeaders: headers.map(h => getHeaderString(h)),
-        eventHandlers: {
-          succeeded: (evt) => resolve(evt),
-          failed: (evt) => {
-            // set to error state, if there was an issue while sending the message
-            // and the error was reported by the remote endpoint
-            // in other cases, we assume the conversation is still up, but the message got lost
-            const origin = evt.originator as unknown as Origin;
-            if (origin === Origin.REMOTE)
-              this._setState(ConversationState.ERROR, origin)();
+      })
+        .then(() => resolve())
+        .catch((ex: MessageFailed | undefined) => {
+          if (ex?.origin === Origin.REMOTE)
+            this._setState(ConversationState.ERROR, ex.origin)();
+          else
+            this._logger.error('Could not send SIP message.', ex);
+        });
 
-            this._logger.error('Could not send SIP message.', evt);
-            reject(evt);
-          },
-        }
+    } catch (e) {
+      this._logger.error(e);
+      reject({
+        origin: Origin.SYSTEM,
       });
-    } catch (ex) {
-      this._logger.error(ex);
-      reject(ex);
     }
   }
 
@@ -417,7 +410,7 @@ export class Conversation {
 
     this._updateMessagePropsIfIsClient(message);
 
-    const promise = new Promise<OutgoingEvent>((resolve, reject) => {
+    const promise = new Promise<void>((resolve, reject) => {
       // this code is called before the outer function returns the message object
       // so it is perfectly safe :-)
       this._queue.push({
@@ -442,24 +435,22 @@ export class Conversation {
   /**
    * This function is only used internally and should not be called from outside the library
    */
-  handleMessageEvent = (evt: JsSIP.UserAgentNewMessageEvent): void => {
+  handleMessageEvent = (evt: NewMessageEvent): void => {
     // TODO: Reshape this method, it's ugly
     const now = new Date();
     if (!this._created)
       this._created = now;
 
-    const { originator, request } = evt;
-    const { from, to, body } = request;
-    const origin = originator as Origin;
+    const { from, to, body, origin } = evt;
 
-    const contentType = evt.request.getHeader(CONTENT_TYPE);
+    const contentType = evt.getHeader(CONTENT_TYPE);
     let parsedText: string | undefined = undefined;
     let parsedLocation: PidfLo | undefined = undefined;
     let parsedVCard: VCard | undefined = undefined;
     let parsedUris: string[] | undefined = undefined;
 
     // TODO: I think all parsing should also be done by the mapper
-    if (contentType.indexOf(MULTIPART_MIXED) !== -1 && body) {
+    if (contentType && contentType.indexOf(MULTIPART_MIXED) !== -1 && body) {
       const multipart = Multipart.parse(body, contentType);
       const plainParts = multipart.getPartsByContentType(TEXT_PLAIN);
 
@@ -508,7 +499,7 @@ export class Conversation {
     else if (body)
       parsedText = body;
 
-    const callInfoHeaders = request.getHeaders(CALL_INFO);
+    const callInfoHeaders = evt.getHeaders(CALL_INFO);
     const emergencyMessageType = this.mapper.getMessageTypeFromHeaders(callInfoHeaders, parsedText);
 
     if (!emergencyMessageType) {
@@ -557,12 +548,13 @@ export class Conversation {
     }
 
     if (origin === Origin.REMOTE) {
-      if (request.hasHeader(REPLY_TO))
-        this._targetUri = request.getHeader(REPLY_TO);
+      if (evt.hasHeader(REPLY_TO))
+        // this is type safe as we've already checked whether this header exists or not
+        this._targetUri = evt.getHeader(REPLY_TO) as string;
 
       // TODO: check if this should only be set the first time the clients sends a message
       this._requestedUri = to.uri.toString();
-      this._remoteDisplayName = from.display_name;
+      this._remoteDisplayName = from.displayName;
 
       this._notifyQueue();
 
@@ -578,7 +570,7 @@ export class Conversation {
         promise: Promise.resolve(),
         location: parsedLocation,
         vcard: parsedVCard,
-        jssipMessage: evt,
+        sipStackMessage: evt.sipStackMessage,
       });
     }
 
@@ -611,12 +603,12 @@ export class Conversation {
    * Creates a conversation out of an already existing SIP message (e.g. ETSI START message)
    */
   static fromIncomingSipMessage = (
-    ua: UA,
+    ua: SipAgent,
     store: Store,
     mapper: NamespacedConversation,
-    event: JsSIP.UserAgentNewMessageEvent,
+    event: NewMessageEvent,
   ) => {
-    const { request } = event;
+    const request = event;
 
     const conversation = new Conversation(
       ua,
