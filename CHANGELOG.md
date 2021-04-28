@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **BREAKING**: Renamed property `debugMode` to `debug` in `Agent` constructor. \
 `debug` will also accept a callback function that is called for all log messages.
+- **BREAKING**: Unified conversation's `start`, `stop` and `sendMessage` function. \ 
+They now use the same arguments as `sendMessage` already did.
 
 ---
 

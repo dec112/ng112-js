@@ -32,7 +32,7 @@ export enum ConversationState {
 
 export interface SendMessageObject {
   /**
-   * Chat message to send
+   * Text message to be sent
    */
   text?: string,
   /**
@@ -338,33 +338,37 @@ export class Conversation {
   /**
    * Starts the conversation
    * 
-   * @param text Text to be sent with the first SIP *MESSSAGE*\
-   * Defaults to "Start emergency call"
+   * This is basically a convenience function on top of `sendMessage` \
+   * It automatically sets the correct message type "START" \
+   * and defaults to text message "Start emergency call"
    */
-  start = (text?: string): Message => {
-    text = text ?? 'Start emergency call';
-
-    return this.sendMessage({
-      text,
+  start = (sendMessageObj?: SendMessageObject): Message => {
+    sendMessageObj = {
+      text: 'Start emergency call',
       type: EmergencyMessageType.START,
-    });
+      ...sendMessageObj,
+    }
+    
+    return this.sendMessage(sendMessageObj);
   }
-
+  
   /**
    * Ends the conversation
    * 
-   * @param text Text to be sent with the last SIP *MESSSAGE*\
-   * Defaults to "End emergency call"
+   * This is basically a convenience function on top of `sendMessage` \
+   * It automatically sets the correct message type "STOP" \
+   * and defaults to text message "Stop emergency call"
    */
-  stop = (text?: string): Message => {
-    text = text ?? 'End emergency call';
-
-    return this.sendMessage({
-      text,
+  stop = (sendMessageObj?: SendMessageObject): Message => {
+    sendMessageObj = {
+      text: 'Stop emergency call',
       type: EmergencyMessageType.STOP,
-    });
+      ...sendMessageObj,
+    }
+    
+    return this.sendMessage(sendMessageObj);
   }
-
+  
   /**
    * Sends a text message
    */
