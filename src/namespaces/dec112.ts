@@ -126,6 +126,7 @@ export class DEC112Mapper implements NamespacedConversation {
 
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
   getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
+  getDIDFromHeaders = (headers: string[]): string | undefined => EmergencyMapper.getDIDFromHeaders(headers);
   getIsTestFromHeaders = (message: IncomingMessage): boolean => message.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
   getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));

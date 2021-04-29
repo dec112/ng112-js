@@ -5,7 +5,7 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store } from './store';
-import { Message, Origin, MessageState, MessageFailed } from './message';
+import { Message, Origin, MessageState, MessageFailed, nextUniqueId } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, MultipartPart, CRLF } from './multipart';
@@ -32,7 +32,7 @@ export enum ConversationState {
 
 export interface SendMessageObject {
   /**
-   * Chat message to send
+   * Text message to be sent
    */
   text?: string,
   /**
@@ -78,8 +78,10 @@ export class Conversation {
   private _messageListeners: ((message: Message) => void)[] = [];
   private _stateListeners: ((state: StateObject) => void)[] = [];
 
+  // TODO: Find a better solution for this lastSentXXX stuff
   private _lastSentLocation?: PidfLo = undefined;
   private _lastSentVCard?: VCard = undefined;
+  private _lastSentDID?: string = undefined;
 
   private _hasBeenStarted: boolean = false;
 
@@ -174,10 +176,18 @@ export class Conversation {
           this._lastSentLocation = message.location = currentLocation;
       }
 
+      // TODO: obviously we have very similar handling of VCard and DIDs here
+      // Find a way to abstract this to not have duplicate code
       const currentVCard = this._store.getVCard();
       if (currentVCard) {
         if (!this._lastSentVCard || !this._lastSentVCard.equals(currentVCard))
           this._lastSentVCard = message.vcard = currentVCard;
+      }
+
+      const currentDID = this._store.getDID();
+      if (currentDID) {
+        if (!this._lastSentDID || this._lastSentDID !== currentDID)
+          this._lastSentDID = message.did = currentDID;
       }
 
       // According to ETSI TS 103 698 6.2.5, we may add the INACTIVE bit if app is running in the background
@@ -225,7 +235,7 @@ export class Conversation {
           if (ex?.origin === Origin.REMOTE)
             this._setState(ConversationState.ERROR, ex.origin)();
           else
-            this._logger.error('Could not send SIP message.', ex);
+            this._logger.error('Could not send SIP message.', message, ex);
         });
 
     } catch (e) {
@@ -272,7 +282,6 @@ export class Conversation {
     if (this._heartbeatInterval || !this._isHeartbeatAllowed())
       return;
 
-    // TODO: Error handling if sendMessage fails
     this._heartbeatInterval = setInterval(
       this._store.getHeartbeatInterval(),
       () => this.sendMessage({
@@ -341,31 +350,35 @@ export class Conversation {
   /**
    * Starts the conversation
    * 
-   * @param text Text to be sent with the first SIP *MESSSAGE*\
-   * Defaults to "Start emergency call"
+   * This is basically a convenience function on top of `sendMessage` \
+   * It automatically sets the correct message type "START" \
+   * and defaults to text message "Start emergency call"
    */
-  start = (text?: string): Message => {
-    text = text ?? 'Start emergency call';
-
-    return this.sendMessage({
-      text,
+  start = (sendMessageObj?: SendMessageObject): Message => {
+    sendMessageObj = {
+      text: 'Start emergency call',
       type: EmergencyMessageType.START,
-    });
+      ...sendMessageObj,
+    }
+
+    return this.sendMessage(sendMessageObj);
   }
 
   /**
    * Ends the conversation
    * 
-   * @param text Text to be sent with the last SIP *MESSSAGE*\
-   * Defaults to "End emergency call"
+   * This is basically a convenience function on top of `sendMessage` \
+   * It automatically sets the correct message type "STOP" \
+   * and defaults to text message "Stop emergency call"
    */
-  stop = (text?: string): Message => {
-    text = text ?? 'End emergency call';
-
-    return this.sendMessage({
-      text,
+  stop = (sendMessageObj?: SendMessageObject): Message => {
+    sendMessageObj = {
+      text: 'Stop emergency call',
       type: EmergencyMessageType.STOP,
-    });
+      ...sendMessageObj,
+    }
+
+    return this.sendMessage(sendMessageObj);
   }
 
   /**
@@ -396,6 +409,7 @@ export class Conversation {
     const message: Message = {
       // if no message id is specified, use the internal sequence
       id: messageId ?? this._messageId++,
+      uniqueId: nextUniqueId(),
       origin: Origin.LOCAL,
       conversation: this,
       dateTime: new Date(),
@@ -560,6 +574,7 @@ export class Conversation {
 
       this._addNewMessage({
         id: this.mapper.getMessageIdFromHeaders(callInfoHeaders) as string,
+        uniqueId: nextUniqueId(),
         origin,
         conversation: this,
         dateTime: now,
@@ -571,6 +586,7 @@ export class Conversation {
         location: parsedLocation,
         vcard: parsedVCard,
         sipStackMessage: evt.sipStackMessage,
+        did: this.mapper.getDIDFromHeaders(callInfoHeaders),
       });
     }
 
@@ -597,6 +613,17 @@ export class Conversation {
    */
   addStateListener = (callback: (state: StateObject) => unknown) => {
     this._stateListeners.push(callback);
+  }
+
+  /**
+   * Unregisters a previously registered conversation state listener
+   * 
+   * @param callback Callback function that is called each time the conversation's state changes
+   */
+  removeStateListener = (callback: (state: StateObject) => unknown) => {
+    const index = this._stateListeners.indexOf(callback);
+    if (index !== -1)
+      this._stateListeners.splice(index, 1);
   }
 
   /**

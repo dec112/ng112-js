@@ -121,7 +121,7 @@ const disable = (element, value) => {
     if (!agent)
       return;
 
-    new Agent().setMode(
+    agent.setMode(
       isActive.checked ? AgentMode.ACTIVE : AgentMode.INACTIVE
     );
   }

@@ -33,6 +33,14 @@ describe('Checking call info headers', () => {
   it.each(invalidCallIdHeaders)('should handle invalid call info header %s', (header) => {
     expect(mapper.getCallIdFromHeaders([header])).toBe(undefined);
   });
+
+  const validDID = 'did:example:123456789abcdefghi';
+  const validDIDHeaders = [
+    `Call-Info: <${validDID}>;purpose=EmergencyCallData.DID`,
+  ]
+  it.each(validDIDHeaders)('should be able to handle DID %s', (header) => {
+    expect(mapper.getDIDFromHeaders([header])).toBe(validDID)
+  });
 });
 
 describe('Messaging functionality', () => {

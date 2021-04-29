@@ -2,7 +2,7 @@
 import findRoot from 'find-root';
 import path from 'path';
 import fs from 'fs';
-import { VCard } from './vcard';
+import { Gender, VCard } from './vcard';
 
 const res = path.join(findRoot(), 'test', 'res', 'vcard');
 
@@ -19,8 +19,17 @@ describe('VCard functionality', () => {
   it('should parse known VCard entries', () => {
     const vcard = getValidVCardObject();
 
+    expect(vcard.fullName).toBe('Alice Smith MSc.');
     expect(vcard.firstname).toBe('Alice');
+    expect(vcard.lastname).toBe('Smith');
+    expect(vcard.gender).toBe(Gender.FEMALE);
     expect(vcard.street).toBe('Example Street 3');
+    expect(vcard.code).toBe('4786');
+    expect(vcard.locality).toBe('Humble Village');
+    expect(vcard.country).toBe('Austria');
+    expect(vcard.telephone).toBe('+4366412345678');
+    expect(vcard.email).toBe('alice.smith@dec112.at');
+    expect(vcard.birthday).toEqual(new Date(1990, 5, 11));
     expect(vcard.note).toBe('{"some":"additional","data":"to","be":"sent"}');
   });
 
@@ -31,16 +40,40 @@ describe('VCard functionality', () => {
   });
 
   it('should write known VCard entries', () => {
-    const vcard = new VCard();
-
-    vcard.addFullName('Alice Smith');
-    vcard.addStreet('Example Street 3');
+    const vcard = new VCard()
+      .addFullName('Alice Smith')
+      .addFirstname('Alice')
+      .addLastname('Smith')
+      .addNamePrefix('Dr.')
+      .addNameSuffix('MSc.')
+      .addBirthday(new Date(1990, 2, 3))
+      .addGender(Gender.OTHER)
+      .addTelephone('+436641234567')
+      .addEmail('info@dec112.at')
+      .addStreet('Example Street 3')
+      .addCode('1234')
+      .addLocality('Brunnenthal')
+      .addRegion('Upper Austria')
+      .addCountry('Austria')
+      .addNote(JSON.stringify({ a: 'plain', js: 'object' }));
 
     const vcardXmlString = vcard.toXMLString('asdf');
 
-    // TODO: should be extended by more tests
     expect(vcardXmlString).toMatch(/<asdf:fn>.*<asdf:text>Alice Smith<\/asdf:text>.*<\/asdf:fn>/s);
+    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:surname>Alice<\/asdf:surname>.*<\/asdf:n>/s);
+    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:given>Smith<\/asdf:given>.*<\/asdf:n>/s);
+    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:prefix>Dr\.<\/asdf:prefix>.*<\/asdf:n>/s);
+    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:suffix>MSc\.<\/asdf:suffix>.*<\/asdf:n>/s);
+    expect(vcardXmlString).toMatch(/<asdf:bday>1990-03-03T00:00:00.000Z<\/asdf:bday>/s);
+    expect(vcardXmlString).toMatch(/<asdf:gender>.*<asdf:sex>O<\/asdf:sex>.*<\/asdf:gender>/s);
+    expect(vcardXmlString).toMatch(/<asdf:tel>.*<asdf:text>\+436641234567<\/asdf:text>.*<\/asdf:tel>/s);
+    expect(vcardXmlString).toMatch(/<asdf:email>.*<asdf:text>info@dec112.at<\/asdf:text>.*<\/asdf:email>/s);
     expect(vcardXmlString).toMatch(/<asdf:adr>.*<asdf:street>Example Street 3<\/asdf:street>.*<\/asdf:adr>/s);
+    expect(vcardXmlString).toMatch(/<asdf:adr>.*<asdf:code>1234<\/asdf:code>.*<\/asdf:adr>/s);
+    expect(vcardXmlString).toMatch(/<asdf:adr>.*<asdf:locality>Brunnenthal<\/asdf:locality>.*<\/asdf:adr>/s);
+    expect(vcardXmlString).toMatch(/<asdf:adr>.*<asdf:region>Upper Austria<\/asdf:region>.*<\/asdf:adr>/s);
+    expect(vcardXmlString).toMatch(/<asdf:adr>.*<asdf:country>Austria<\/asdf:country>.*<\/asdf:adr>/s);
+    expect(vcardXmlString).toMatch(/<asdf:note>.*<asdf:text>{\"a\":\"plain\",\"js\":\"object\"}<\/asdf:text>.*<\/asdf:note>/s);
   });
 
   it('should write unknown VCard entries', () => {

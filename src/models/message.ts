@@ -35,6 +35,10 @@ export interface Message {
    */
   id: number | string,
   /**
+   * An internally generated id that is unique among all messages within ng112-js, even across multiple conversations
+   */
+  uniqueId: number,
+  /**
    * Where the message was sent from (LOCAL or REMOTE)
    */
   origin: Origin,
@@ -71,6 +75,11 @@ export interface Message {
    */
   vcard?: VCard,
   /**
+   * A decentralized identifier \
+   * For example, this identifier may resolve to credential about personal data
+   */
+  did?: string,
+  /**
    * A list of URIs
    */
   uris?: string[],
@@ -83,11 +92,16 @@ export interface Message {
    * For outgoing messages this will only be resolved after property `promise` is resolved
    */
   sipStackMessage?:
-    JsSIP.UserAgentNewMessageEvent |
-    SipJs.Core.OutgoingRequestMessage |
-    SipJs.Core.IncomingRequestMessage
+  JsSIP.UserAgentNewMessageEvent |
+  SipJs.Core.OutgoingRequestMessage |
+  SipJs.Core.IncomingRequestMessage
 }
 
 export interface MessageFailed {
   origin: Origin,
 }
+
+export const nextUniqueId = (() => {
+  let _uniqueSequence = 0;
+  return () => _uniqueSequence++;
+})();

@@ -9,14 +9,14 @@ import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
 import { MessageParts, MessagePartsParams, NamespacedConversation } from './interfaces'
 
+// we are quite generous when it comes to spaces
+// so if there is a header incoming with more than one space, we still accept it
+const allowSpacesInRegexString = (regexString: string) => regexString.replace(/\s+/g, '\\s*');
+
 export const getRegEx = (templateFunction: (value: string, domain: string) => string) => {
   let regexString = templateFunction('([^:]+)', '[\\w\\d\\.-]+');
 
-  // we are quite generous when it comes to spaces
-  // so if there is a header incoming with more than one space, we still accept it
-  regexString = regexString.replace(/\s+/g, '\\s*');
-
-  return new RegExp(regexString);
+  return new RegExp(allowSpacesInRegexString(regexString));
 };
 
 export const regexHeaders = (headers: string[], regex: RegExp): string | undefined => {
@@ -38,6 +38,7 @@ const getCallInfoHeader = (uri: string[], value: string, domain: string, type: s
 const getCallIdHeaderValue = (callId: string, domain: string) => getCallInfoHeader(['uid', 'callid'], callId, domain, 'CallId');
 const getMessageIdHeaderValue = (messageId: string, domain: string) => getCallInfoHeader(['service', 'uid', 'msgid'], messageId, domain, 'MsgId');
 const getMessageTypeHeaderValue = (messageType: string, domain: string) => getCallInfoHeader(['service', 'uid', 'msgtype'], messageType, domain, 'MsgType');
+const getDIDHeaderValue = (did: string) => `<${did}>; purpose=EmergencyCallData.DID`;
 
 const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader(['.+'], value, domain, '.+');
 
@@ -158,6 +159,7 @@ export class EmergencyMapper implements NamespacedConversation {
     replyToSipUri,
     location,
     vcard,
+    did,
   }: MessagePartsParams): MessageParts => {
     const common = EmergencyMapper.createCommonParts(
       endpointType,
@@ -175,6 +177,12 @@ export class EmergencyMapper implements NamespacedConversation {
       { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), 'service.dec112.at') },
       ...common.headers,
     ];
+
+    if (did)
+      extraHeaders.push({
+        key: CALL_INFO,
+        value: getDIDHeaderValue(did),
+      });
 
     if (
       endpointType === ConversationEndpointType.CLIENT &&
@@ -201,6 +209,11 @@ export class EmergencyMapper implements NamespacedConversation {
 
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
   getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
+
+  // static, because it's also used by DEC112Mapper
+  static getDIDFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, new RegExp(allowSpacesInRegexString(getDIDHeaderValue('(.*)'))));
+  getDIDFromHeaders = (headers: string[]): string | undefined => EmergencyMapper.getDIDFromHeaders(headers);
+
   // @ts-ignore
   getIsTestFromHeaders = (message: IncomingMessage): boolean => false; // TODO: reference ETSI TS 103 698, 6.1.2.10 "Test Call"
   getMessageTypeFromHeaders = (headers: string[]): number | undefined => {
