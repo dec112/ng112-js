@@ -63,3 +63,7 @@ export {
 export {
   SimpleLocation,
 } from 'pidf-lo';
+
+export {
+  SupportedAgent,
+} from './models/sip-agent';

@@ -10,9 +10,8 @@ import { VCard } from './vcard';
 import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
-import { USER_AGENT } from '../constants';
 import { Logger, LogLevel } from './logger';
-import { NewMessageEvent, SipAgent } from './sip-agent';
+import { NewMessageEvent, SipAgent, SupportedAgent } from './sip-agent';
 
 export interface AgentConfiguration {
   /**
@@ -55,6 +54,10 @@ export interface AgentConfiguration {
    * Object for customizing SIP headers
    */
   customSipHeaders?: CustomSipHeaders,
+  /**
+   * A preferred SIP library can be specified here, if more than one SIP library is installed
+   */
+  preferredSipAgent?: SupportedAgent,
 }
 
 export enum AgentState {
@@ -92,28 +95,22 @@ export class Agent {
   /**
    * Creates a new instance of an agent for communication with an ETSI/DEC112 infrastructure
    */
-  constructor({
-    endpoint,
-    domain,
-    user,
-    password,
-    displayName,
-    debug = LogLevel.NONE,
-    namespaceSpecifics,
-    customSipHeaders,
-  }: AgentConfiguration) {
+  constructor(config: AgentConfiguration) {
+    const {
+      domain,
+      user,
+      debug = LogLevel.NONE,
+      namespaceSpecifics,
+      customSipHeaders,
+    } = config;
+
     const originSipUri = customSipHeaders?.from ?
       CustomSipHeader.resolve(customSipHeaders.from) :
       `sip:${user ? `${user}@` : ''}${domain}`;
 
     this._agent = new SipAgent({
+      ...config,
       originSipUri,
-      domain,
-      endpoint,
-      password,
-      user,
-      userAgent: USER_AGENT,
-      displayName,
     });
 
     const debugFunction = typeof debug === 'function' ? debug : undefined;

@@ -5,6 +5,7 @@ import { AgentConfiguration } from "./agent";
 import { Origin } from "./message";
 import { transformSipJsMessage } from '../sipjs/utils';
 import { OutgoingRequestMessage } from "sip.js/lib/core";
+import { getPackageInfo } from "../utils/package-utils";
 
 export enum SupportedAgent {
   jssip = 'JsSIP',
@@ -28,7 +29,6 @@ interface SendMessageOptions {
 
 type SipAgentConfig = Omit<AgentConfiguration, 'debugMode' | 'namespaceSpecifics' | 'customSipHeaders'> & {
   originSipUri: string;
-  userAgent: string;
 };
 
 export interface NewMessageEvent {
@@ -52,6 +52,12 @@ export interface SipUri {
   }
 }
 
+// FIXME: Currently we have problems with jest testing also sip.js
+// somehow it does not like how sip.js exports their defaults
+// especially when it comes to the version number that is exported by sip.js
+// We shall look into this as it prevents us from automated testing with sip.js
+// That's why we currently do not import it via ES modules but via CommonJs import
+// this allows us to circumvent this error
 const requireSipJs = () => require('sip.js') as typeof sipjs;
 const requireJsSip = () => require('jssip') as typeof jssip;
 
@@ -65,12 +71,12 @@ const newSipJsTransaction = (target: string, callback: (sipJs: typeof sipjs, uri
   return callback(sipjs, uri);
 }
 
-export const currentAgent: SupportedAgent = (() => {
+export let currentAgent: SupportedAgent = (() => {
   try {
     requireJsSip();
     return SupportedAgent.jssip;
   } catch { }
-  
+
   try {
     requireSipJs();
     return SupportedAgent.sipjs;
@@ -95,10 +101,17 @@ export class SipAgent {
     password,
     displayName,
     originSipUri,
-    userAgent,
+    preferredSipAgent,
   }: SipAgentConfig) {
     // TODO: check all inputs here
     // otherwise they might cause exceptions and we think the module is not available
+
+    const packageInfo = getPackageInfo();
+    const getUserAgent = (sipLibName: string, sipLibVersion: string) =>
+      `${packageInfo.name} ${packageInfo.version}, ${sipLibName}, ${sipLibVersion}`;
+
+    if (preferredSipAgent)
+      currentAgent = preferredSipAgent;
 
     if (currentAgent === SupportedAgent.jssip) {
       const jssip = requireJsSip();
@@ -113,7 +126,7 @@ export class SipAgent {
         realm: domain,
         display_name: displayName,
         register: true,
-        user_agent: userAgent,
+        user_agent: getUserAgent(currentAgent, jssip.version),
       });
     }
     else if (currentAgent === SupportedAgent.sipjs) {
@@ -128,7 +141,7 @@ export class SipAgent {
         authorizationUsername: user,
         authorizationPassword: password,
         displayName,
-        userAgentString: userAgent,
+        userAgentString: getUserAgent(currentAgent, sipjs.version),
       });
 
       ua.delegate = this._sipjsDelegateObj;
