@@ -348,10 +348,10 @@ export class Conversation {
       type: EmergencyMessageType.START,
       ...sendMessageObj,
     }
-    
+
     return this.sendMessage(sendMessageObj);
   }
-  
+
   /**
    * Ends the conversation
    * 
@@ -365,10 +365,10 @@ export class Conversation {
       type: EmergencyMessageType.STOP,
       ...sendMessageObj,
     }
-    
+
     return this.sendMessage(sendMessageObj);
   }
-  
+
   /**
    * Sends a text message
    */
@@ -601,6 +601,17 @@ export class Conversation {
    */
   addStateListener = (callback: (state: StateObject) => unknown) => {
     this._stateListeners.push(callback);
+  }
+  
+  /**
+   * Unregisters a previously registered conversation state listener
+   * 
+   * @param callback Callback function that is called each time the conversation's state changes
+   */
+  removeStateListener = (callback: (state: StateObject) => unknown) => {
+    const index = this._stateListeners.indexOf(callback);
+    if (index !== -1)
+      this._stateListeners.splice(index, 1);
   }
 
   /**

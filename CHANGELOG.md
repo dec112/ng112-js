@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 `debug` will also accept a callback function that is called for all log messages.
 - **BREAKING**: Unified conversation's `start`, `stop` and `sendMessage` function. \ 
 They now use the same arguments as `sendMessage` already did.
+- The agent's `conversation` property only contains open calls. Stopped calls are removed from this list. \
+This should limit memory consumption if ng112-js is used in long running applications with heavy load.
 
 ### Added
 - Property `uniqueId` in messages that is unique across all messages and conversations within ng112-js

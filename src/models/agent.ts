@@ -4,7 +4,7 @@ import { CALL_INFO } from '../constants/headers';
 import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
 import { NamespacedConversation, NamespaceSpecifics } from '../namespaces/interfaces';
-import { Conversation, ConversationState } from './conversation';
+import { Conversation, ConversationState, StateObject } from './conversation';
 import { ConversationConfiguration } from './interfaces';
 import { CustomSipHeaders, Store } from './store';
 import { VCard } from './vcard';
@@ -163,7 +163,7 @@ export class Agent {
     const conversationId = mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO));
 
     if (conversationId) {
-      let conversation = this._store.conversations.find(x => x.id == conversationId);
+      let conversation = this.conversations.find(x => x.id == conversationId);
 
       if (!conversation)
         conversation = this.createConversation(evt, undefined, mapper);
@@ -308,8 +308,20 @@ export class Agent {
     }
 
     if (conversation) {
-      // TODO: fix memory leak -> where and when are those conversations removed from memory?
-      this._store.conversations.push(conversation);
+      this.conversations.push(conversation);
+
+      const stopListener = (state: StateObject) => {
+        if (!conversation || state.value !== ConversationState.STOPPED)
+          return;
+
+        conversation.removeStateListener(stopListener);
+        const index = this.conversations.indexOf(conversation);
+
+        if (index !== -1)
+          this.conversations.splice(index, 1);
+      }
+      // this callback ensures that once a conversation is STOPPED, it is removed from our global conversations list.
+      conversation.addStateListener(stopListener);
 
       for (const callback of this._conversationListeners) {
         callback(conversation);
@@ -380,7 +392,7 @@ export class Agent {
   }
 
   /**
-   * All conversations
+   * All conversations that have not been stopped already
    */
   public get conversations() { return this._store.conversations }
 
