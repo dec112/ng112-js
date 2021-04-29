@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Agent mode that can be used to indicate an app is running in the background
+- Support for DIDs.
 ### Changed
 - **BREAKING**: Renamed property `debugMode` to `debug` in `Agent` constructor. \
 `debug` will also accept a callback function that is called for all log messages.

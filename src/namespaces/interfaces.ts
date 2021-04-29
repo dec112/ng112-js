@@ -38,5 +38,6 @@ export interface NamespacedConversation {
   getCallIdFromHeaders(headers: string[]): string | undefined;
   getMessageIdFromHeaders(headers: string[]): string | undefined;
   getMessageTypeFromHeaders(headers: string[], messageText?: string): number | undefined;
+  getDIDFromHeaders(headers: string[]): string | undefined;
   getIsTestFromHeaders(sipMessage: IncomingMessage): boolean;
 }

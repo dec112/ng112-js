@@ -26,6 +26,7 @@ export class Store {
   private _lastKnownLocation?: PidfLo;
   private _heartbeatInterval: number = defaultHeartbeatInterval;
   private _vcard?: VCard;
+  private _did?: string;
   private _mode: AgentMode = AgentMode.ACTIVE;
 
   private _heartbeatIntervalListeners: ((interval: number) => unknown)[] = [];
@@ -37,11 +38,13 @@ export class Store {
   ) { }
 
   updateVCard = (vcard?: VCard) => this._vcard = vcard;
+  updateDID = (did?: string) => this._did = did;
   updateLocation = (location?: PidfLo) => {
     this._lastKnownLocation = location
   }
 
   getVCard = () => this._vcard;
+  getDID = () => this._did;
   getLocation = () => this._lastKnownLocation;
   getMode = () => this._mode;
 

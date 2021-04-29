@@ -79,8 +79,10 @@ export class Conversation {
   private _messageListeners: ((message: Message) => void)[] = [];
   private _stateListeners: ((state: StateObject) => void)[] = [];
 
+  // TODO: Find a better solution for this lastSentXXX stuff
   private _lastSentLocation?: PidfLo = undefined;
   private _lastSentVCard?: VCard = undefined;
+  private _lastSentDID?: string = undefined;
 
   private _hasBeenStarted: boolean = false;
 
@@ -175,10 +177,18 @@ export class Conversation {
           this._lastSentLocation = message.location = currentLocation;
       }
 
+      // TODO: obviously we have very similar handling of VCard and DIDs here
+      // Find a way to abstract this to not have duplicate code
       const currentVCard = this._store.getVCard();
       if (currentVCard) {
         if (!this._lastSentVCard || !this._lastSentVCard.equals(currentVCard))
           this._lastSentVCard = message.vcard = currentVCard;
+      }
+
+      const currentDID = this._store.getDID();
+      if (currentDID) {
+        if (!this._lastSentDID || this._lastSentDID !== currentDID)
+          this._lastSentDID = message.did = currentDID;
       }
 
       // According to ETSI TS 103 698 6.2.5, we may add the INACTIVE bit if app is running in the background
@@ -578,6 +588,7 @@ export class Conversation {
         promise: Promise.resolve(),
         location: parsedLocation,
         vcard: parsedVCard,
+        did: this.mapper.getDIDFromHeaders(callInfoHeaders),
         jssipMessage: evt,
       });
     }

@@ -71,6 +71,11 @@ export interface Message {
    */
   vcard?: VCard,
   /**
+   * A decentralized identifier \
+   * For example, this identifier may resolve to credential about personal data
+   */
+  did?: string,
+  /**
    * A list of URIs
    */
   uris?: string[],
