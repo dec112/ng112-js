@@ -222,7 +222,7 @@ export class Conversation {
             if (origin === Origin.REMOTE)
               this._setState(ConversationState.ERROR, origin)();
 
-            this._logger.error('Could not send SIP message.', evt);
+            this._logger.error('Could not send SIP message.', message, evt);
             reject(evt);
           },
         }
@@ -269,7 +269,6 @@ export class Conversation {
     if (this._heartbeatInterval || !this._isHeartbeatAllowed())
       return;
 
-    // TODO: Error handling if sendMessage fails
     this._heartbeatInterval = setInterval(
       this._store.getHeartbeatInterval(),
       () => this.sendMessage({
@@ -602,7 +601,7 @@ export class Conversation {
   addStateListener = (callback: (state: StateObject) => unknown) => {
     this._stateListeners.push(callback);
   }
-  
+
   /**
    * Unregisters a previously registered conversation state listener
    * 
