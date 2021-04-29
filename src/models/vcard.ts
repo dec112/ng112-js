@@ -51,11 +51,22 @@ export class VCard {
     ];
   }
 
-  // this is the generic implementation that can also be used from outside
-  // TODO: somehow process items that were added without an already existing KeyId
-  // at the moment, they are not put into the XML structure
-  add = (key: KeyId | string, value: any) => this._push(key, value);
-  get = (key: KeyId | string) => this._items.find(x => x.key === key)?.value;
+  /**
+   * A generic function for adding additional VCard elements
+   * 
+   * @param key The VCard's value identifier
+   * @param value The value itself
+   * @returns VCard for chaining function calls
+   */
+  add = (key: KeyId | string, value: any): VCard => this._push(key, value);
+
+  /**
+   * A generic function for retrieving a VCard element's value
+   * 
+   * @param key The VCard value's key
+   * @returns The VCard element's value, or undefined, if not found
+   */
+  get = (key: KeyId | string): any | undefined => this._items.find(x => x.key === key)?.value;
 
   // add functions
 

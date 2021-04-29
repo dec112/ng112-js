@@ -18,6 +18,7 @@ This should limit memory consumption if ng112-js is used in long running applica
 - Auto-close of open calls on agent disposal
 - Configurable grace period for agent disposal
 - More detailled logging on message errors.
+- More extensive VCard tests
 
 ---
 
