@@ -13,6 +13,8 @@ They now use the same arguments as `sendMessage` already did.
 
 ### Added
 - Property `uniqueId` in messages that is unique across all messages and conversations within ng112-js
+- Auto-close of open calls on agent disposal
+- Configurable grace period for agent disposal
 
 ---
 
