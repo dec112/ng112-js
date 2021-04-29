@@ -1,4 +1,3 @@
-import { debug as jssipDebug } from 'jssip';
 import { CALL_INFO } from '../constants/headers';
 import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
@@ -109,11 +108,6 @@ export class Agent {
       CustomSipHeader.resolve(customSipHeaders.from) :
       `sip:${user ? `${user}@` : ''}${domain}`;
 
-    this._agent = new SipAgent({
-      ...config,
-      originSipUri,
-    });
-
     const debugFunction = typeof debug === 'function' ? debug : undefined;
     // TypeScript does not get that this is already type safe
     // It says we should do the typecheck another time, but this is not necessary
@@ -126,6 +120,12 @@ export class Agent {
       customSipHeaders,
     );
 
+    this._agent = new SipAgent({
+      ...config,
+      originSipUri,
+      logger: this._logger,
+    });
+
     const hasDEC112Specifics = namespaceSpecifics instanceof DEC112Specifics;
 
     const dec112 = new DEC112Mapper(hasDEC112Specifics ? namespaceSpecifics : undefined);
@@ -136,12 +136,6 @@ export class Agent {
       etsi,
       dec112,
     }
-
-    // we can only activate jssip debugging if we log to the console (our fallback)
-    // because jssip does not let us piping log messages somewhere else
-    if (!debugFunction)
-      // enable or disable JsSIP debugging
-      jssipDebug[debug ? 'enable' : 'disable']('JsSIP:*');
   }
 
   private _handleMessageEvent = (evt: NewMessageEvent) => {

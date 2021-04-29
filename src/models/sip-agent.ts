@@ -6,6 +6,7 @@ import { Origin } from "./message";
 import { transformSipJsMessage } from '../sipjs/utils';
 import { OutgoingRequestMessage } from "sip.js/lib/core";
 import { getPackageInfo } from "../utils/package-utils";
+import { Logger } from "./logger";
 
 export enum SupportedAgent {
   jssip = 'JsSIP',
@@ -27,8 +28,9 @@ interface SendMessageOptions {
   extraHeaders?: string[];
 }
 
-type SipAgentConfig = Omit<AgentConfiguration, 'debugMode' | 'namespaceSpecifics' | 'customSipHeaders'> & {
+type SipAgentConfig = Omit<AgentConfiguration, 'debug' | 'namespaceSpecifics' | 'customSipHeaders'> & {
   originSipUri: string;
+  logger: Logger,
 };
 
 export interface NewMessageEvent {
@@ -102,6 +104,7 @@ export class SipAgent {
     displayName,
     originSipUri,
     preferredSipAgent,
+    logger,
   }: SipAgentConfig) {
     // TODO: check all inputs here
     // otherwise they might cause exceptions and we think the module is not available
@@ -128,6 +131,11 @@ export class SipAgent {
         register: true,
         user_agent: getUserAgent(currentAgent, jssip.version),
       });
+
+      // we can only activate jssip debugging if we log to the console (our fallback)
+      // because jssip does not let us piping log messages somewhere else
+      if (logger.isActive() && logger.isFallback())
+        jssip.debug.enable('JsSIP:*');
     }
     else if (currentAgent === SupportedAgent.sipjs) {
       const sipjs = requireSipJs();
@@ -142,6 +150,19 @@ export class SipAgent {
         authorizationPassword: password,
         displayName,
         userAgentString: getUserAgent(currentAgent, sipjs.version),
+        logBuiltinEnabled: false,
+        logConnector: (level, category, label, content) => {
+          switch (level) {
+            case 'error':
+              logger.error(content, label, category);
+              break;
+            case 'warn':
+              logger.warn(content, label, category);
+              break;
+            default:
+              logger.log(content, label, category);
+          }
+        }
       });
 
       ua.delegate = this._sipjsDelegateObj;
