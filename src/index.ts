@@ -5,6 +5,7 @@ export {
   Agent,
   AgentConfiguration,
   AgentMode,
+  AgentState,
 } from './models/agent';
 
 export {
@@ -25,6 +26,7 @@ export {
 export {
   Conversation,
   ConversationState,
+  SendMessageObject,
   StateObject,
 } from './models/conversation';
 

@@ -35,6 +35,10 @@ export interface Message {
    */
   id: number | string,
   /**
+   * An internally generated id that is unique among all messages within ng112-js, even across multiple conversations
+   */
+  uniqueId: number,
+  /**
    * Where the message was sent from (LOCAL or REMOTE)
    */
   origin: Origin,
@@ -89,3 +93,8 @@ export interface Message {
    */
   jssipMessage?: JsSIP.UserAgentNewMessageEvent
 }
+
+export const nextUniqueId = (() => {
+  let _uniqueSequence = 0;
+  return () => _uniqueSequence++;
+})();

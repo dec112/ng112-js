@@ -4,7 +4,7 @@ import { CALL_INFO } from '../constants/headers';
 import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
 import { NamespacedConversation, NamespaceSpecifics } from '../namespaces/interfaces';
-import { Conversation } from './conversation';
+import { Conversation, ConversationState, StateObject } from './conversation';
 import { ConversationConfiguration } from './interfaces';
 import { CustomSipHeaders, Store } from './store';
 import { VCard } from './vcard';
@@ -13,6 +13,7 @@ import PidfLoCompat from '../compatibility/pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
 import { USER_AGENT } from '../constants';
 import { Logger, LogLevel } from './logger';
+import { timedoutPromise } from '../utils';
 
 export interface AgentConfiguration {
   /**
@@ -167,7 +168,7 @@ export class Agent {
     const conversationId = mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO));
 
     if (conversationId) {
-      let conversation = this._store.conversations.find(x => x.id == conversationId);
+      let conversation = this.conversations.find(x => x.id == conversationId);
 
       if (!conversation)
         conversation = this.createConversation(evt, undefined, mapper);
@@ -211,38 +212,53 @@ export class Agent {
    * Unregisteres from the ESRP and disposes the SIP agent
    * This has to be called before exiting the application
    */
-  dispose = async (): Promise<void> => {
-    // TODO: should also close open calls
 
-    const timeoutValue = 1000;
-    const promise = new Promise<void>(async resolve => {
-      // we give a maximum of 1000 ms to unregister after which we just terminate the session
-      const timeout = setTimeout(() => {
-        this._logger.error(`Could not unregister agent. Timeout after ${timeoutValue}ms.`);
-        resolve();
-      }, timeoutValue);
+  /**
+   * Unregisteres from the ESRP and disposes the SIP agent. \
+   * Closes open calls, if there are any. \
+   * This function has to be called before exiting the application.
+   * 
+   * @param gracePeriod Timeout for all actions done before disposing the agent in milliseconds. \
+   * If there are still open calls, this grace period applies to each call closure. \
+   * Grace period also applies to unregistering and disconnecting the agent.
+   */
+  dispose = async (gracePeriod: number = 2000): Promise<void> => {
+    const openConversations = this.conversations.filter(x => x.state.value !== ConversationState.STOPPED);
 
-      const unregisterPromise = new Promise<void>(resolveUnregister => {
-        this._agent.once('unregistered', () => resolveUnregister());
-      });
+    if (openConversations.length > 0)
+      this._logger.log(`Closing ${openConversations.length} open call(s) on agent dispose.`)
 
-      const disconnectPromise = new Promise<void>(resolveDisconnct => {
-        this._agent.once('disconnected', () => resolveDisconnct());
-      });
+    for (const c of openConversations) {
+      try {
+        await timedoutPromise(c.stop().promise, gracePeriod);
+      } catch {
+        this._logger.error(`Could not close conversation ${c.id}. Timeout after ${gracePeriod}ms.`);
+      }
+    }
 
-      await Promise.all([
-        unregisterPromise,
-        disconnectPromise,
-      ]);
+    const unregisterPromise = new Promise<void>(resolveUnregister => {
+      this._agent.once('unregistered', () => resolveUnregister());
+    });
 
-      clearTimeout(timeout);
-      resolve();
+    const disconnectPromise = new Promise<void>(resolveDisconnct => {
+      this._agent.once('disconnected', () => resolveDisconnct());
     });
 
     this._agent.unregister();
     this._agent.stop();
 
-    await promise;
+    try {
+      unregisterPromise.then(() => this._logger.log('Unregistered.'));
+      disconnectPromise.then(() => this._logger.log('Disconnected.'));
+
+      await timedoutPromise(Promise.all([
+        unregisterPromise,
+        disconnectPromise,
+      ]), gracePeriod);
+    }
+    catch {
+      this._logger.error(`Could not dispose agent. Timeout after ${gracePeriod}ms.`);
+    }
   }
 
   // TODO: Also support URNs
@@ -297,8 +313,20 @@ export class Agent {
     }
 
     if (conversation) {
-      // TODO: fix memory leak -> where and when are those conversations removed from memory?
-      this._store.conversations.push(conversation);
+      this.conversations.push(conversation);
+
+      const stopListener = (state: StateObject) => {
+        if (!conversation || state.value !== ConversationState.STOPPED)
+          return;
+
+        conversation.removeStateListener(stopListener);
+        const index = this.conversations.indexOf(conversation);
+
+        if (index !== -1)
+          this.conversations.splice(index, 1);
+      }
+      // this callback ensures that once a conversation is STOPPED, it is removed from our global conversations list.
+      conversation.addStateListener(stopListener);
 
       for (const callback of this._conversationListeners) {
         callback(conversation);
@@ -378,7 +406,7 @@ export class Agent {
   }
 
   /**
-   * All conversations
+   * All conversations that have not been stopped already
    */
   public get conversations() { return this._store.conversations }
 

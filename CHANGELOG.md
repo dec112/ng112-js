@@ -11,8 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **BREAKING**: Renamed property `debugMode` to `debug` in `Agent` constructor. \
 `debug` will also accept a callback function that is called for all log messages.
+- **BREAKING**: Unified conversation's `start`, `stop` and `sendMessage` function. \ 
+They now use the same arguments as `sendMessage` already did.
+- The agent's `conversation` property only contains open calls. Stopped calls are removed from this list. \
+This should limit memory consumption if ng112-js is used in long running applications with heavy load.
+
+### Added
+- Property `uniqueId` in messages that is unique across all messages and conversations within ng112-js
+- Auto-close of open calls on agent disposal
+- Configurable grace period for agent disposal
+- More detailled logging on message errors.
+- More extensive VCard tests
 
 ---
+
+## [0.11.21] - 2021-04-24
+### Added
+- Missing export for `AgentState`
 
 ## [0.11.19] - 2021-04-19
 ### Added

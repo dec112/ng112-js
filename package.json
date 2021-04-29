@@ -1,6 +1,6 @@
 {
   "name": "ng112-js",
-  "version": "0.11.20",
+  "version": "0.11.21",
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
   "files": [
@@ -21,6 +21,7 @@
     "docs": "typedoc",
     "docs-deploy": "node scripts/docs.deploy.js",
     "test": "tsdx test",
+    "test:clear-cache": "./node_modules/jest/bin/jest.js --clearCache",
     "lint": "tsdx lint",
     "prepublishOnly": "npm run docs-deploy && npm run build",
     "size": "size-limit",

@@ -142,7 +142,9 @@ conversation.addMessageListener((msg) => {
 
 // initiate the emergency conversation
 // sends the initial START message to the ESRP
-const startMsg = conversation.start();
+const startMsg = conversation.start({
+  text: 'This is an emergency call initiated by ng112-js',
+});
 
 // `await`ing the promise ensures the message was successfully forwarded by the SIP proxy
 await startMsg.promise;
@@ -243,12 +245,16 @@ agent.addConversationListener((conversation) => {
 
   // send a message to the caller
   // NOTICE: according to TS 103 698 the PSAP is obliged to send an initial message in response to the caller's START message!
-  const startMsg = conversation.sendMessage('Emergency control center. How can we help you?');
+  const startMsg = conversation.sendMessage({
+    text: 'Emergency control center. How can we help you?',
+  });
   // `await`ing the promise ensures the message was successfully forwarded by the SIP proxy
   await startMsg.promise;
 
   // end the emergency call
-  const stopMsg = conversation.stop('This conversation was ended by the control center.');
+  const stopMsg = conversation.stop({
+    text: 'This conversation was ended by the control center.',
+  });
   await stopMsg.promise;
 });
 
