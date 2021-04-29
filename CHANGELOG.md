@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING**: Unified conversation's `start`, `stop` and `sendMessage` function. \ 
 They now use the same arguments as `sendMessage` already did.
 
+### Added
+- Property `uniqueId` in messages that is unique across all messages and conversations within ng112-js
+
 ---
 
 ## [0.11.19] - 2021-04-19

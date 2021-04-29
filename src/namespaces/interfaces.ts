@@ -18,7 +18,8 @@ export type MessagePartsParams = OmitStrict<Message,
   'state' |
   'promise' |
   'dateTime' |
-  'conversation'
+  'conversation' |
+  'uniqueId'
 > & {
   conversationId: string,
   endpointType: ConversationEndpointType,
