@@ -4,6 +4,7 @@ export const version = getPackageInfo().version;
 export {
   Agent,
   AgentConfiguration,
+  AgentState,
 } from './models/agent';
 
 export {
