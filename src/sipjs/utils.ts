@@ -16,7 +16,6 @@ export const transformSipJsMessage = (request: OutgoingRequestMessage | Incoming
     getHeaders: (name) => request.getHeaders(name),
     from: request.from,
     to: request.to,
-    // sip.js only handles incoming messages with this event
     origin,
     body,
     sipStackMessage: request,

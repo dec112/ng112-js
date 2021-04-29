@@ -241,6 +241,8 @@ export class SipAgent {
 
           msg.message();
 
+          // sip.js' message handler only handles incoming messages
+          // that's why we manually inform our listeners here
           for (const listener of this._sipJsNewMessageListener) {
             // @ts-expect-error
             const outgoing: OutgoingRequestMessage = msg.request;
@@ -336,6 +338,7 @@ export class SipAgent {
         });
       }),
       sipjs: () => {
+        // sip.js only handles incoming message with this callback
         this._sipJsNewMessageListener.push(callback);
         this._sipjsDelegateObj.onMessage = ({ request }) => {
           callback(transformSipJsMessage(request, Origin.REMOTE))
