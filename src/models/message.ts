@@ -97,7 +97,7 @@ export interface Message {
   SipJs.Core.IncomingRequestMessage
 }
 
-export interface MessageFailed {
+export interface MessageError {
   origin: Origin,
 }
 

@@ -10,6 +10,7 @@ export {
 
 export {
   Message,
+  MessageError,
   MessageState,
   Origin,
 } from './models/message';
@@ -33,10 +34,6 @@ export {
 export {
   DEC112Specifics,
 } from './namespaces';
-
-export {
-  MessageFailedEvent,
-} from './models/interfaces';
 
 import PidfLoCompat from './compatibility/pidf-lo';
 

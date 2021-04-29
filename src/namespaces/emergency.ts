@@ -1,4 +1,3 @@
-import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import { getRandomString, Header, } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
@@ -214,8 +213,7 @@ export class EmergencyMapper implements NamespacedConversation {
   static getDIDFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, new RegExp(allowSpacesInRegexString(getDIDHeaderValue('(.*)'))));
   getDIDFromHeaders = (headers: string[]): string | undefined => EmergencyMapper.getDIDFromHeaders(headers);
 
-  // @ts-ignore
-  getIsTestFromHeaders = (message: IncomingMessage): boolean => false; // TODO: reference ETSI TS 103 698, 6.1.2.10 "Test Call"
+  getIsTestFromHeaders = (): boolean => false; // TODO: reference ETSI TS 103 698, 6.1.2.10 "Test Call"
   getMessageTypeFromHeaders = (headers: string[]): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));
 

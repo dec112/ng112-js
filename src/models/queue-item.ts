@@ -1,7 +1,7 @@
-import { Message, MessageFailed } from './message';
+import { Message, MessageError } from './message';
 
 export interface QueueItem {
   message: Message;
   resolve: () => void,
-  reject: (reason: MessageFailed) => void,
+  reject: (reason: MessageError) => void,
 }

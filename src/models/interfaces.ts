@@ -17,5 +17,3 @@ export interface ConversationConfiguration {
    */
   state?: StateObject,
 }
-
-export type MessageFailedEvent = JsSIP.MessageFailedEvent;

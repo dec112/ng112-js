@@ -1,11 +1,10 @@
-import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import { getHeaderString, getRandomString } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store } from './store';
-import { Message, Origin, MessageState, MessageFailed, nextUniqueId } from './message';
+import { Message, Origin, MessageState, MessageError, nextUniqueId } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, MultipartPart, CRLF } from './multipart';
@@ -231,7 +230,7 @@ export class Conversation {
         extraHeaders: headers.map(h => getHeaderString(h)),
       })
         .then(() => resolve())
-        .catch((ex: MessageFailed | undefined) => {
+        .catch((ex: MessageError | undefined) => {
           if (ex?.origin === Origin.REMOTE)
             this._setState(ConversationState.ERROR, ex.origin)();
           else
@@ -644,7 +643,7 @@ export class Conversation {
       mapper,
       {
         id: mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO)),
-        isTest: mapper.getIsTestFromHeaders(request as unknown as IncomingMessage),
+        isTest: mapper.getIsTestFromHeaders(request),
       },
     );
 

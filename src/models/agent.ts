@@ -248,7 +248,7 @@ export class Agent {
   /**
    * Creates a new configuration on top of the underlying agent
    * 
-   * @param event A JSSIP event for an incoming message 
+   * @param event A new message event for an incoming message 
    * @param mapper The mapper to use for this conversation
    */
   createConversation(
@@ -304,7 +304,7 @@ export class Agent {
       return conversation;
     }
     else
-      throw new Error('Argument 1 has to be either of type "JSSIP.IncomingRequest" or of type "string".');
+      throw new Error('Argument 1 has to be either of type "NewMessageEvent" or of type "string".');
   }
 
   /**

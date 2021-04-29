@@ -1,4 +1,3 @@
-import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import { CALL_INFO } from '../constants/headers';
 import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
@@ -7,6 +6,7 @@ import { Header } from '../utils';
 import type { PidfLo } from 'pidf-lo'
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, NamespacedConversation, NamespaceSpecifics } from './interfaces';
+import { NewMessageEvent } from '../models/sip-agent';
 
 const dec112Domain = 'service.dec112.at';
 const getCallInfoHeader = (uri: string[], value: string, domain: string, type: string) =>
@@ -127,7 +127,7 @@ export class DEC112Mapper implements NamespacedConversation {
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
   getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
   getDIDFromHeaders = (headers: string[]): string | undefined => EmergencyMapper.getDIDFromHeaders(headers);
-  getIsTestFromHeaders = (message: IncomingMessage): boolean => message.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
+  getIsTestFromHeaders = (message: NewMessageEvent): boolean => message.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
   getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));
 
