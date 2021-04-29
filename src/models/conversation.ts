@@ -5,7 +5,7 @@ import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
-import { Store } from './store';
+import { Store, AgentMode } from './store';
 import { Message, Origin, MessageState, nextUniqueId } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
@@ -15,7 +15,6 @@ import { clearInterval, setInterval, Timeout } from '../utils';
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
-import { AgentMode } from './agent';
 import { Logger } from './logger';
 
 export enum ConversationEndpointType {
