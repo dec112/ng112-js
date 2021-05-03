@@ -43,6 +43,7 @@ describe('ng112-js', () => {
     expect(conversation.id).toHaveLength(30);
     expect(conversation.mapper.getName()).toBe('ETSI');
     expect(conversation.targetUri).toBe(target);
+    expect(conversation.state.value).toBe(ConversationState.UNKNOWN);
 
     const msg = conversation.start();
     expect(msg.conversation).toBe(conversation);
@@ -55,11 +56,12 @@ describe('ng112-js', () => {
 
     const outgoingMessage = await server.expect.message();
     expect(outgoingMessage).toContain('From: "Alice"');
-
+    
     const promise = new Promise<void>(resolve => {
       conversation.addMessageListener((message) => {
         expect(message.text).toBe('hello dec112!');
         expect(conversation.state.value).toBe(ConversationState.STARTED);
+        expect(conversation.state.origin).toBe(Origin.REMOTE);
 
         resolve();
       });
