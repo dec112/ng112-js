@@ -347,7 +347,9 @@ export class Conversation {
     this._manageHeartbeat();
 
     return () => {
-      for (const listener of this._stateListeners) {
+      // Creating a copy of stateListeners as listeners might unsubscribe during execution
+      // ...and altering an array while iterating it is not nice :-)
+      for (const listener of this._stateListeners.slice(0)) {
         listener(this._state);
       }
     };
