@@ -21,6 +21,7 @@
     "docs": "typedoc",
     "docs-deploy": "node scripts/docs.deploy.js",
     "test": "tsdx test",
+    "test:clear-cache": "./node_modules/jest/bin/jest.js --clearCache",
     "lint": "tsdx lint",
     "prepublishOnly": "npm run docs-deploy && npm run build",
     "size": "size-limit",

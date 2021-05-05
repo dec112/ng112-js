@@ -6,7 +6,7 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store } from './store';
-import { Message, Origin, MessageState } from './message';
+import { Message, Origin, MessageState, nextUniqueId } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, MultipartPart, CRLF } from './multipart';
@@ -15,6 +15,7 @@ import { clearInterval, setInterval, Timeout } from '../utils';
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
+import { Logger } from './logger';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -31,7 +32,7 @@ export enum ConversationState {
 
 export interface SendMessageObject {
   /**
-   * Chat message to send
+   * Text message to be sent
    */
   text?: string,
   /**
@@ -62,6 +63,7 @@ export interface StateObject {
 }
 
 export class Conversation {
+  private _logger: Logger;
   /**
    * A unique conversation id\
    * according to spec, 30 characters is the longest allowed string
@@ -151,6 +153,8 @@ export class Conversation {
     };
     this.isTest = config?.isTest ?? false;
 
+    this._logger = this._store.logger;
+
     // manageHeartbeat is necessary here as someone could have already set the conversation's
     // state to `STARTED` which means also heartbeat has to be started
     this._manageHeartbeat();
@@ -218,11 +222,13 @@ export class Conversation {
             if (origin === Origin.REMOTE)
               this._setState(ConversationState.ERROR, origin)();
 
+            this._logger.error('Could not send SIP message.', message, evt);
             reject(evt);
           },
         }
       });
     } catch (ex) {
+      this._logger.error(ex);
       reject(ex);
     }
   }
@@ -263,7 +269,6 @@ export class Conversation {
     if (this._heartbeatInterval || !this._isHeartbeatAllowed())
       return;
 
-    // TODO: Error handling if sendMessage fails
     this._heartbeatInterval = setInterval(
       this._store.getHeartbeatInterval(),
       () => this.sendMessage({
@@ -323,7 +328,9 @@ export class Conversation {
     this._manageHeartbeat();
 
     return () => {
-      for (const listener of this._stateListeners) {
+      // Creating a copy of stateListeners as listeners might unsubscribe during execution
+      // ...and altering an array while iterating it is not nice :-)
+      for (const listener of this._stateListeners.slice(0)) {
         listener(this._state);
       }
     };
@@ -332,31 +339,35 @@ export class Conversation {
   /**
    * Starts the conversation
    * 
-   * @param text Text to be sent with the first SIP *MESSSAGE*\
-   * Defaults to "Start emergency call"
+   * This is basically a convenience function on top of `sendMessage` \
+   * It automatically sets the correct message type "START" \
+   * and defaults to text message "Start emergency call"
    */
-  start = (text?: string): Message => {
-    text = text ?? 'Start emergency call';
-
-    return this.sendMessage({
-      text,
+  start = (sendMessageObj?: SendMessageObject): Message => {
+    sendMessageObj = {
+      text: 'Start emergency call',
       type: EmergencyMessageType.START,
-    });
+      ...sendMessageObj,
+    }
+
+    return this.sendMessage(sendMessageObj);
   }
 
   /**
    * Ends the conversation
    * 
-   * @param text Text to be sent with the last SIP *MESSSAGE*\
-   * Defaults to "End emergency call"
+   * This is basically a convenience function on top of `sendMessage` \
+   * It automatically sets the correct message type "STOP" \
+   * and defaults to text message "Stop emergency call"
    */
-  stop = (text?: string): Message => {
-    text = text ?? 'End emergency call';
-
-    return this.sendMessage({
-      text,
+  stop = (sendMessageObj?: SendMessageObject): Message => {
+    sendMessageObj = {
+      text: 'Stop emergency call',
       type: EmergencyMessageType.STOP,
-    });
+      ...sendMessageObj,
+    }
+
+    return this.sendMessage(sendMessageObj);
   }
 
   /**
@@ -387,6 +398,7 @@ export class Conversation {
     const message: Message = {
       // if no message id is specified, use the internal sequence
       id: messageId ?? this._messageId++,
+      uniqueId: nextUniqueId(),
       origin: Origin.LOCAL,
       conversation: this,
       dateTime: new Date(),
@@ -496,7 +508,7 @@ export class Conversation {
     const emergencyMessageType = this.mapper.getMessageTypeFromHeaders(callInfoHeaders, parsedText);
 
     if (!emergencyMessageType) {
-      console.warn('Could not find message type in SIP MESSAGE. Can not handle this SIP MESSAGE.');
+      this._logger.warn('Could not find message type in SIP MESSAGE. Can not handle this SIP MESSAGE.');
       return;
     }
 
@@ -552,6 +564,7 @@ export class Conversation {
 
       this._addNewMessage({
         id: this.mapper.getMessageIdFromHeaders(callInfoHeaders) as string,
+        uniqueId: nextUniqueId(),
         origin,
         conversation: this,
         dateTime: now,
@@ -589,6 +602,17 @@ export class Conversation {
    */
   addStateListener = (callback: (state: StateObject) => unknown) => {
     this._stateListeners.push(callback);
+  }
+
+  /**
+   * Unregisters a previously registered conversation state listener
+   * 
+   * @param callback Callback function that is called each time the conversation's state changes
+   */
+  removeStateListener = (callback: (state: StateObject) => unknown) => {
+    const index = this._stateListeners.indexOf(callback);
+    if (index !== -1)
+      this._stateListeners.splice(index, 1);
   }
 
   /**

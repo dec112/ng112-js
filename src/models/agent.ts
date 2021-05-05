@@ -1,10 +1,10 @@
-import { UA, debug } from 'jssip';
+import { UA, debug as jssipDebug } from 'jssip';
 import { getSocketInterface } from '../jssip/socket-interface';
 import { CALL_INFO } from '../constants/headers';
 import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
 import { NamespacedConversation, NamespaceSpecifics } from '../namespaces/interfaces';
-import { Conversation } from './conversation';
+import { Conversation, ConversationState, StateObject } from './conversation';
 import { ConversationConfiguration } from './interfaces';
 import { CustomSipHeaders, Store } from './store';
 import { VCard } from './vcard';
@@ -12,6 +12,8 @@ import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
 import { USER_AGENT } from '../constants';
+import { Logger, LogLevel } from './logger';
+import { timedoutPromise } from '../utils';
 
 export interface AgentConfiguration {
   /**
@@ -40,9 +42,10 @@ export interface AgentConfiguration {
    */
   displayName?: string,
   /**
-   * If `debugMode` is set to `true`, verbose log messages will be printed to the console
+   * If `debug` is set to `true`, verbose log messages will be printed to the console \
+   * If `debug` is set to a callback, this callback will be called for each debug statement
    */
-  debugMode?: boolean,
+  debug?: number | ((level: number, ...values: any[]) => unknown),
   /**
    * Configuration object for cross compatibility between ETSI and DEC112 environments.\
    * Currently, only {@link DEC112Specifics | DEC112Specifics} is supported.\
@@ -78,6 +81,7 @@ export class Agent {
   };
 
   private _store: Store;
+  private _logger: Logger;
 
   private _conversationListeners: ((conversation: Conversation) => void)[] = [];
 
@@ -90,7 +94,7 @@ export class Agent {
     user,
     password,
     displayName,
-    debugMode = false,
+    debug = LogLevel.NONE,
     namespaceSpecifics,
     customSipHeaders,
   }: AgentConfiguration) {
@@ -111,8 +115,15 @@ export class Agent {
       user_agent: USER_AGENT,
     });
 
+    const debugFunction = typeof debug === 'function' ? debug : undefined;
+    // TypeScript does not get that this is already type safe
+    // It says we should do the typecheck another time, but this is not necessary
+    // @ts-expect-error
+    this._logger = new Logger(debugFunction ? LogLevel.ALL : debug, debugFunction);
+
     this._store = new Store(
       originSipUri,
+      this._logger,
       customSipHeaders,
     );
 
@@ -127,8 +138,11 @@ export class Agent {
       dec112,
     }
 
-    // enable or disable JsSIP debugging
-    debug[debugMode ? 'enable' : 'disable']('JsSIP:*');
+    // we can only activate jssip debugging if we log to the console (our fallback)
+    // because jssip does not let us piping log messages somewhere else
+    if (!debugFunction)
+      // enable or disable JsSIP debugging
+      jssipDebug[debug ? 'enable' : 'disable']('JsSIP:*');
   }
 
   private _handleMessageEvent = (evt: JsSIP.UserAgentNewMessageEvent) => {
@@ -142,14 +156,14 @@ export class Agent {
     else if (this._mapper.etsi.isCompatible(callInfoHeaders))
       mapper = this._mapper.etsi;
     else {
-      console.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore not be processed.');
+      this._logger.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore not be processed.');
       return;
     }
 
     const conversationId = mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO));
 
     if (conversationId) {
-      let conversation = this._store.conversations.find(x => x.id == conversationId);
+      let conversation = this.conversations.find(x => x.id == conversationId);
 
       if (!conversation)
         conversation = this.createConversation(evt, undefined, mapper);
@@ -157,7 +171,7 @@ export class Agent {
       conversation.handleMessageEvent(evt);
     }
     else
-      console.warn('Can not process message due to missing call id.');
+      this._logger.warn('Can not process message due to missing call id.');
   }
 
   /**
@@ -193,34 +207,53 @@ export class Agent {
    * Unregisteres from the ESRP and disposes the SIP agent
    * This has to be called before exiting the application
    */
-  dispose = async (): Promise<void> => {
-    // TODO: should also close open calls
 
-    const promise = new Promise<void>(async resolve => {
-      // we give a maximum of 1000 ms to unregister after which we just terminate the session
-      const timeout = setTimeout(() => resolve(), 1000);
+  /**
+   * Unregisteres from the ESRP and disposes the SIP agent. \
+   * Closes open calls, if there are any. \
+   * This function has to be called before exiting the application.
+   * 
+   * @param gracePeriod Timeout for all actions done before disposing the agent in milliseconds. \
+   * If there are still open calls, this grace period applies to each call closure. \
+   * Grace period also applies to unregistering and disconnecting the agent.
+   */
+  dispose = async (gracePeriod: number = 2000): Promise<void> => {
+    const openConversations = this.conversations.filter(x => x.state.value !== ConversationState.STOPPED);
 
-      const unregisterPromise = new Promise<void>(resolveUnregister => {
-        this._agent.once('unregistered', () => resolveUnregister());
-      });
+    if (openConversations.length > 0)
+      this._logger.log(`Closing ${openConversations.length} open call(s) on agent dispose.`)
 
-      const disconnectPromise = new Promise<void>(resolveDisconnct => {
-        this._agent.once('disconnected', () => resolveDisconnct());
-      });
+    for (const c of openConversations) {
+      try {
+        await timedoutPromise(c.stop().promise, gracePeriod);
+      } catch {
+        this._logger.error(`Could not close conversation ${c.id}. Timeout after ${gracePeriod}ms.`);
+      }
+    }
 
-      await Promise.all([
-        unregisterPromise,
-        disconnectPromise,
-      ]);
+    const unregisterPromise = new Promise<void>(resolveUnregister => {
+      this._agent.once('unregistered', () => resolveUnregister());
+    });
 
-      clearTimeout(timeout);
-      resolve();
+    const disconnectPromise = new Promise<void>(resolveDisconnct => {
+      this._agent.once('disconnected', () => resolveDisconnct());
     });
 
     this._agent.unregister();
     this._agent.stop();
 
-    await promise;
+    try {
+      unregisterPromise.then(() => this._logger.log('Unregistered.'));
+      disconnectPromise.then(() => this._logger.log('Disconnected.'));
+
+      await timedoutPromise(Promise.all([
+        unregisterPromise,
+        disconnectPromise,
+      ]), gracePeriod);
+    }
+    catch {
+      this._logger.error(`Could not dispose agent. Timeout after ${gracePeriod}ms.`);
+    }
   }
 
   // TODO: Also support URNs
@@ -275,8 +308,20 @@ export class Agent {
     }
 
     if (conversation) {
-      // TODO: fix memory leak -> where and when are those conversations removed from memory?
-      this._store.conversations.push(conversation);
+      this.conversations.push(conversation);
+
+      const stopListener = (state: StateObject) => {
+        if (!conversation || state.value !== ConversationState.STOPPED)
+          return;
+
+        conversation.removeStateListener(stopListener);
+        const index = this.conversations.indexOf(conversation);
+
+        if (index !== -1)
+          this.conversations.splice(index, 1);
+      }
+      // this callback ensures that once a conversation is STOPPED, it is removed from our global conversations list.
+      conversation.addStateListener(stopListener);
 
       for (const callback of this._conversationListeners) {
         callback(conversation);
@@ -347,7 +392,7 @@ export class Agent {
   }
 
   /**
-   * All conversations
+   * All conversations that have not been stopped already
    */
   public get conversations() { return this._store.conversations }
 

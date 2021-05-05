@@ -203,7 +203,7 @@ const disable = (element, value) => {
       domain: domain.value,
       user: user.value,
       password: password.value,
-      // debugMode: true,
+      // debug: true,
       namespaceSpecifics,
       displayName: displayName.value,
       customSipHeaders: {

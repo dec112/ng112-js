@@ -1,6 +1,7 @@
 import type { PidfLo } from 'pidf-lo';
 import { Conversation } from './conversation';
 import { CustomSipHeader } from './custom-sip-header';
+import { Logger } from './logger';
 import { VCard } from './vcard';
 
 export interface CustomSipHeaders {
@@ -29,6 +30,7 @@ export class Store {
 
   constructor(
     public readonly originSipUri: string,
+    public readonly logger: Logger,
     public readonly customSipHeaders?: CustomSipHeaders,
   ) { }
 

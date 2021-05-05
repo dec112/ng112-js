@@ -25,6 +25,7 @@ export {
 export {
   Conversation,
   ConversationState,
+  SendMessageObject,
   StateObject,
 } from './models/conversation';
 

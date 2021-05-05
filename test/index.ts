@@ -12,7 +12,7 @@ export const getAgent = () => new Agent({
   user: 'user',
   password: 'password',
   displayName: 'Alice',
-  // debugMode: true,
+  // debug: true,
 });
 
 let _server: WS;

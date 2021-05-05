@@ -1,8 +1,11 @@
+import { Logger, LogLevel } from "./logger";
 import { Store, defaultHeartbeatInterval } from "./store";
+
+const getStore = () => new Store('', new Logger(LogLevel.NONE));
 
 describe('Store', () => {
   it('should handle heartbeat settings correctly', () => {
-    const store = new Store('');
+    const store = getStore();
 
     expect(store.getHeartbeatInterval()).toBe(defaultHeartbeatInterval);
 
@@ -19,7 +22,7 @@ describe('Store', () => {
   });
 
   it('should be possible to subscribe for heartbeat interval changes', () => {
-    const store = new Store('');
+    const store = getStore();
     const newInterval = 5000;
 
     store.addHeartbeatIntervalListener((interval) => {
@@ -29,7 +32,7 @@ describe('Store', () => {
   });
 
   it('should be possible to unsubscribe from heartbeat interval changes', () => {
-    const store = new Store('');
+    const store = getStore();
     let newInterval = 5000;
 
     const callback = jest.fn(() => undefined);
@@ -50,7 +53,7 @@ describe('Store', () => {
   });
 
   it('should not call heartbeat listener twice if same value is set again', () => {
-    const store = new Store('');
+    const store = getStore();
     const newInterval = 5000;
 
     const callback = jest.fn(() => undefined);
