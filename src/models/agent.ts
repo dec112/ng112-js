@@ -43,9 +43,10 @@ export interface AgentConfiguration {
   displayName?: string,
   /**
    * If `debug` is set to `true`, verbose log messages will be printed to the console \
+   * If `debug` is set to a `LogLevel` bitmask, specified log messages will be printed to the console \
    * If `debug` is set to a callback, this callback will be called for each debug statement
    */
-  debug?: number | ((level: number, ...values: any[]) => unknown),
+  debug?: boolean | number | ((level: number, ...values: any[]) => unknown),
   /**
    * Configuration object for cross compatibility between ETSI and DEC112 environments.\
    * Currently, only {@link DEC112Specifics | DEC112Specifics} is supported.\
@@ -115,11 +116,18 @@ export class Agent {
       user_agent: USER_AGENT,
     });
 
-    const debugFunction = typeof debug === 'function' ? debug : undefined;
-    // TypeScript does not get that this is already type safe
-    // It says we should do the typecheck another time, but this is not necessary
-    // @ts-expect-error
-    this._logger = new Logger(debugFunction ? LogLevel.ALL : debug, debugFunction);
+    let debugFunction: ((level: number, ...values: any[]) => unknown) | undefined = undefined;
+
+    if (debug === true)
+      debug = LogLevel.ALL;
+    else if (typeof debug === 'function') {
+      debugFunction = debug;
+      debug = LogLevel.ALL;
+    }
+    else if (!debug)
+      debug = LogLevel.NONE;
+
+    this._logger = new Logger(debug, debugFunction);
 
     this._store = new Store(
       originSipUri,

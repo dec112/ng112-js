@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 These incoming SIP messages will be dropped as they could lead to unexpected agent states, where a conversation is opened that was not expected.
 ### Added
 - Missing export for `LogLevel`
+- Boolean as possible value for `Agent`'s `debug` property for specifying verbose logging
 
 ---
 
