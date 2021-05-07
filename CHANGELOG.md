@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Behaviour for incoming conversations, if no conversation listeners are registered. \
 These incoming SIP messages will be dropped as they could lead to unexpected agent states, where a conversation is opened that was not expected.
+### Added
+- Missing export for `LogLevel`
 
 ---
 

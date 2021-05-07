@@ -37,6 +37,10 @@ export {
   MessageFailedEvent,
 } from './models/interfaces';
 
+export {
+  LogLevel,
+} from './models/logger';
+
 import PidfLoCompat from './compatibility/pidf-lo';
 
 const {
