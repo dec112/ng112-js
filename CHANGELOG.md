@@ -5,14 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  
 ## [Unreleased]
+---
+
+## [1.1.0] - 2021-05-07
 ### Changed
-- Behaviour for incoming conversations, if no conversation listeners are registered. \
+- Fixed behaviour for incoming conversations, if no conversation listeners are registered. \
 These incoming SIP messages will be dropped as they could lead to unexpected agent states, where a conversation is opened that was not expected.
 ### Added
 - Missing export for `LogLevel`
 - Boolean as possible value for `Agent`'s `debug` property for specifying verbose logging
-
----
 
 ## [1.0.0] - 2021-05-05
 ### Changed
