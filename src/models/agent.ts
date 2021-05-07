@@ -165,10 +165,16 @@ export class Agent {
     if (conversationId) {
       let conversation = this.conversations.find(x => x.id == conversationId);
 
-      if (!conversation)
+      // we only want to start new conversations if there are active listeners.
+      // otherwise it does not make sense.
+      // e.g. this should prevent a mobile device from receiving incoming conversations.
+      if (!conversation && this._conversationListeners.length > 0)
         conversation = this.createConversation(evt, undefined, mapper);
 
-      conversation.handleMessageEvent(evt);
+      if (conversation)
+        conversation.handleMessageEvent(evt);
+      else
+        this._logger.warn('Omitted incoming message. No corresponding conversation found and no active conversation listeners listening. Is something wrong with the setup?', evt);
     }
     else
       this._logger.warn('Can not process message due to missing call id.');
