@@ -2,6 +2,7 @@ import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import type { PidfLo } from 'pidf-lo';
 import { ConversationEndpointType } from '../models/conversation';
 import { Message } from '../models/message';
+import { Multipart } from '../models/multipart';
 import { Header } from '../utils';
 import { OmitStrict } from '../utils/ts-utils';
 
@@ -9,8 +10,7 @@ export interface NamespaceSpecifics { }
 
 export interface MessageParts {
   headers: Header[],
-  contentType: string,
-  body: string,
+  multipart: Multipart,
 }
 
 export type MessagePartsParams = OmitStrict<Message,

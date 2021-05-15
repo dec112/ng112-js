@@ -218,7 +218,7 @@ export class Conversation {
     message.dateTime = new Date();
 
     try {
-      const { body, headers, contentType } = this.mapper.createMessageParts({
+      const { headers, multipart } = this.mapper.createMessageParts({
         ...message,
         conversationId: this.id,
         isTest: this.isTest,
@@ -226,10 +226,12 @@ export class Conversation {
         endpointType: this._endpointType,
       });
 
+      const multiObj = multipart.create();
+
       // we can not just pass the plain string to `sendMessage` as this causes problems with encoded parameters
       // therfore we have to call URI.parse (which is a jssip function!) to ensure correct transmission
-      this._agent.sendMessage(URI.parse(this._targetUri), body, {
-        contentType,
+      this._agent.sendMessage(URI.parse(this._targetUri), multiObj.body, {
+        contentType: multiObj.contentType,
         extraHeaders: headers.map(h => getHeaderString(h)),
         eventHandlers: {
           succeeded: (evt) => resolve(evt),

@@ -54,19 +54,19 @@ export class EmergencyMapper implements NamespacedConversation {
     // TODO: TS 103 698 -> 6.1.2.11 -> support DIDs
   ): MessageParts => {
 
-    let extraHeaders: Header[] = [];
-    const multi = new Multipart();
+    let headers: Header[] = [];
+    const multipart = new Multipart();
 
     if (extraParts) {
-      multi.addAll(extraParts);
+      multipart.addAll(extraParts);
     }
 
     if (endpointType === ConversationEndpointType.PSAP) {
-      extraHeaders.push({ key: REPLY_TO, value: replyToSipUri })
+      headers.push({ key: REPLY_TO, value: replyToSipUri })
     }
 
     if (uris) {
-      multi.add({
+      multipart.add({
         headers: [{ key: CONTENT_TYPE, value: TEXT_URI_LIST }],
         body: uris.join(CRLF),
       })
@@ -75,12 +75,12 @@ export class EmergencyMapper implements NamespacedConversation {
     if (location) {
       const locationContentId = `${getRandomString(12)}@dec112.app`;
 
-      extraHeaders = extraHeaders.concat([
+      headers = headers.concat([
         { key: GEOLOCATION_ROUTING, value: 'yes' },
         { key: GEOLOCATION, value: `<cid:${locationContentId}>` },
       ]);
 
-      multi.add({
+      multipart.add({
         headers: [
           { key: CONTENT_TYPE, value: PIDF_LO },
           { key: CONTENT_ID, value: `<${locationContentId}>` },
@@ -110,7 +110,7 @@ export class EmergencyMapper implements NamespacedConversation {
         root.appendChild(data);
         doc.appendChild(root);
 
-        multi.add({
+        multipart.add({
           headers: [
             { key: CONTENT_TYPE, value: CALL_SUB },
           ],
@@ -120,7 +120,7 @@ export class EmergencyMapper implements NamespacedConversation {
     }
 
     if (text) {
-      multi.add({
+      multipart.add({
         headers: [{ key: CONTENT_TYPE, value: TEXT_PLAIN }],
         body: text,
       });
@@ -130,15 +130,9 @@ export class EmergencyMapper implements NamespacedConversation {
     // what should we do? Sending an empty object seems strange, but maybe it's perfectly fine
     // That's something that should be investigated
 
-    const multiObj = multi.create();
-
     return {
-      headers: [
-        ...extraHeaders,
-        ...multiObj.headers,
-      ],
-      contentType: multiObj.contentType,
-      body: multiObj.body,
+      headers,
+      multipart,
     };
   }
 
@@ -171,15 +165,15 @@ export class EmergencyMapper implements NamespacedConversation {
       vcard,
     );
 
-    const extraHeaders = [
+    const headers = common.headers = [
+      ...common.headers,
       { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, 'dec112.at') },
       { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), 'service.dec112.at') },
       { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), 'service.dec112.at') },
-      ...common.headers,
     ];
 
     if (did)
-      extraHeaders.push({
+      headers.push({
         key: CALL_INFO,
         value: getDIDHeaderValue(did),
       });
@@ -192,11 +186,7 @@ export class EmergencyMapper implements NamespacedConversation {
       // reference ETSI TS 103 698, 6.1.2.10 "Test Call"
     }
 
-    return {
-      headers: extraHeaders,
-      contentType: common.contentType,
-      body: common.body,
-    };
+    return common;
   }
 
   // static, because it's also used by DEC112Mapper
