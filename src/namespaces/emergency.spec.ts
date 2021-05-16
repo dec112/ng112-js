@@ -1,9 +1,12 @@
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { ConversationEndpointType } from '../models/conversation';
+import { Logger, LogLevel } from '../models/logger';
 import { EmergencyMapper } from './emergency';
 
+const logger = new Logger(LogLevel.NONE);
+
 describe('Checking call info headers', () => {
-  const mapper = new EmergencyMapper();
+  const mapper = new EmergencyMapper(logger);
 
   const validCallId = '12345qwertz';
   const validCallIdHeaders = [
@@ -44,7 +47,7 @@ describe('Checking call info headers', () => {
 });
 
 describe('Messaging functionality', () => {
-  const mapper = new EmergencyMapper();
+  const mapper = new EmergencyMapper(logger);
 
   it('creates an empty message correctly', () => {
     const parts = mapper.createMessageParts({
@@ -56,8 +59,10 @@ describe('Messaging functionality', () => {
       replyToSipUri: 'sip:test@domain.com',
     });
 
+    const body = parts.multipart.create().body;
+
     // no output, not even multipart closing delimiter
     // just an empty string
-    expect(parts.body).toBe('');
+    expect(body).toBe('');
   });
 });

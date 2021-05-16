@@ -144,8 +144,8 @@ export class DEC112Mapper extends EmergencyMapper {
   parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => this.parseCommonMessageFromEvent(evt);
 
   // DEC112 overrides
-  protected getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
-  protected getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
+  getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
+  getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));
 
     if (msgType)
