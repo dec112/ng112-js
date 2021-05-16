@@ -39,6 +39,10 @@ export {
   DEC112Specifics,
 } from './namespaces';
 
+export {
+  LogLevel,
+} from './models/logger';
+
 import PidfLoCompat from './compatibility/pidf-lo';
 
 const {

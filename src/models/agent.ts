@@ -41,9 +41,10 @@ export interface AgentConfiguration {
   displayName?: string,
   /**
    * If `debug` is set to `true`, verbose log messages will be printed to the console \
+   * If `debug` is set to a `LogLevel` bitmask, specified log messages will be printed to the console \
    * If `debug` is set to a callback, this callback will be called for each debug statement
    */
-  debug?: number | ((level: number, ...values: any[]) => unknown),
+  debug?: boolean | number | ((level: number, ...values: any[]) => unknown),
   /**
    * Configuration object for cross compatibility between ETSI and DEC112 environments.\
    * Currently, only {@link DEC112Specifics | DEC112Specifics} is supported.\
@@ -94,20 +95,29 @@ export class Agent {
     const {
       domain,
       user,
-      debug = LogLevel.NONE,
       namespaceSpecifics,
       customSipHeaders,
+    } = config;
+
+    let {
+      debug = LogLevel.NONE,
     } = config;
 
     const originSipUri = customSipHeaders?.from ?
       CustomSipHeader.resolve(customSipHeaders.from) :
       `sip:${user ? `${user}@` : ''}${domain}`;
 
-    const debugFunction = typeof debug === 'function' ? debug : undefined;
-    // TypeScript does not get that this is already type safe
-    // It says we should do the typecheck another time, but this is not necessary
-    // @ts-expect-error
-    this._logger = new Logger(debugFunction ? LogLevel.ALL : debug, debugFunction);
+    let debugFunction: ((level: number, ...values: any[]) => unknown) | undefined = undefined;
+    if (debug === true)
+      debug = LogLevel.ALL;
+    else if (typeof debug === 'function') {
+      debugFunction = debug;
+      debug = LogLevel.ALL;
+    }
+    else if (!debug)
+      debug = LogLevel.NONE;
+
+    this._logger = new Logger(debug, debugFunction);
 
     this._store = new Store(
       originSipUri,
@@ -151,10 +161,16 @@ export class Agent {
     if (conversationId) {
       let conversation = this.conversations.find(x => x.id == conversationId);
 
-      if (!conversation)
+      // we only want to start new conversations if there are active listeners.
+      // otherwise it does not make sense.
+      // e.g. this should prevent a mobile device from receiving incoming conversations.
+      if (!conversation && this._conversationListeners.length > 0)
         conversation = this.createConversation(evt, undefined, mapper);
 
-      conversation.handleMessageEvent(evt);
+      if (conversation)
+        conversation.handleMessageEvent(evt);
+      else
+        this._logger.warn('Omitted incoming message. No corresponding conversation found and no active conversation listeners listening. Is something wrong with the setup?', evt);
     }
     else
       this._logger.warn('Can not process message due to missing call id.');
