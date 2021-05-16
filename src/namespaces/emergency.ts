@@ -1,12 +1,17 @@
 import { getRandomString, Header, } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
-import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST } from '../constants/content-types';
+import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST, MULTIPART_MIXED } from '../constants/content-types';
 import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, REPLY_TO } from '../constants/headers';
 import { ConversationEndpointType } from '../models/conversation';
 import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
 import { MessageParts, MessagePartsParams, NamespacedConversation } from './interfaces'
+import { NewMessageEvent } from '../models/sip-agent';
+import { Message, MessageState, nextUniqueId } from '../models/message';
+import { EmergencyMessageType } from '../constants/message-types/emergency';
+import { OmitStrict } from '../utils/ts-utils';
+import { Logger } from '../models/logger';
 
 // we are quite generous when it comes to spaces
 // so if there is a header incoming with more than one space, we still accept it
@@ -42,7 +47,24 @@ const getDIDHeaderValue = (did: string) => `<${did}>; purpose=EmergencyCallData.
 const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader(['.+'], value, domain, '.+');
 
 export class EmergencyMapper implements NamespacedConversation {
-  static createCommonParts = (
+  constructor(
+    private _logger: Logger,
+  ) { }
+
+  getName = () => 'ETSI';
+  // ETSI TS 103 698 does not allow a conversation to be started by client only
+  // also PSAP has to respond with a "START" message to finally start the conversation
+  isStartConversationByClientAllowed = (): boolean => false;
+
+  isCompatible = (headers: string[]): boolean =>
+    // checks if at least one element satisfies ETSI call info headers
+    headers.some(h => getRegEx(getAnyHeaderValue).test(h));
+
+  getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
+  // @ts-expect-error
+  getIsTestFromEvent = (evt: NewMessageEvent): boolean => false; // TODO: reference ETSI TS 103 698, 6.1.2.10 "Test Call"
+
+  protected createCommonParts = (
     endpointType: ConversationEndpointType,
     replyToSipUri: string,
     text?: string,
@@ -135,10 +157,98 @@ export class EmergencyMapper implements NamespacedConversation {
     };
   }
 
-  getName = () => 'ETSI';
-  // ETSI TS 103 698 does not allow a conversation to be started by client only
-  // also PSAP has to respond with a "START" message to finally start the conversation
-  isStartConversationByClientAllowed = (): boolean => false;
+  private parseMultipartParts = (multipart: Multipart): Partial<Message> => {
+    const message: Partial<Message> = {};
+
+    const textParts = multipart.getPartsByContentType(TEXT_PLAIN);
+    if (textParts.length > 0) {
+      // we just concatenate all plain parts with line breaks
+      // this might not be the best solution, but it's for sure the easiest one ;-)
+      message.text = textParts.map(x => x.body).join('\n');
+    }
+
+    const locationParts = multipart.getPartsByContentType(PIDF_LO);
+    if (locationParts.length > 0) {
+      for (const locPart of locationParts) {
+        const loc = this.tryParsePidfLo(locPart.body);
+
+        if (loc && message.location) {
+          // if there are multiple pidfLo parts present, we just combine it to one object
+          message.location.locationTypes = [
+            ...message.location.locationTypes,
+            ...loc?.locationTypes,
+          ]
+        }
+        else if (loc)
+          message.location = loc;
+      }
+    }
+
+    const vcardParts = multipart.getPartsByContentType(CALL_SUB);
+    if (vcardParts.length > 0) {
+      const vcard = VCard.fromXML(vcardParts[0].body);
+
+      if (message.vcard)
+        vcard.combine(message.vcard);
+
+      message.vcard = vcard;
+    }
+
+    const uriParts = multipart.getPartsByContentType(TEXT_URI_LIST);
+    if (uriParts.length > 0) {
+      message.uris = uriParts.map(u => u.body).reduce((prev, curr) => {
+        const allUris = curr.split(CRLF);
+        // uris with a leading # are commented and should be ignored
+        return prev.concat(allUris.filter(x => x.indexOf('#') !== 0))
+      }, [] as string[]);
+    }
+
+    return message;
+  }
+
+  protected parseCommonMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => {
+    const { body, origin } = evt;
+    let message: Partial<Message> = {};
+
+    const contentType = evt.getHeader(CONTENT_TYPE);
+    if (contentType && contentType.indexOf(MULTIPART_MIXED) !== -1 && body) {
+      const multipart = Multipart.parse(body, contentType);
+      message = {
+        ...message,
+        ...this.parseMultipartParts(multipart),
+      }
+    }
+    else if (body)
+      message.text = body;
+
+    const callInfoHeaders = evt.getHeaders(CALL_INFO);
+
+    let type = this.getMessageTypeFromHeaders(callInfoHeaders, message.text);
+    if (!type) {
+      this._logger.warn('Could not find message type. Will treat it as IN_CHAT message.');
+      type = EmergencyMessageType.IN_CHAT;
+    }
+
+    const uniqueId = nextUniqueId();
+    let id = this.getMessageIdFromHeaders(callInfoHeaders);
+    if (!id) {
+      this._logger.warn('Could not find message id. Will use our internally created unique id instead.');
+      id = uniqueId.toString();
+    }
+
+    return {
+      ...message,
+      id,
+      uniqueId,
+      origin,
+      dateTime: new Date(),
+      type,
+      state: MessageState.SUCCESS,
+      promise: Promise.resolve(),
+      sipStackMessage: evt.sipStackMessage,
+      did: this.getDIDFromHeaders(callInfoHeaders),
+    };
+  }
 
   createMessageParts = ({
     conversationId,
@@ -154,7 +264,7 @@ export class EmergencyMapper implements NamespacedConversation {
     vcard,
     did,
   }: MessagePartsParams): MessageParts => {
-    const common = EmergencyMapper.createCommonParts(
+    const parts = this.createCommonParts(
       endpointType,
       replyToSipUri,
       text,
@@ -164,8 +274,8 @@ export class EmergencyMapper implements NamespacedConversation {
       vcard,
     );
 
-    const headers = common.headers = [
-      ...common.headers,
+    const headers = parts.headers = [
+      ...parts.headers,
       { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, 'dec112.at') },
       { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), 'service.dec112.at') },
       { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), 'service.dec112.at') },
@@ -185,26 +295,19 @@ export class EmergencyMapper implements NamespacedConversation {
       // reference ETSI TS 103 698, 6.1.2.10 "Test Call"
     }
 
-    return common;
+    return parts;
   }
 
-  // static, because it's also used by DEC112Mapper
-  static tryParsePidfLo = (value: string): PidfLo | undefined => PidfLoCompat.PidfLo.fromXML(value);
-  tryParsePidfLo = (value: string): PidfLo | undefined => EmergencyMapper.tryParsePidfLo(value);
+  parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => this.parseCommonMessageFromEvent(evt);
 
-  isCompatible = (headers: string[]): boolean =>
-    // checks if at least one element satisfies ETSI call info headers
-    headers.some(h => getRegEx(getAnyHeaderValue).test(h));
+  protected tryParsePidfLo = (value: string): PidfLo | undefined => PidfLoCompat.PidfLo.fromXML(value);
+  protected getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
+  protected getDIDFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, new RegExp(allowSpacesInRegexString(getDIDHeaderValue('(.*)'))));
 
-  getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
-  getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
-
-  // static, because it's also used by DEC112Mapper
-  static getDIDFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, new RegExp(allowSpacesInRegexString(getDIDHeaderValue('(.*)'))));
-  getDIDFromHeaders = (headers: string[]): string | undefined => EmergencyMapper.getDIDFromHeaders(headers);
-
-  getIsTestFromHeaders = (): boolean => false; // TODO: reference ETSI TS 103 698, 6.1.2.10 "Test Call"
-  getMessageTypeFromHeaders = (headers: string[]): number | undefined => {
+  // we have to specify this additional (in this case unnecessary) parameter
+  // as DEC112 mapper needs it
+  // @ts-expect-error
+  protected getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));
 
     if (msgType)

@@ -2,11 +2,13 @@ import { CALL_INFO, CONTENT_TRANSFER_ENCODING, CONTENT_TYPE } from '../constants
 import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
 import { ConversationEndpointType } from '../models/conversation';
-import type { PidfLo } from 'pidf-lo'
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
-import { MessageParts, MessagePartsParams, NamespacedConversation, NamespaceSpecifics } from './interfaces';
+import { MessageParts, MessagePartsParams, NamespaceSpecifics } from './interfaces';
 import { NewMessageEvent } from '../models/sip-agent';
 import { Base64 } from '../utils/base64';
+import { OmitStrict } from '../utils/ts-utils';
+import { Message } from '../models/message';
+import { Logger } from '../models/logger';
 
 const dec112Domain = 'service.dec112.at';
 const getCallInfoHeader = (uri: string[], value: string, domain: string, type: string) =>
@@ -42,15 +44,25 @@ export class DEC112Specifics implements NamespaceSpecifics {
   // TODO: support did
 }
 
-export class DEC112Mapper implements NamespacedConversation {
+export class DEC112Mapper extends EmergencyMapper {
   constructor(
+    _logger: Logger,
     public specifics?: DEC112Specifics
-  ) { }
+  ) {
+    super(_logger);
+  }
 
   getName = () => 'DEC112';
   // DEC112 allows starting a conversation by the client
   // ETSI standard only allows PSAP to finally start the conversation
   isStartConversationByClientAllowed = (): boolean => true;
+
+  isCompatible = (headers: string[]): boolean =>
+    // checks if at least one element satisfies DEC112 call info headers
+    headers.some(h => getRegEx(getAnyHeaderValue).test(h));
+
+  getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
+  getIsTestFromEvent = (evt: NewMessageEvent): boolean => evt.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
 
   createMessageParts = ({
     conversationId,
@@ -66,7 +78,7 @@ export class DEC112Mapper implements NamespacedConversation {
     location,
     vcard,
   }: MessagePartsParams): MessageParts => {
-    const common = EmergencyMapper.createCommonParts(
+    const common = this.createCommonParts(
       endpointType,
       replyToSipUri,
       text,
@@ -129,18 +141,11 @@ export class DEC112Mapper implements NamespacedConversation {
     return common;
   }
 
-  tryParsePidfLo = (value: string): PidfLo | undefined => EmergencyMapper.tryParsePidfLo(value);
+  parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => this.parseCommonMessageFromEvent(evt);
 
-  isCompatible = (headers: string[]): boolean =>
-    // checks if at least one element satisfies DEC112 call info headers
-    headers.some(h => getRegEx(getAnyHeaderValue).test(h));
-
-
-  getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
-  getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
-  getDIDFromHeaders = (headers: string[]): string | undefined => EmergencyMapper.getDIDFromHeaders(headers);
-  getIsTestFromHeaders = (message: NewMessageEvent): boolean => message.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
-  getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
+  // DEC112 overrides
+  protected getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
+  protected getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));
 
     if (msgType)

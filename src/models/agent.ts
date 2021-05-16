@@ -133,8 +133,8 @@ export class Agent {
 
     const hasDEC112Specifics = namespaceSpecifics instanceof DEC112Specifics;
 
-    const dec112 = new DEC112Mapper(hasDEC112Specifics ? namespaceSpecifics : undefined);
-    const etsi = new EmergencyMapper();
+    const dec112 = new DEC112Mapper(this._logger, hasDEC112Specifics ? namespaceSpecifics : undefined);
+    const etsi = new EmergencyMapper(this._logger);
 
     this._mapper = {
       default: hasDEC112Specifics ? dec112 : etsi,

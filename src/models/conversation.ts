@@ -5,9 +5,8 @@ import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store, AgentMode } from './store';
 import { Message, Origin, MessageState, MessageError, nextUniqueId, Binary } from './message';
-import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
-import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
-import { Multipart, MultipartPart, CRLF } from './multipart';
+import { CALL_INFO, REPLY_TO } from '../constants/headers';
+import { MultipartPart } from './multipart';
 import { ConversationConfiguration } from './interfaces';
 import { clearInterval, setInterval, Timeout } from '../utils';
 import { VCard } from './vcard';
@@ -457,76 +456,13 @@ export class Conversation {
    * This function is only used internally and should not be called from outside the library
    */
   handleMessageEvent = (evt: NewMessageEvent): void => {
-    // TODO: Reshape this method, it's ugly
-    const now = new Date();
     if (!this._created)
-      this._created = now;
+      this._created = new Date();
 
-    const { from, to, body, origin } = evt;
+    const { from, to, origin } = evt;
 
-    const contentType = evt.getHeader(CONTENT_TYPE);
-    let parsedText: string | undefined = undefined;
-    let parsedLocation: PidfLo | undefined = undefined;
-    let parsedVCard: VCard | undefined = undefined;
-    let parsedUris: string[] | undefined = undefined;
-
-    // TODO: I think all parsing should also be done by the mapper
-    if (contentType && contentType.indexOf(MULTIPART_MIXED) !== -1 && body) {
-      const multipart = Multipart.parse(body, contentType);
-      const plainParts = multipart.getPartsByContentType(TEXT_PLAIN);
-
-      if (plainParts.length > 0) {
-        // we just concatenate all plain parts with line breaks
-        // this might not be the best solution, but it's for sure the easiest one ;-)
-        parsedText = plainParts.map(x => x.body).join('\n');
-      }
-
-      const locationParts = multipart.getPartsByContentType(PIDF_LO);
-      if (locationParts.length > 0) {
-        for (const locPart of locationParts) {
-          const loc = this.mapper.tryParsePidfLo(locPart.body);
-
-          if (parsedLocation && loc) {
-            // if there are multiple pidfLo parts present, we just combine it to one object
-            parsedLocation.locationTypes = [
-              ...parsedLocation.locationTypes,
-              ...loc?.locationTypes,
-            ]
-          }
-          else if (loc)
-            parsedLocation = loc;
-        }
-      }
-
-      const vcardParts = multipart.getPartsByContentType(CALL_SUB);
-      if (vcardParts.length > 0) {
-        const vcard = VCard.fromXML(vcardParts[0].body);
-
-        if (parsedVCard)
-          vcard.combine(parsedVCard);
-
-        parsedVCard = vcard;
-      }
-
-      const uriParts = multipart.getPartsByContentType(TEXT_URI_LIST);
-      if (uriParts.length > 0) {
-        parsedUris = uriParts.map(u => u.body).reduce((prev, curr) => {
-          const allUris = curr.split(CRLF);
-          // uris with a leading # are commented and should be ignored
-          return prev.concat(allUris.filter(x => x.indexOf('#') !== 0))
-        }, [] as string[]);
-      }
-    }
-    else if (body)
-      parsedText = body;
-
-    const callInfoHeaders = evt.getHeaders(CALL_INFO);
-    const emergencyMessageType = this.mapper.getMessageTypeFromHeaders(callInfoHeaders, parsedText);
-
-    if (!emergencyMessageType) {
-      this._logger.warn('Could not find message type in SIP MESSAGE. Can not handle this SIP MESSAGE.');
-      return;
-    }
+    const message = this.mapper.parseMessageFromEvent(evt);
+    const { type: messageType } = message;
 
     let stateCallback: (() => void) | undefined = undefined;
     // accoring to standard, if we are a client, we have to wait for the server-side sent "START" message
@@ -541,28 +477,28 @@ export class Conversation {
         (
           this._endpointType === ConversationEndpointType.CLIENT &&
           !this.mapper.isStartConversationByClientAllowed() &&
-          emergencyMessageType === EmergencyMessageType.START &&
+          messageType === EmergencyMessageType.START &&
           origin === Origin.REMOTE
         ) ||
         // psap conversation is only allowed to be started by PSAP
         (
           this._endpointType === ConversationEndpointType.PSAP &&
           !this.mapper.isStartConversationByClientAllowed() &&
-          emergencyMessageType === EmergencyMessageType.START &&
+          messageType === EmergencyMessageType.START &&
           origin === Origin.LOCAL
         ) ||
         // DEC112 environments
         (
           this.mapper.isStartConversationByClientAllowed() &&
-          EmergencyMessageType.isStarted(emergencyMessageType)
+          EmergencyMessageType.isStarted(messageType)
         )
       )
         stateCallback = this._setState(ConversationState.STARTED, origin);
     }
     else {
-      if (EmergencyMessageType.isStopped(emergencyMessageType))
+      if (EmergencyMessageType.isStopped(messageType))
         stateCallback = this._setState(ConversationState.STOPPED, origin);
-      else if (EmergencyMessageType.isStarted(emergencyMessageType))
+      else if (EmergencyMessageType.isStarted(messageType))
         stateCallback = this._setState(ConversationState.STARTED, origin);
       else
         stateCallback = this._setState(ConversationState.INTERRUPTED, origin);
@@ -580,20 +516,8 @@ export class Conversation {
       this._notifyQueue();
 
       this._addNewMessage({
-        id: this.mapper.getMessageIdFromHeaders(callInfoHeaders) as string,
-        uniqueId: nextUniqueId(),
-        origin,
+        ...message,
         conversation: this,
-        dateTime: now,
-        type: emergencyMessageType,
-        state: MessageState.SUCCESS,
-        text: parsedText,
-        uris: parsedUris,
-        promise: Promise.resolve(),
-        location: parsedLocation,
-        vcard: parsedVCard,
-        sipStackMessage: evt.sipStackMessage,
-        did: this.mapper.getDIDFromHeaders(callInfoHeaders),
       });
     }
 
@@ -651,7 +575,7 @@ export class Conversation {
       mapper,
       {
         id: mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO)),
-        isTest: mapper.getIsTestFromHeaders(request),
+        isTest: mapper.getIsTestFromEvent(request),
       },
     );
 

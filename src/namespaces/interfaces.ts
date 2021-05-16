@@ -29,16 +29,12 @@ export type MessagePartsParams = OmitStrict<Message,
 
 export interface NamespacedConversation {
   createMessageParts(params: MessagePartsParams): MessageParts;
-
-  tryParsePidfLo(value: string): PidfLo | undefined;
+  parseMessageFromEvent(evt: NewMessageEvent): OmitStrict<Message, 'conversation'>;
 
   getName(): string;
   isStartConversationByClientAllowed(): boolean;
   isCompatible(headers: string[]): boolean;
 
   getCallIdFromHeaders(headers: string[]): string | undefined;
-  getMessageIdFromHeaders(headers: string[]): string | undefined;
-  getMessageTypeFromHeaders(headers: string[], messageText?: string): number | undefined;
-  getDIDFromHeaders(headers: string[]): string | undefined;
-  getIsTestFromHeaders(sipMessage: NewMessageEvent): boolean;
+  getIsTestFromEvent(evt: NewMessageEvent): boolean;
 }
