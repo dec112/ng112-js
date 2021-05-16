@@ -1,5 +1,4 @@
 import type { PidfLo } from 'pidf-lo';
-import { AgentMode } from './agent';
 import { Conversation } from './conversation';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
@@ -16,6 +15,11 @@ export interface CustomSipHeaders {
    * Fetched for every outgoing message
    */
   replyTo?: CustomSipHeader,
+}
+
+export enum AgentMode {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
 }
 
 export const defaultHeartbeatInterval = 15000; // TS 103 698, 6.2.5: at least every 20 seconds

@@ -91,6 +91,7 @@ const disable = (element, value) => {
   const unregister = el('btnUnregister');
 
   const uri = el('txtUri');
+  const file = el('file');
   const iframe = el('iframe');
   const message = el('txtMessage');
   const send = el('btnSend');
@@ -172,7 +173,10 @@ const disable = (element, value) => {
 
       msg.promise
         .then(() => spanStatus.textContent = 'sent')
-        .catch(() => spanStatus.textContent = 'could not send message');
+        .catch((err) => {
+          console.error(err);
+          spanStatus.textContent = 'could not send message'
+        });
     }
 
     const spanId = document.createElement('span');
@@ -301,7 +305,7 @@ const disable = (element, value) => {
   });
   disable(end, true);
 
-  send.addEventListener('click', () => {
+  send.addEventListener('click', async () => {
     if (!conversation)
       return;
 
@@ -311,8 +315,27 @@ const disable = (element, value) => {
       uris = [uri.value];
     }
 
+    let binaries = undefined;
+    const currentFile = file.files[0];
+
+    if (currentFile) {
+      const fileBin = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          resolve(evt.target.result);
+        }
+        reader.readAsArrayBuffer(currentFile);
+      });
+
+      binaries = [{
+        mimeType: currentFile.type,
+        value: fileBin,
+      }];
+    }
+
     conversation.sendMessage({
       text: message.value,
+      binaries,
       uris,
     });
     message.value = '';

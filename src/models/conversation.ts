@@ -3,8 +3,8 @@ import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
-import { Store } from './store';
-import { Message, Origin, MessageState, MessageError, nextUniqueId } from './message';
+import { Store, AgentMode } from './store';
+import { Message, Origin, MessageState, MessageError, nextUniqueId, Binary } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, MultipartPart, CRLF } from './multipart';
@@ -12,7 +12,6 @@ import { ConversationConfiguration } from './interfaces';
 import { clearInterval, setInterval, Timeout } from '../utils';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
-import { AgentMode } from './agent';
 import { Logger } from './logger';
 import { NewMessageEvent, SipAgent } from './sip-agent';
 
@@ -38,6 +37,10 @@ export interface SendMessageObject {
    * URIs to send along with the message (e.g. for deep linking something)
    */
   uris?: string[],
+  /**
+   * A list of binaries (files)
+   */
+  binaries?: Binary[],
   /**
    * Additional (custom) Multipart MIME parts to add to the message
    */
@@ -217,7 +220,7 @@ export class Conversation {
     message.dateTime = new Date();
 
     try {
-      const { body, headers, contentType } = this.mapper.createMessageParts({
+      const { headers, multipart } = this.mapper.createMessageParts({
         ...message,
         conversationId: this.id,
         isTest: this.isTest,
@@ -225,8 +228,9 @@ export class Conversation {
         endpointType: this._endpointType,
       });
 
-      this._agent.message(this._targetUri, body, {
-        contentType,
+      const multiObj = multipart.create();
+      this._agent.message(this._targetUri, multiObj.body, {
+        contentType: multiObj.contentType,
         extraHeaders: headers.map(h => getHeaderString(h)),
       })
         .then(() => resolve())
@@ -340,7 +344,9 @@ export class Conversation {
     this._manageHeartbeat();
 
     return () => {
-      for (const listener of this._stateListeners) {
+      // Creating a copy of stateListeners as listeners might unsubscribe during execution
+      // ...and altering an array while iterating it is not nice :-)
+      for (const listener of this._stateListeners.slice(0)) {
         listener(this._state);
       }
     };
@@ -386,6 +392,7 @@ export class Conversation {
   sendMessage = ({
     text,
     uris,
+    binaries,
     extraParts,
     type = EmergencyMessageType.IN_CHAT,
     messageId,
@@ -416,6 +423,7 @@ export class Conversation {
       state: MessageState.PENDING,
       text,
       uris,
+      binaries,
       extraParts,
       // This is just a dummy value to satisfy TypeScript
       promise: new Promise(() => { }),

@@ -1,4 +1,5 @@
 export const CONTENT_ID = 'Content-ID';
+export const CONTENT_TRANSFER_ENCODING = 'Content-Transfer-Encoding';
 export const CONTENT_TYPE = 'Content-Type';
 export const CALL_INFO = 'Call-Info';
 export const REPLY_TO = 'Reply-To';

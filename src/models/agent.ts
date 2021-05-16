@@ -4,7 +4,7 @@ import { EmergencyMapper } from '../namespaces/emergency';
 import { NamespacedConversation, NamespaceSpecifics } from '../namespaces/interfaces';
 import { Conversation, ConversationState, StateObject } from './conversation';
 import { ConversationConfiguration } from './interfaces';
-import { CustomSipHeaders, Store } from './store';
+import { CustomSipHeaders, Store, AgentMode } from './store';
 import { VCard } from './vcard';
 import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
@@ -67,11 +67,6 @@ export enum AgentState {
   REGISTERED = 'registered',
   UNREGISTERED = 'unregistered',
   REGISTRATION_FAILED = 'registrationFailed',
-}
-
-export enum AgentMode {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
 }
 
 /**

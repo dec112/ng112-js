@@ -4,11 +4,11 @@ export const version = getPackageInfo().version;
 export {
   Agent,
   AgentConfiguration,
-  AgentMode,
   AgentState,
 } from './models/agent';
 
 export {
+  Binary,
   Message,
   MessageError,
   MessageState,
@@ -30,6 +30,10 @@ export {
   SendMessageObject,
   StateObject,
 } from './models/conversation';
+
+export {
+  AgentMode,
+} from './models/store';
 
 export {
   DEC112Specifics,

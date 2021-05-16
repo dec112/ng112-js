@@ -4,26 +4,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  
-## [Unreleased - 2.0.0]
+## [Unreleased]
+
+---
+## Unreleased - [2.0.0]
 ### Changed
 - **BREAKING**: `JsSIP` is no longer a direct dependency, but a peer dependency of `ng112-js`. \
 This is due to the added compatibility with `sip.js`. \
 Developers now can choose which SIP library they want to use by just installing the preferred one. \
 If both SIP libraries are installed, developers can define property `preferredSipAgent` when creating the ng112-js `Agent`. \
 If nothing is specified, ng112-js will fall back to `JsSIP`.
-- **BREAKING**: Renamed property `debugMode` to `debug` in `Agent` constructor. \
-`debug` will also accept a callback function that is called for all log messages.
-- **BREAKING**: Unified conversation's `start`, `stop` and `sendMessage` function. \ 
-They now use the same arguments as `sendMessage` already did.
 - **BREAKING**: New object for message send errors: `MessageError` instead of former object `MessageFailedEvent` \
 Object has different properties!
-- The agent's `conversation` property only contains open calls. Stopped calls are removed from this list. \
-This should limit memory consumption if ng112-js is used in long running applications with heavy load.
 ### Added
 - Support for `sip.js` in addition to `JsSIP` as SIP stack.
 - Agent mode that can be used to indicate an app is running in the background.
 - Support for DIDs.
+- Support for binaries
+- Support 
 
+---
+
+## [1.0.0] - 2021-05-05
+### Changed
+- **BREAKING**: Renamed property `debugMode` to `debug` in `Agent` constructor. \
+`debug` will also accept a callback function that is called for all log messages.
+- **BREAKING**: Unified `Conversation`'s `start`, `stop` and `sendMessage` function. \
+All of these functions now use the same arguments as `sendMessage` already did. \
+This allows for the use of `extraParts`, `uris` and other properties for `start` and `stop` function calls.
+- **BREAKING**: The agent's `conversation` property contains only calls that are not in state `STOPPED`. \
+Once calls are stopped they are removed from this list. \
+This should limit memory consumption if ng112-js is used in long running applications with heavy load.
+- The agent's `conversation` property only contains open calls. Stopped calls are removed from this list. \
+`debug` will now also accept a callback function that is called for all log messages. \
+This allows for the connection of any other logging facility.
 ### Added
 - Property `uniqueId` in messages that is unique across all messages and conversations within ng112-js
 - Auto-close of open calls on agent disposal
