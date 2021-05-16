@@ -16,19 +16,15 @@ export class Logger {
     public logCallback?: (level: number, ...values: any[]) => unknown,
   ) { }
 
-  private _logIt = (level: number, fallbackCallback: (...values: any[]) => unknown, ...values: any[]) => {
-    if (this.isActive() || (level & this.level) === 0)
+  private _log = (level: number, fallbackCallback: (...values: any[]) => unknown, ...values: any[]) => {
+    if (!this.isActive() || (level & this.level) === 0)
       return;
 
-    if (this.logCallback)
+    if (this.logCallback) {
       this.logCallback(level, ...values);
+    }
     else
       fallbackCallback('ng112-js', ...values);
-  }
-
-  private _log = (level: number, fallbackCallback: () => unknown, ...values: any[]) => {
-
-    this._logIt(level, fallbackCallback, ...values);
   }
 
   log = (...values: any[]) => this._log(LogLevel.LOG, (...values: any[]) => console.log(...values), ...values);
