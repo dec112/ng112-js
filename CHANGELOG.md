@@ -19,8 +19,8 @@ Object has different properties!
 - Support for `sip.js` in addition to `JsSIP` as SIP stack.
 - Agent mode that can be used to indicate an app is running in the background.
 - Support for DIDs.
-- Support for binaries
-- Support 
+- Support for binaries.
+- Support for parsing extra multiparts.
 
 ---
 

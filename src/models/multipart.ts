@@ -79,10 +79,17 @@ export class Multipart {
     };
   }
 
-  getPartsByContentType = (contentType: string): MultipartPart[] => {
-    return this._parts.filter((x) => {
-      return x.headers.findIndex((y) => y.key === CONTENT_TYPE && y.value === contentType) !== -1;
-    });
+  popPartsByContentType = (contentType: string): MultipartPart[] => {
+    const res: MultipartPart[] = [];
+
+    while (true) {
+      const index = this._parts.findIndex(x => x.headers.findIndex((y) => y.key === CONTENT_TYPE && y.value === contentType) !== -1);
+
+      if (index !== -1)
+        res.push(this._parts.splice(index, 1)[0]);
+      else
+        return res;
+    }
   };
 
   static parse = (input: string, multipartHeader: string): Multipart => {

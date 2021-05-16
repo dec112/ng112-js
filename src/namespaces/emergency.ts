@@ -158,16 +158,19 @@ export class EmergencyMapper implements NamespacedConversation {
   }
 
   private parseMultipartParts = (multipart: Multipart): Partial<Message> => {
+    // TODO: Find a way to parse binaries
+    // or decide that this will be covered by "extraParts"
+
     const message: Partial<Message> = {};
 
-    const textParts = multipart.getPartsByContentType(TEXT_PLAIN);
+    const textParts = multipart.popPartsByContentType(TEXT_PLAIN);
     if (textParts.length > 0) {
       // we just concatenate all plain parts with line breaks
       // this might not be the best solution, but it's for sure the easiest one ;-)
       message.text = textParts.map(x => x.body).join('\n');
     }
 
-    const locationParts = multipart.getPartsByContentType(PIDF_LO);
+    const locationParts = multipart.popPartsByContentType(PIDF_LO);
     if (locationParts.length > 0) {
       for (const locPart of locationParts) {
         const loc = this.tryParsePidfLo(locPart.body);
@@ -184,7 +187,7 @@ export class EmergencyMapper implements NamespacedConversation {
       }
     }
 
-    const vcardParts = multipart.getPartsByContentType(CALL_SUB);
+    const vcardParts = multipart.popPartsByContentType(CALL_SUB);
     if (vcardParts.length > 0) {
       const vcard = VCard.fromXML(vcardParts[0].body);
 
@@ -194,7 +197,7 @@ export class EmergencyMapper implements NamespacedConversation {
       message.vcard = vcard;
     }
 
-    const uriParts = multipart.getPartsByContentType(TEXT_URI_LIST);
+    const uriParts = multipart.popPartsByContentType(TEXT_URI_LIST);
     if (uriParts.length > 0) {
       message.uris = uriParts.map(u => u.body).reduce((prev, curr) => {
         const allUris = curr.split(CRLF);
@@ -202,6 +205,10 @@ export class EmergencyMapper implements NamespacedConversation {
         return prev.concat(allUris.filter(x => x.indexOf('#') !== 0))
       }, [] as string[]);
     }
+
+    // This always has to be the last call!
+    // We take care of all leftover parts!
+    message.extraParts = multipart.parts.length > 0 ? multipart.parts : undefined;
 
     return message;
   }
@@ -212,10 +219,11 @@ export class EmergencyMapper implements NamespacedConversation {
 
     const contentType = evt.getHeader(CONTENT_TYPE);
     if (contentType && contentType.indexOf(MULTIPART_MIXED) !== -1 && body) {
-      const multipart = Multipart.parse(body, contentType);
       message = {
         ...message,
-        ...this.parseMultipartParts(multipart),
+        // Attention: parseMultipartParts is not a pure function!
+        // it alters the multipart object!
+        ...this.parseMultipartParts(Multipart.parse(body, contentType)),
       }
     }
     else if (body)
@@ -286,6 +294,8 @@ export class EmergencyMapper implements NamespacedConversation {
         key: CALL_INFO,
         value: getDIDHeaderValue(did),
       });
+
+    // TODO: Implement sending binaries
 
     if (
       endpointType === ConversationEndpointType.CLIENT &&
