@@ -1,7 +1,7 @@
-import { IncomingMessage } from 'jssip/lib/SIPMessage';
 import type { PidfLo } from 'pidf-lo';
 import { ConversationEndpointType } from '../models/conversation';
 import { Message } from '../models/message';
+import { NewMessageEvent } from '../models/sip-agent';
 import { Multipart } from '../models/multipart';
 import { Header } from '../utils';
 import { OmitStrict } from '../utils/ts-utils';
@@ -40,5 +40,5 @@ export interface NamespacedConversation {
   getMessageIdFromHeaders(headers: string[]): string | undefined;
   getMessageTypeFromHeaders(headers: string[], messageText?: string): number | undefined;
   getDIDFromHeaders(headers: string[]): string | undefined;
-  getIsTestFromHeaders(sipMessage: IncomingMessage): boolean;
+  getIsTestFromHeaders(sipMessage: NewMessageEvent): boolean;
 }

@@ -7,12 +7,9 @@ it('Shows how to send custom mime parts', async () => {
 
   const conversation = agent.createConversation('sip:144@dec112.eu');
 
-  try {
-    await conversation.start().promise;
-  } catch {
-    /* In this example awaiting the promise will always lead to an error because there is no real backend available */
-  }
-
+  // should be awaited!
+  conversation.start()
+  
   const extraPart: MultipartPart = {
     headers: [
       {
@@ -25,10 +22,11 @@ it('Shows how to send custom mime parts', async () => {
       json: 'object',
     }),
   };
-
+  
+  // should be awaited!
   conversation.sendMessage({
     extraParts: [extraPart],
   });
-
+  
   endExample();
 });

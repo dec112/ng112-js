@@ -17,7 +17,7 @@ export class Logger {
   ) { }
 
   private _logIt = (level: number, fallbackCallback: (...values: any[]) => unknown, ...values: any[]) => {
-    if (this.level === LogLevel.NONE || (level & this.level) === 0)
+    if (this.isActive() || (level & this.level) === 0)
       return;
 
     if (this.logCallback)
@@ -34,4 +34,8 @@ export class Logger {
   log = (...values: any[]) => this._log(LogLevel.LOG, (...values: any[]) => console.log(...values), ...values);
   warn = (...values: any[]) => this._log(LogLevel.WARN, (...values: any[]) => console.warn(...values), ...values);
   error = (...values: any[]) => this._log(LogLevel.ERROR, (...values: any[]) => console.error(...values), ...values);
+
+  isActive = (): boolean => this.level !== LogLevel.NONE;
+  isExternal = (): boolean => !!this.logCallback;
+  isFallback = (): boolean => !this.logCallback;
 }

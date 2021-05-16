@@ -1,9 +1,7 @@
-import { MessageFailedEvent } from 'jssip/lib/Message';
-import { OutgoingEvent } from 'jssip/lib/RTCSession';
-import { Message } from './message';
+import { Message, MessageError } from './message';
 
 export interface QueueItem {
   message: Message;
-  resolve: (value: OutgoingEvent) => void,
-  reject: (reason: MessageFailedEvent) => void,
+  resolve: () => void,
+  reject: (reason: MessageError) => void,
 }

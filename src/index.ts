@@ -10,6 +10,7 @@ export {
 export {
   Binary,
   Message,
+  MessageError,
   MessageState,
   Origin,
 } from './models/message';
@@ -38,10 +39,6 @@ export {
   DEC112Specifics,
 } from './namespaces';
 
-export {
-  MessageFailedEvent,
-} from './models/interfaces';
-
 import PidfLoCompat from './compatibility/pidf-lo';
 
 const {
@@ -69,3 +66,7 @@ export {
 export {
   SimpleLocation,
 } from 'pidf-lo';
+
+export {
+  SupportedAgent,
+} from './models/sip-agent';

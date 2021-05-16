@@ -7,6 +7,7 @@ import {
   Gender,
   LocationMethod,
   Origin,
+  SupportedAgent,
   VCard,
 } from 'ng112-js/dist/browser';
 
@@ -224,6 +225,7 @@ const disable = (element, value) => {
       customSipHeaders: {
         from: from.value,
       },
+      preferredSipAgent: SupportedAgent.sipjs,
     });
 
     agent.addConversationListener((newConversation) => {

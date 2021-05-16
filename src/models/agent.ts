@@ -1,5 +1,3 @@
-import { UA, debug as jssipDebug } from 'jssip';
-import { getSocketInterface } from '../jssip/socket-interface';
 import { CALL_INFO } from '../constants/headers';
 import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
@@ -11,8 +9,8 @@ import { VCard } from './vcard';
 import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
-import { USER_AGENT } from '../constants';
 import { Logger, LogLevel } from './logger';
+import { NewMessageEvent, SipAgent, SupportedAgent } from './sip-agent';
 import { timedoutPromise } from '../utils';
 
 export interface AgentConfiguration {
@@ -56,6 +54,10 @@ export interface AgentConfiguration {
    * Object for customizing SIP headers
    */
   customSipHeaders?: CustomSipHeaders,
+  /**
+   * A preferred SIP library can be specified here, if more than one SIP library is installed
+   */
+  preferredSipAgent?: SupportedAgent,
 }
 
 export enum AgentState {
@@ -71,7 +73,7 @@ export enum AgentState {
  * Main instance for establishing connection with an ETSI/DEC112 infrastructure
  */
 export class Agent {
-  private _agent: UA;
+  private _agent: SipAgent;
   private _stateListeners: ((state: AgentState) => void)[] = [];
 
   private _mapper: {
@@ -88,32 +90,18 @@ export class Agent {
   /**
    * Creates a new instance of an agent for communication with an ETSI/DEC112 infrastructure
    */
-  constructor({
-    endpoint,
-    domain,
-    user,
-    password,
-    displayName,
-    debug = LogLevel.NONE,
-    namespaceSpecifics,
-    customSipHeaders,
-  }: AgentConfiguration) {
+  constructor(config: AgentConfiguration) {
+    const {
+      domain,
+      user,
+      debug = LogLevel.NONE,
+      namespaceSpecifics,
+      customSipHeaders,
+    } = config;
+
     const originSipUri = customSipHeaders?.from ?
       CustomSipHeader.resolve(customSipHeaders.from) :
       `sip:${user ? `${user}@` : ''}${domain}`;
-
-    this._agent = new UA({
-      sockets: [
-        getSocketInterface(endpoint),
-      ],
-      uri: originSipUri,
-      authorization_user: user,
-      realm: domain,
-      password,
-      display_name: displayName,
-      register: true,
-      user_agent: USER_AGENT,
-    });
 
     const debugFunction = typeof debug === 'function' ? debug : undefined;
     // TypeScript does not get that this is already type safe
@@ -127,6 +115,12 @@ export class Agent {
       customSipHeaders,
     );
 
+    this._agent = new SipAgent({
+      ...config,
+      originSipUri,
+      logger: this._logger,
+    });
+
     const hasDEC112Specifics = namespaceSpecifics instanceof DEC112Specifics;
 
     const dec112 = new DEC112Mapper(hasDEC112Specifics ? namespaceSpecifics : undefined);
@@ -137,18 +131,10 @@ export class Agent {
       etsi,
       dec112,
     }
-
-    // we can only activate jssip debugging if we log to the console (our fallback)
-    // because jssip does not let us piping log messages somewhere else
-    if (!debugFunction)
-      // enable or disable JsSIP debugging
-      jssipDebug[debug ? 'enable' : 'disable']('JsSIP:*');
   }
 
-  private _handleMessageEvent = (evt: JsSIP.UserAgentNewMessageEvent) => {
-    const { request } = evt;
-
-    const callInfoHeaders = request.getHeaders(CALL_INFO);
+  private _handleMessageEvent = (evt: NewMessageEvent) => {
+    const callInfoHeaders = evt.getHeaders(CALL_INFO);
     let mapper: NamespacedConversation;
 
     if (this._mapper.dec112.isCompatible(callInfoHeaders))
@@ -160,7 +146,7 @@ export class Agent {
       return;
     }
 
-    const conversationId = mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO));
+    const conversationId = mapper.getCallIdFromHeaders(evt.getHeaders(CALL_INFO));
 
     if (conversationId) {
       let conversation = this.conversations.find(x => x.id == conversationId);
@@ -179,34 +165,25 @@ export class Agent {
    * This has to be called before any other interaction with the library
    * If registration fails, promise will be rejected
    */
-  initialize = (): Promise<Agent> => {
+  initialize = async (): Promise<Agent> => {
     const newState = this._notifyStateListeners;
 
-    const promise = new Promise<Agent>((resolve, reject) => {
-      this._agent.on('connecting', () => newState(AgentState.CONNECTING));
-      this._agent.on('connected', () => newState(AgentState.CONNECTED));
-      this._agent.on('disconnected', () => newState(AgentState.DISCONNECTED));
-      this._agent.on('registered', () => {
-        newState(AgentState.REGISTERED);
-        resolve(this);
-      });
-      this._agent.on('unregistered', () => newState(AgentState.UNREGISTERED));
-      this._agent.on('registrationFailed', (evt) => {
-        newState(AgentState.REGISTRATION_FAILED);
-        reject(evt);
-      });
-      this._agent.on('newMessage', (evt: any) => this._handleMessageEvent(evt));
-    });
+    const del = this._agent.delegate;
 
-    this._agent.start();
+    del.onConnect(() => newState(AgentState.CONNECTED));
+    del.onConnecting(() => newState(AgentState.CONNECTING));
+    del.onDisconnect(() => newState(AgentState.DISCONNECTED));
+    del.onRegister(() => newState(AgentState.REGISTERED));
+    del.onUnregister(() => newState(AgentState.UNREGISTERED));
+    del.onRegistrationFail(() => newState(AgentState.REGISTRATION_FAILED));
 
-    return promise;
+    del.onNewMessage(this._handleMessageEvent);
+
+    await this._agent.start();
+    await this._agent.register();
+
+    return this;
   }
-
-  /**
-   * Unregisteres from the ESRP and disposes the SIP agent
-   * This has to be called before exiting the application
-   */
 
   /**
    * Unregisteres from the ESRP and disposes the SIP agent. \
@@ -231,16 +208,8 @@ export class Agent {
       }
     }
 
-    const unregisterPromise = new Promise<void>(resolveUnregister => {
-      this._agent.once('unregistered', () => resolveUnregister());
-    });
-
-    const disconnectPromise = new Promise<void>(resolveDisconnct => {
-      this._agent.once('disconnected', () => resolveDisconnct());
-    });
-
-    this._agent.unregister();
-    this._agent.stop();
+    const unregisterPromise = this._agent.unregister();
+    const disconnectPromise = this._agent.stop();
 
     try {
       unregisterPromise.then(() => this._logger.log('Unregistered.'));
@@ -274,11 +243,11 @@ export class Agent {
   /**
    * Creates a new configuration on top of the underlying agent
    * 
-   * @param event A JSSIP event for an incoming message 
+   * @param event A new message event for an incoming message 
    * @param mapper The mapper to use for this conversation
    */
   createConversation(
-    event: JsSIP.UserAgentNewMessageEvent,
+    event: NewMessageEvent,
     configuration?: ConversationConfiguration,
     mapper?: NamespacedConversation,
   ): Conversation;
@@ -303,7 +272,7 @@ export class Agent {
         this._agent,
         this._store,
         mapper,
-        value as JsSIP.UserAgentNewMessageEvent,
+        value as NewMessageEvent,
       );
     }
 
@@ -330,7 +299,7 @@ export class Agent {
       return conversation;
     }
     else
-      throw new Error('Argument 1 has to be either of type "JSSIP.IncomingRequest" or of type "string".');
+      throw new Error('Argument 1 has to be either of type "NewMessageEvent" or of type "string".');
   }
 
   /**
