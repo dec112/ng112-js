@@ -207,8 +207,8 @@ export class SipAgent {
   start = () => this.compat<Promise<unknown>>('start', {
     jssip: (ua) => {
       const promise = Promise.all([
-        new Promise<void>(resolve => ua.once('connected', () => resolve)),
-        new Promise<void>(resolve => ua.once('registered', () => resolve)),
+        new Promise<void>(resolve => ua.once('connected', resolve)),
+        new Promise<void>(resolve => ua.once('registered', resolve)),
       ]);
 
       ua.start();
