@@ -7,6 +7,7 @@ import { transformSipJsMessage } from '../sipjs/utils';
 import { OutgoingRequestMessage } from "sip.js/lib/core";
 import { getPackageInfo } from "../utils/package-utils";
 import { Logger } from "./logger";
+import { OmitStrict } from "../utils/ts-utils";
 
 export enum SupportedAgent {
   jssip = 'JsSIP',
@@ -28,7 +29,7 @@ interface SendMessageOptions {
   extraHeaders?: string[];
 }
 
-type SipAgentConfig = Omit<AgentConfiguration, 'debug' | 'namespaceSpecifics' | 'customSipHeaders'> & {
+type SipAgentConfig = OmitStrict<AgentConfiguration, 'debug' | 'namespaceSpecifics' | 'customSipHeaders'> & {
   originSipUri: string;
   logger: Logger,
 };
