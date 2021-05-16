@@ -6,7 +6,7 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store, AgentMode } from './store';
-import { Message, Origin, MessageState, nextUniqueId } from './message';
+import { Message, Origin, MessageState, nextUniqueId, Binary } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, MultipartPart, CRLF } from './multipart';
@@ -39,6 +39,10 @@ export interface SendMessageObject {
    * URIs to send along with the message (e.g. for deep linking something)
    */
   uris?: string[],
+  /**
+   * A list of binaries (files)
+   */
+  binaries?: Binary[],
   /**
    * Additional (custom) Multipart MIME parts to add to the message
    */
@@ -397,6 +401,7 @@ export class Conversation {
   sendMessage = ({
     text,
     uris,
+    binaries,
     extraParts,
     type = EmergencyMessageType.IN_CHAT,
     messageId,
@@ -427,6 +432,7 @@ export class Conversation {
       state: MessageState.PENDING,
       text,
       uris,
+      binaries,
       extraParts,
       // This is just a dummy value to satisfy TypeScript
       promise: new Promise(() => { }),

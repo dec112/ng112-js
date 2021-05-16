@@ -1,11 +1,12 @@
 import { IncomingMessage } from 'jssip/lib/SIPMessage';
-import { CALL_INFO } from '../constants/headers';
+import { CALL_INFO, CONTENT_TRANSFER_ENCODING, CONTENT_TYPE } from '../constants/headers';
 import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
 import { ConversationEndpointType } from '../models/conversation';
 import type { PidfLo } from 'pidf-lo'
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, NamespacedConversation, NamespaceSpecifics } from './interfaces';
+import { Base64 } from '../utils/base64';
 
 const dec112Domain = 'service.dec112.at';
 const getCallInfoHeader = (uri: string[], value: string, domain: string, type: string) =>
@@ -59,6 +60,7 @@ export class DEC112Mapper implements NamespacedConversation {
     endpointType,
     text,
     uris,
+    binaries,
     extraParts,
     replyToSipUri,
     location,
@@ -108,6 +110,21 @@ export class DEC112Mapper implements NamespacedConversation {
         key: X_DEC112_TEST,
         value: X_DEC112_TEST_VALUE_TRUE,
       });
+
+    if (binaries) {
+      for (const bin of binaries) {
+        const body = Base64.encode(String.fromCharCode.apply(null, new Uint8Array(bin.value) as unknown as number[]));
+
+        common.multipart.add({
+          headers: [
+            { key: CONTENT_TYPE, value: bin.mimeType },
+            // this is the only one that's currently supported
+            { key: CONTENT_TRANSFER_ENCODING, value: 'base64' },
+          ],
+          body,
+        });
+      }
+    }
 
     return common;
   }

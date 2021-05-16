@@ -8,6 +8,7 @@ export {
 } from './models/agent';
 
 export {
+  Binary,
   Message,
   MessageState,
   Origin,

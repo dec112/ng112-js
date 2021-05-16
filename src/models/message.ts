@@ -25,6 +25,11 @@ export enum MessageState {
   ERROR = 'error',
 }
 
+export interface Binary {
+  mimeType: string,
+  value: ArrayBuffer,
+}
+
 // TODO: Create a separate class for messages so we can also have getters and setters
 export interface Message {
   /**
@@ -83,6 +88,10 @@ export interface Message {
    * A list of URIs
    */
   uris?: string[],
+  /**
+   * A list of binaries (files)
+   */
+  binaries?: Binary[],
   /**
    * Additional (custom) Multipart MIME parts to add to the message
    */
