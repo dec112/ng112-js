@@ -119,6 +119,10 @@ export class SipAgent {
     if (currentAgent === SupportedAgent.jssip) {
       const jssip = requireJsSip();
 
+      // we can only activate jssip debugging if we log to the console (our fallback)
+      // because jssip does not let us piping log messages somewhere else
+      jssip.debug[logger.isActive() && logger.isFallback() ? 'enable' : 'disable']('JsSIP:*');
+
       this._agents.jssip = new jssip.UA({
         sockets: [
           getSocketInterface(endpoint),
@@ -131,11 +135,6 @@ export class SipAgent {
         register: true,
         user_agent: getUserAgent(currentAgent, jssip.version),
       });
-
-      // we can only activate jssip debugging if we log to the console (our fallback)
-      // because jssip does not let us piping log messages somewhere else
-      if (logger.isActive() && logger.isFallback())
-        jssip.debug.enable('JsSIP:*');
     }
     else if (currentAgent === SupportedAgent.sipjs) {
       const sipjs = requireSipJs();
