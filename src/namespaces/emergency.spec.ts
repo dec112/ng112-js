@@ -51,6 +51,7 @@ describe('Messaging functionality', () => {
 
   it('creates an empty message correctly', () => {
     const parts = mapper.createMessageParts({
+      targetUri: 'sip:some.emergency@call.at',
       conversationId: '1234',
       endpointType: ConversationEndpointType.CLIENT,
       isTest: false,

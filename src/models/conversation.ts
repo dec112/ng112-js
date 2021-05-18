@@ -221,6 +221,7 @@ export class Conversation {
     try {
       const { headers, multipart } = this.mapper.createMessageParts({
         ...message,
+        targetUri: this._targetUri,
         conversationId: this.id,
         isTest: this.isTest,
         replyToSipUri,

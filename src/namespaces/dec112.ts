@@ -65,6 +65,7 @@ export class DEC112Mapper extends EmergencyMapper {
   getIsTestFromEvent = (evt: NewMessageEvent): boolean => evt.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
 
   createMessageParts = ({
+    targetUri,
     conversationId,
     isTest,
     id,
@@ -79,6 +80,7 @@ export class DEC112Mapper extends EmergencyMapper {
     vcard,
   }: MessagePartsParams): MessageParts => {
     const common = this.createCommonParts(
+      targetUri,
       endpointType,
       replyToSipUri,
       text,

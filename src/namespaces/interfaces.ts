@@ -20,6 +20,7 @@ export type MessagePartsParams = OmitStrict<Message,
   'conversation' |
   'uniqueId'
 > & {
+  targetUri: string,
   conversationId: string,
   endpointType: ConversationEndpointType,
   isTest: boolean,

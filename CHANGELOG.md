@@ -22,6 +22,7 @@ Object has different properties!
 - Support for DIDs.
 - Support for binaries.
 - Support for parsing extra multiparts.
+- Support for History-Info header.
 
 ---
 
