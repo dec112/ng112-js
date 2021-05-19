@@ -201,6 +201,7 @@ export class Conversation {
     try {
       const { body, headers, contentType } = this.mapper.createMessageParts({
         ...message,
+        targetUri: this._targetUri,
         conversationId: this.id,
         isTest: this.isTest,
         replyToSipUri,

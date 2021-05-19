@@ -53,6 +53,7 @@ export class DEC112Mapper implements NamespacedConversation {
   isStartConversationByClientAllowed = (): boolean => true;
 
   createMessageParts = ({
+    targetUri,
     conversationId,
     isTest,
     id,
@@ -66,6 +67,7 @@ export class DEC112Mapper implements NamespacedConversation {
     vcard,
   }: MessagePartsParams): MessageParts => {
     const common = EmergencyMapper.createCommonParts(
+      targetUri,
       endpointType,
       replyToSipUri,
       text,

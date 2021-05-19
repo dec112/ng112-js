@@ -3,7 +3,7 @@ import { getRandomString, Header, } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
 import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST } from '../constants/content-types';
-import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, REPLY_TO } from '../constants/headers';
+import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, HISTORY_INFO, REPLY_TO } from '../constants/headers';
 import { ConversationEndpointType } from '../models/conversation';
 import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
@@ -43,6 +43,7 @@ const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader([
 
 export class EmergencyMapper implements NamespacedConversation {
   static createCommonParts = (
+    targetUri: string,
     endpointType: ConversationEndpointType,
     replyToSipUri: string,
     text?: string,
@@ -50,10 +51,13 @@ export class EmergencyMapper implements NamespacedConversation {
     extraParts?: MultipartPart[],
     location?: PidfLo,
     vcard?: VCard,
-    // TODO: TS 103 698 -> 6.1.2.11 -> support DIDs
   ): MessageParts => {
 
-    let extraHeaders: Header[] = [];
+    let extraHeaders: Header[] = [
+      // enables tracing back the origin and routing history of the call
+      // according to ETSI TS 103 698 -> 6.1.2.6
+      { key: HISTORY_INFO, value: `<${targetUri}>;index=1` }
+    ];
     const multi = new Multipart();
 
     if (extraParts) {
@@ -147,6 +151,7 @@ export class EmergencyMapper implements NamespacedConversation {
   isStartConversationByClientAllowed = (): boolean => false;
 
   createMessageParts = ({
+    targetUri,
     conversationId,
     isTest,
     id,
@@ -160,6 +165,7 @@ export class EmergencyMapper implements NamespacedConversation {
     vcard,
   }: MessagePartsParams): MessageParts => {
     const common = EmergencyMapper.createCommonParts(
+      targetUri,
       endpointType,
       replyToSipUri,
       text,
