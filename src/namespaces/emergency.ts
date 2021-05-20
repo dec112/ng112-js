@@ -7,7 +7,7 @@ import { ConversationEndpointType } from '../models/conversation';
 import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
 import { MessageParts, MessagePartsParams, NamespacedConversation } from './interfaces'
-import { NewMessageEvent } from '../models/sip-agent';
+import { NewMessageEvent } from '../adapters';
 import { Message, MessageState, nextUniqueId } from '../models/message';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { OmitStrict } from '../utils/ts-utils';

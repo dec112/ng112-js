@@ -6,7 +6,12 @@ It handles SIP communication, message types, heartbeats, PIDF-LO, VCards, Multip
 
 Please keep in mind this is still in development and does not cover standards entirely!
 
-SIP communication is powered by [JsSIP](https://jssip.net/) under the hood.
+SIP communication can be handeled by a SIP stack of your choice. \
+By default, `ng112-js` comes with adapters for:
+* [JsSIP](https://jssip.net/) (>= 3.0.0)
+* [SIP.js](https://sipjs.com/) (>= 0.20.0)
+
+If you want to write your own adapter, take a look at `./src/adapters` to get an idea how they are implemented.
 
 License: GNU AGPL-3.0 \
 Proprietary licenses are available on request. \
@@ -78,11 +83,13 @@ import {
   Agent,
   DEC112Specifics,
   LocationMethod,
+  SipJsAdapter,
   VCard,
 } from 'ng112-js/dist/browser';
 
 // define connection to SIP proxy (originating ESRP)
 const agent = new Agent({
+  sipAdapterFactory: SipJsAdapter.factory,
   endpoint: 'wss://example.com',
   domain: 'example.com',
   user: 'user1234',
@@ -170,10 +177,12 @@ await agent.dispose();
 import { 
   Agent,
   ConversationState,
+  JsSipAdapter,
 } from 'ng112-js/dist/node';
 
 // define connection to SIP proxy (terminating ESRP)
 const agent = new Agent({
+  sipAdapterFactory: JsSipAdapter.factory,
   endpoint: 'wss://example.com',
   domain: 'example.com',
   user: 'psap1',

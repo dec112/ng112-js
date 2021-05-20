@@ -1,7 +1,7 @@
 const {
   Agent,
-  DEC112Specifics,
   LocationMethod,
+  JsSipAdapter,
 } = require('ng112-js/dist/node');
 
 console.log('------------ ng112-js node ------------');
@@ -32,6 +32,7 @@ const config = {
 (async () => {
 
   const agent = new Agent({
+    sipAdapterFactory: JsSipAdapter.factory,
     endpoint: config.endpoint,
     domain: config.domain,
     user: config.user,

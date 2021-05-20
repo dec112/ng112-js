@@ -1,7 +1,8 @@
-import { Agent } from "../../src";
+import { Agent, JsSipAdapter } from "../../src";
 
 export const createAgent = async (): Promise<Agent> => {
   const agent = new Agent({
+    sipAdapterFactory: JsSipAdapter.factory,
     domain: 'dec112.eu',
     endpoint: 'ws://dec112.at',
     password: 'password',

@@ -4,7 +4,7 @@ import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/m
 import { ConversationEndpointType } from '../models/conversation';
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, NamespaceSpecifics } from './interfaces';
-import { NewMessageEvent } from '../models/sip-agent';
+import { NewMessageEvent } from '../adapters';
 import { Base64 } from '../utils/base64';
 import { OmitStrict } from '../utils/ts-utils';
 import { Message } from '../models/message';

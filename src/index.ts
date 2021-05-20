@@ -40,6 +40,7 @@ export {
 } from './namespaces';
 
 export {
+  Logger,
   LogLevel,
 } from './models/logger';
 
@@ -72,5 +73,18 @@ export {
 } from 'pidf-lo';
 
 export {
-  SupportedAgent,
-} from './models/sip-agent';
+} from './adapters';
+
+export {
+  JsSipAdapter,
+  SipJsAdapter,
+
+  SipAdapter,
+  SipAdapterConfig,
+  DelegateObject,
+  NewMessageEvent,
+  SendMessageOptions,
+  SipUri,
+
+  getUserAgentString,
+} from './adapters';

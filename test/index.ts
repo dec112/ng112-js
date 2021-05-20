@@ -1,5 +1,5 @@
 import WS from 'jest-websocket-mock';
-import { Agent } from '../dist/node';
+import { Agent, JsSipAdapter } from '../dist/node';
 import path from 'path';
 import fs from 'fs';
 import { cacheValues, fillValues } from './utils/sip';
@@ -7,6 +7,8 @@ import { cacheValues, fillValues } from './utils/sip';
 export * from '../dist/node';
 
 export const getAgent = () => new Agent({
+  // TODO: ensure that all tests are also run with sip.js
+  sipAdapterFactory: JsSipAdapter.factory,
   endpoint: 'ws://localhost:1234',
   domain: 'dec112.at',
   user: 'user',

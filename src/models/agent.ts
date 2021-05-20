@@ -10,10 +10,14 @@ import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import PidfLoCompat from '../compatibility/pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger, LogLevel } from './logger';
-import { NewMessageEvent, SipAgent, SupportedAgent } from './sip-agent';
+import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
 import { timedoutPromise } from '../utils';
 
 export interface AgentConfiguration {
+  /**
+   * A factory that delivers an abstraction of a SIP library that will be used for sending messages
+   */
+  sipAdapterFactory: (config: SipAdapterConfig) => SipAdapter,
   /**
    * The websocket endpoint of the SIP proxy the agent should connect to
    */
@@ -55,10 +59,6 @@ export interface AgentConfiguration {
    * Object for customizing SIP headers
    */
   customSipHeaders?: CustomSipHeaders,
-  /**
-   * A preferred SIP library can be specified here, if more than one SIP library is installed
-   */
-  preferredSipAgent?: SupportedAgent,
 }
 
 export enum AgentState {
@@ -74,7 +74,7 @@ export enum AgentState {
  * Main instance for establishing connection with an ETSI/DEC112 infrastructure
  */
 export class Agent {
-  private _agent: SipAgent;
+  private _agent: SipAdapter;
   private _stateListeners: ((state: AgentState) => void)[] = [];
 
   private _mapper: {
@@ -125,7 +125,7 @@ export class Agent {
       customSipHeaders,
     );
 
-    this._agent = new SipAgent({
+    this._agent = config.sipAdapterFactory({
       ...config,
       originSipUri,
       logger: this._logger,

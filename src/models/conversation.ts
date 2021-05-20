@@ -12,7 +12,7 @@ import { clearInterval, setInterval, Timeout } from '../utils';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
-import { NewMessageEvent, SipAgent } from './sip-agent';
+import { NewMessageEvent, SipAdapter } from '../adapters';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -131,7 +131,7 @@ export class Conversation {
   public get targetUri() { return this._targetUri }
 
   public constructor(
-    private _agent: SipAgent,
+    private _agent: SipAdapter,
     private _store: Store,
 
     private _targetUri: string,
@@ -561,7 +561,7 @@ export class Conversation {
    * Creates a conversation out of an already existing SIP message (e.g. ETSI START message)
    */
   static fromIncomingSipMessage = (
-    ua: SipAgent,
+    ua: SipAdapter,
     store: Store,
     mapper: NamespacedConversation,
     event: NewMessageEvent,

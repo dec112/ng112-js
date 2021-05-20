@@ -1,9 +1,11 @@
+import { JsSipAdapter } from '../../src';
 import { Agent } from '../../src/models/agent';
 import { DEC112Specifics } from '../../test';
 import { endExample } from './util';
 
 it('Shows how to initialize an agent for a DEC112 environment', async () => {
   new Agent({
+    sipAdapterFactory: JsSipAdapter.factory,
     domain: 'dec112.eu',
     endpoint: 'ws://dec112.at',
     password: 'password',

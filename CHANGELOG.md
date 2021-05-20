@@ -10,13 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **BREAKING**: `JsSIP` is no longer a direct dependency, but a peer dependency of `ng112-js`. \
 This is due to the added compatibility with `sip.js`. \
-Developers now can choose which SIP library they want to use by just installing the preferred one. \
-If both SIP libraries are installed, developers can define property `preferredSipAgent` when creating the ng112-js `Agent`. \
-If nothing is specified, ng112-js will fall back to `JsSIP`.
+You can now can choose which SIP library they want to use. \
+The new property `sipAdapterFactory` has been introduced on `Agent`. \
+You need to pass a factory function that returns an appropriate SIP adapter. \
+This also means you can write your own adapter and use any SIP library of your choice in combination with ng112-js. \
+`JsSIP` and `SIP.js` are supported by default. Examples can be found under `./example/snippets/`.
 - **BREAKING**: New object for message send errors: `MessageError` instead of former object `MessageFailedEvent` \
 Object has different properties!
 ### Added
-- Support for `sip.js` in addition to `JsSIP` as SIP stack.
 - Agent mode that can be used to indicate an app is running in the background.
 - Support for DIDs.
 - Support for binaries.

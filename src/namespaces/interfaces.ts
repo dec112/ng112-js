@@ -1,7 +1,6 @@
-import type { PidfLo } from 'pidf-lo';
 import { ConversationEndpointType } from '../models/conversation';
 import { Message } from '../models/message';
-import { NewMessageEvent } from '../models/sip-agent';
+import { NewMessageEvent } from '../adapters';
 import { Multipart } from '../models/multipart';
 import { Header } from '../utils';
 import { OmitStrict } from '../utils/ts-utils';
