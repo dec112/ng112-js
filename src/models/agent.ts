@@ -132,7 +132,8 @@ export class Agent {
 
     const hasDEC112Specifics = namespaceSpecifics instanceof DEC112Specifics;
 
-    const dec112 = new DEC112Mapper(this._logger, hasDEC112Specifics ? namespaceSpecifics : undefined);
+    // we have to use a type hint here, as typescript does not realize that `namepspaceSpecifics` is already type-safe
+    const dec112 = new DEC112Mapper(this._logger, hasDEC112Specifics ? namespaceSpecifics as DEC112Specifics : undefined);
     const etsi = new EmergencyMapper(this._logger);
 
     this._mapper = {
