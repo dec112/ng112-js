@@ -1,4 +1,4 @@
-import PidfLoCompat from '../compatibility/pidf-lo';
+import { XMLCompat } from 'pidf-lo/dist/node';
 
 export const VCARD_XML_NAMESPACE = 'urn:ietf:params:xml:ns:vcard-4.0';
 
@@ -190,7 +190,7 @@ export class VCard {
   get note(): string | undefined { return this.get(KeyId.NOTE); }
 
   toXML = (namespacePrefix?: string): XMLDocument => {
-    const doc = PidfLoCompat.XMLCompat.createDocument();
+    const doc = XMLCompat.createDocument();
     // we clone the array because we remove all items that have already been processed by `writeXmlElement`
     // This helps us finding unknown items so we can process them separately
     const clonedItems = Array.from(this._items);
@@ -223,11 +223,11 @@ export class VCard {
   }
 
   toXMLString = (namespacePrefix?: string): string => {
-    return PidfLoCompat.XMLCompat.toXMLString(this.toXML(namespacePrefix));
+    return XMLCompat.toXMLString(this.toXML(namespacePrefix));
   }
 
   static fromXML = (xml: string): VCard => {
-    const doc = PidfLoCompat.XMLCompat.getDocumentFromString(xml);
+    const doc = XMLCompat.getDocumentFromString(xml);
     const docElement = doc.documentElement;
     const vcard = new VCard();
 
@@ -259,7 +259,7 @@ export class VCard {
 
   equals = (vCard: VCard): boolean => {
     try {
-      return PidfLoCompat.XMLCompat.toXMLString(this.toXML()) === PidfLoCompat.XMLCompat.toXMLString(vCard.toXML());
+      return XMLCompat.toXMLString(this.toXML()) === XMLCompat.toXMLString(vCard.toXML());
     } catch {
       return false;
     }

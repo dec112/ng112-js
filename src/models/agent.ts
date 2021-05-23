@@ -6,8 +6,7 @@ import { Conversation, ConversationState, StateObject } from './conversation';
 import { ConversationConfiguration } from './interfaces';
 import { CustomSipHeaders, Store, AgentMode } from './store';
 import { VCard } from './vcard';
-import type { PidfLo, SimpleLocation } from 'pidf-lo';
-import PidfLoCompat from '../compatibility/pidf-lo';
+import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger, LogLevel } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
@@ -327,8 +326,8 @@ export class Agent {
     let pidflo: PidfLo | undefined = undefined;
 
     if (location) {
-      if (!(location instanceof PidfLoCompat.PidfLo)) {
-        pidflo = PidfLoCompat.PidfLo.fromSimpleLocation(location, this._store.originSipUri);
+      if (!(location instanceof PidfLo)) {
+        pidflo = PidfLo.fromSimpleLocation(location, this._store.originSipUri);
       }
       else
         pidflo = location;

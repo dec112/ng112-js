@@ -1,6 +1,5 @@
 import { getRandomString, Header, } from '../utils';
-import type { PidfLo } from 'pidf-lo';
-import PidfLoCompat from '../compatibility/pidf-lo';
+import { PidfLo, XMLCompat } from 'pidf-lo/dist/node';
 import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST, MULTIPART_MIXED } from '../constants/content-types';
 import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, HISTORY_INFO, REPLY_TO } from '../constants/headers';
 import { ConversationEndpointType } from '../models/conversation';
@@ -110,12 +109,12 @@ export class EmergencyMapper implements NamespacedConversation {
           { key: CONTENT_TYPE, value: PIDF_LO },
           { key: CONTENT_ID, value: `<${locationContentId}>` },
         ],
-        body: PidfLoCompat.XMLCompat.toXMLString(location.toXML()),
+        body: XMLCompat.toXMLString(location.toXML()),
       });
     }
 
     if (vcard) {
-      const doc = PidfLoCompat.XMLCompat.createDocument();
+      const doc = XMLCompat.createDocument();
 
       const infoPrefix = 'sub';
       const vcardPrefix = 'xc';
@@ -139,7 +138,7 @@ export class EmergencyMapper implements NamespacedConversation {
           headers: [
             { key: CONTENT_TYPE, value: CALL_SUB },
           ],
-          body: PidfLoCompat.XMLCompat.toXMLString(doc),
+          body: XMLCompat.toXMLString(doc),
         });
       }
     }
@@ -316,7 +315,7 @@ export class EmergencyMapper implements NamespacedConversation {
 
   parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => this.parseCommonMessageFromEvent(evt);
 
-  tryParsePidfLo = (value: string): PidfLo | undefined => PidfLoCompat.PidfLo.fromXML(value);
+  tryParsePidfLo = (value: string): PidfLo | undefined => PidfLo.fromXML(value);
   getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
   getDIDFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, new RegExp(allowSpacesInRegexString(getDIDHeaderValue('(.*)'))));
 

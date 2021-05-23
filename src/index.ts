@@ -44,18 +44,6 @@ export {
   LogLevel,
 } from './models/logger';
 
-import PidfLoCompat from './compatibility/pidf-lo';
-
-const {
-  Circle,
-  Device,
-  LocationMethod,
-  Person,
-  PidfLo,
-  Point,
-  Tuple,
-} = PidfLoCompat;
-
 export {
   Circle,
   Device,
@@ -63,17 +51,9 @@ export {
   Person,
   PidfLo,
   Point,
-  Tuple,
-};
-
-// this is only a typescript interface
-// therefore we directly export it from the pidf-lo module
-export {
   SimpleLocation,
-} from 'pidf-lo';
-
-export {
-} from './adapters';
+  Tuple,
+} from 'pidf-lo/dist/node';
 
 export {
   SipAdapter,
