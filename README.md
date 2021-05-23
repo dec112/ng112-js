@@ -4,14 +4,14 @@ This javascript library should help integrating browser and node environments wi
 
 It handles SIP communication, message types, heartbeats, PIDF-LO, VCards, Multipart MIME and should finally provide a comprehensive implementation of the aformentioned ETSI standards.
 
-Please keep in mind this is still in development and does not cover standards entirely!
+Please keep in mind this library is still in development and does not cover standards entirely!
 
 SIP communication can be handeled by a SIP stack of your choice. \
 By default, `ng112-js` comes with adapters for:
-* [JsSIP](https://jssip.net/) (>= 3.0.0)
-* [SIP.js](https://sipjs.com/) (>= 0.20.0)
+* [JsSIP](https://jssip.net/): https://github.com/dec112/ng112-js-sip-adapter-jssip
+* [SIP.js](https://sipjs.com/): https://github.com/dec112/ng112-js-sip-adapter-sipjs
 
-If you want to write your own adapter, take a look at `./src/adapters` to get an idea how they are implemented.
+If you want to write your own adapter, take a look at one of the linked adapters to get an idea how they are implemented.
 
 License: GNU AGPL-3.0 \
 Proprietary licenses are available on request. \
@@ -22,6 +22,23 @@ Maintainer: Gabriel Unterholzer (gabriel.unterholzer@dec112.at)
 ```shell
 npm install ng112-js
 ```
+
+In addition, you will also have to install one of the available SIP adapters. \
+Let's use the JsSIP adapter in this example:
+
+```shell
+npm install ng112-js-sip-adapter-jssip
+```
+
+Please also note the install requirements of the respective SIP adapters (README.md) \
+`ng112-js-sip-adapter-jssip` will need an additional package, if it is used in node.js environments!
+
+## Usage
+
+`ng112-js` implementation slightly differs in node.js or browser environments. \
+E.g. in browser environments there is a native XMLDom implementation that is lacking in node.js.
+
+Therefore, there are separate builds for node.js and browser environments.
 
 ### Browser Environments
 
@@ -34,41 +51,6 @@ import * from 'ng112-js/dist/browser';
 ```typescript
 import * from 'ng112-js/dist/node';
 ```
-
-In addition, node environments will also need to install `jssip-node-websocket`, which is a peer dependency of `ng112-js`
-
-```bash
-npm install jssip-node-websocket
-```
-
-## Build issues
-
-Some environments may cause problems not being able to resolve JsSIP types correctly, as JsSIP does not come with types included, but they are provided by an additional package `@types/jssip`.
-
-Build output might look like this:
-
-```bash
-Error: node_modules/ng112-js/dist/types/models/message.d.ts:81:20 - error TS2503: Cannot find namespace 'JsSIP'.
-81     jssipMessage?: JsSIP.UserAgentNewMessageEvent;
-```
-
-In these cases add the following to the `compilerOptions` section in your `tsconfig.json`. \
-It will tell TypeScript the location where to look for jssip types:
-
-```json
-{
-  // [...]
-  "compilerOptions": {
-    // [...]
-    "paths": {
-      "jssip" : ["node_modules/@types/jssip"]
-    }
-  }
-}
-```
-
-
-More information on this: https://www.typescriptlang.org/tsconfig#paths
 
 ## Examples
 
@@ -83,9 +65,11 @@ import {
   Agent,
   DEC112Specifics,
   LocationMethod,
-  SipJsAdapter,
   VCard,
 } from 'ng112-js/dist/browser';
+import { 
+  SipJsAdapter, 
+} from 'ng112-js-sip-adapter-sipjs';
 
 // define connection to SIP proxy (originating ESRP)
 const agent = new Agent({
@@ -100,16 +84,14 @@ const agent = new Agent({
   // DEC112: required. Used to specify additional properties for DEC112 environments
   // either device id or registration id is required
   // in ETSI TS 103 698 environments, `namespaceSpecifics` must not be specified
-  namespaceSpecifics: new DEC112Specifics(
-    // device id (registration API version 1; deprecated)
-    undefined,
+  namespaceSpecifics: new DEC112Specifics({
     // registration id (registration API version 2)
-    'registrationId',
+    registrationId: 'registrationId',
     // user device language (ISO639-1 two letter language code; optional)
-    'en',
+    langauge: 'en',
     // client version (e.g. version of application, where ng112-js is used in; optional)
-    '1.0.4',
-  ),
+    clientVersion: '1.0.4',
+  }),
   // If `debug` is set to `true`, verbose log messages will be printed to the console
   // If `debug` is set to a callback, this callback will be called for each debug statement
   debug: false,
@@ -177,8 +159,10 @@ await agent.dispose();
 import { 
   Agent,
   ConversationState,
-  JsSipAdapter,
 } from 'ng112-js/dist/node';
+import { 
+  JsSipAdapter, 
+} from 'ng112-js-sip-adapter-jssip/dist/node';
 
 // define connection to SIP proxy (terminating ESRP)
 const agent = new Agent({

@@ -1,6 +1,5 @@
-import { JsSipAdapter } from '../../src';
-import { Agent } from '../../src/models/agent';
-import { DEC112Specifics } from '../../test';
+import { Agent, DEC112Specifics } from 'ng112-js/dist/node';
+import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip/dist/node';
 import { endExample } from './util';
 
 it('Shows how to initialize an agent for a DEC112 environment', async () => {

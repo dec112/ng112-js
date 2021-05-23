@@ -1,5 +1,4 @@
-import { CONTENT_TYPE } from '../../src/constants/headers';
-import { MultipartPart } from '../../src/models/multipart';
+import { MultipartPart } from 'ng112-js/dist/node';
 import { createAgent, endExample } from './util';
 
 it('Shows how to send custom mime parts', async () => {
@@ -13,7 +12,7 @@ it('Shows how to send custom mime parts', async () => {
   const extraPart: MultipartPart = {
     headers: [
       {
-        key: CONTENT_TYPE,
+        key: 'Content-Type',
         value: 'application/json',
       }
     ],

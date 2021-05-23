@@ -76,9 +76,6 @@ export {
 } from './adapters';
 
 export {
-  JsSipAdapter,
-  SipJsAdapter,
-
   SipAdapter,
   SipAdapterConfig,
   DelegateObject,
@@ -88,3 +85,8 @@ export {
 
   getUserAgentString,
 } from './adapters';
+
+export {
+  Multipart,
+  MultipartPart,
+} from './models/multipart';

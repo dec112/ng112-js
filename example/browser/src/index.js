@@ -5,11 +5,21 @@ import {
   DEC112Specifics,
   EmergencyMessageType,
   Gender,
-  JsSipAdapter,
   LocationMethod,
   Origin,
   VCard,
 } from 'ng112-js/dist/browser';
+import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip/dist/browser';
+import { SipJsAdapter } from "ng112-js-sip-adapter-sipjs";
+
+const availableSipLibraries = {
+  jssip: 'JsSIP',
+  sipjs: 'SIP.js',
+};
+const sipFactories = {
+  jssip: JsSipAdapter.factory,
+  sipjs: SipJsAdapter.factory,
+};
 
 const el = (id, defaultValue) => {
   const el = document.getElementById(id);
@@ -53,6 +63,15 @@ const disable = (element, value) => {
 
   const endpoint = el('txtEndpoint', config.endpoint);
   const domain = el('txtDomain', config.domain);
+  const sipLibrary = el('selSipLibrary');
+
+  for (const prop in availableSipLibraries) {
+    const opt = document.createElement('option');
+    opt.value = prop;
+    opt.textContent = availableSipLibraries[prop];
+
+    sipLibrary.appendChild(opt);
+  }
 
   const user = el('txtUser', config.user);
   const password = el('txtPassword', config.password);
@@ -206,16 +225,14 @@ const disable = (element, value) => {
     let namespaceSpecifics = undefined;
 
     if (regApiVersion && reg) {
-      namespaceSpecifics = new DEC112Specifics(
-        regApiVersion == 1 ? reg : undefined,
-        regApiVersion == 2 ? reg : undefined,
-        undefined,
-        undefined,
-      );
+      namespaceSpecifics = new DEC112Specifics({
+        deviceId: regApiVersion == 1 ? reg : undefined,
+        registrationId: regApiVersion == 2 ? reg : undefined,
+      });
     }
 
     agent = new Agent({
-      sipAdapterFactory: JsSipAdapter.factory,
+      sipAdapterFactory: sipFactories[sipLibrary.value],
       endpoint: endpoint.value,
       domain: domain.value,
       user: user.value,

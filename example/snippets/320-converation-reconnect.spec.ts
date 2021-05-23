@@ -1,4 +1,4 @@
-import { ConversationState, Origin } from '../../src';
+import { ConversationState, Origin } from 'ng112-js/dist/node';
 import { createAgent, endExample } from './util';
 
 it('Shows how to reconnect to an already existing conversation', async () => {

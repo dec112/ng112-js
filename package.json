@@ -42,6 +42,8 @@
     "jest-websocket-mock": "^2.2.0",
     "jssip": "^3.7.5",
     "mock-socket": "^9.0.3",
+    "ng112-js-sip-adapter-jssip": "0.1.0",
+    "ng112-js-sip-adapter-sipjs": "0.1.0",
     "rollup-plugin-replace": "^2.2.0",
     "sip.js": "^0.20.0",
     "size-limit": "^4.7.0",
@@ -53,10 +55,5 @@
   "dependencies": {
     "pidf-lo": "^0.3.3",
     "xmldom": "^0.4.0"
-  },
-  "peerDependencies": {
-    "jssip": "^3.7.5",
-    "jssip-node-websocket": "^3.0.0",
-    "sip.js": "^0.20.0"
   }
 }

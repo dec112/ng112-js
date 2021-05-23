@@ -1,4 +1,3 @@
-import type * as SipJs from "sip.js";
 import type { PidfLo } from 'pidf-lo';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
@@ -100,10 +99,7 @@ export interface Message {
    * The corresponding raw message from the SIP stack `JsSIP`\
    * For outgoing messages this will only be resolved after property `promise` is resolved
    */
-  sipStackMessage?:
-  JsSIP.UserAgentNewMessageEvent |
-  SipJs.Core.OutgoingRequestMessage |
-  SipJs.Core.IncomingRequestMessage
+  sipStackMessage?: any,
 }
 
 export interface MessageError {

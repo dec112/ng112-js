@@ -1,4 +1,4 @@
-import { Origin, EmergencyMessageType, MessageState } from '../../src';
+import { Origin, EmergencyMessageType, MessageState } from 'ng112-js/dist/node';
 import { createAgent, endExample } from './util';
 
 it('Shows how to check for different message properties', async () => {

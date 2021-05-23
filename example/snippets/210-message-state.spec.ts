@@ -1,4 +1,4 @@
-import {  MessageState } from '../../src';
+import {  MessageState } from 'ng112-js/dist/node';
 import { createAgent, endExample } from './util';
 
 it('Shows how to send heartbeats manually', async () => {

@@ -4,10 +4,16 @@
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dec112/ng112-js.git"
+  },
   "scripts": {
     "start": "node ./src/index.js"
   },
   "dependencies": {
-    "ng112-js": "file:../.."
+    "jssip-node-websocket": "^3.0.0",
+    "ng112-js": "file:../..",
+    "ng112-js-sip-adapter-jssip": "^0.1.0"
   }
 }

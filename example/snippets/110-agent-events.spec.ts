@@ -1,4 +1,4 @@
-import { AgentState } from '../../src/models/agent';
+import { AgentState } from 'ng112-js/dist/node';
 import { createAgent, endExample } from './util';
 
 it('Shows the usage of agent events', async () => {

@@ -1,8 +1,10 @@
 const {
   Agent,
   LocationMethod,
-  JsSipAdapter,
 } = require('ng112-js/dist/node');
+const {
+  JsSipAdapter,
+} = require('ng112-js-sip-adapter-jssip/dist/node');
 
 console.log('------------ ng112-js node ------------');
 console.log('|                                     |');
@@ -50,7 +52,9 @@ const config = {
   try {
     await agent.initialize()
 
-    const conversation = agent.createConversation(config.call);
+    const conversation = agent.createConversation(config.call, {
+      isTest: true,
+    });
     conversation.addMessageListener((msg) => {
       console.log(`${msg.origin} (${msg.type}): ${msg.text}\n`);
     });
