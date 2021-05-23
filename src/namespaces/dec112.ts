@@ -10,7 +10,9 @@ import { OmitStrict } from '../utils/ts-utils';
 import { Message } from '../models/message';
 import { Logger } from '../models/logger';
 
-const dec112Domain = 'service.dec112.at';
+const UID = 'uid';
+const DEC112_DOMAIN = 'service.dec112.at';
+
 const getCallInfoHeader = (uri: string[], value: string, domain: string, type: string) =>
   `<urn:dec112:${uri.join(':')}:${value}:${domain}>; purpose=dec112-${type}`;
 
@@ -20,34 +22,37 @@ const getMessageTypeHeaderValue = (messageType: string, domain: string) => getCa
 
 const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader(['.+'], value, domain, '.+');
 
+export interface DEC112Config {
+  /**
+   * @deprecated
+   * 
+   * Registration identifier of registration API version 1
+   */
+  deviceId?: string;
+  /**
+   * Registration identifier of registration API version 2
+   */
+  registrationId?: string;
+  /**
+   * User device language (ISO639-1 two letter language code)
+   */
+  langauge?: string;
+  /**
+   * Client version as SEMVER version code (version of application, where ng112-js is used in; e.g. `1.0.4`)
+   */
+  clientVersion?: string;
+}
+
 export class DEC112Specifics implements NamespaceSpecifics {
   constructor(
-    /**
-     * @deprecated
-     * 
-     * Registration identifier of registration API version 1
-     */
-    public deviceId?: string,
-    /**
-     * Registration identifier of registration API version 2
-     */
-    public registrationId?: string,
-    /**
-     * User device language (ISO639-1 two letter language code)
-     */
-    public langauge?: string,
-    /**
-     * Client version as SEMVER version code (version of application, where ng112-js is used in; e.g. `1.0.4`)
-     */
-    public clientVersion?: string,
+    public config: DEC112Config
   ) { }
-  // TODO: support did
 }
 
 export class DEC112Mapper extends EmergencyMapper {
   constructor(
     _logger: Logger,
-    public specifics?: DEC112Specifics
+    public specifics?: DEC112Specifics,
   ) {
     super(_logger);
   }
@@ -98,25 +103,25 @@ export class DEC112Mapper extends EmergencyMapper {
 
     const headers = common.headers = [
       ...common.headers,
-      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, dec112Domain) },
-      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), dec112Domain) },
-      { key: CALL_INFO, value: getMessageTypeHeaderValue(dec112MessageType.toString(), dec112Domain) },
+      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, DEC112_DOMAIN) },
+      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), DEC112_DOMAIN) },
+      { key: CALL_INFO, value: getMessageTypeHeaderValue(dec112MessageType.toString(), DEC112_DOMAIN) },
     ];
 
     if (endpointType === ConversationEndpointType.CLIENT) {
-      const spec = this.specifics;
+      const spec = this.specifics?.config;
 
       if (spec?.deviceId)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader(['uid', 'deviceid'], spec.deviceId, dec112Domain, 'DeviceId') });
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'deviceid'], spec.deviceId, DEC112_DOMAIN, 'DeviceId') });
 
       if (spec?.registrationId)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader(['uid', 'regid'], spec.registrationId, dec112Domain, 'RegId') });
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'regid'], spec.registrationId, DEC112_DOMAIN, 'RegId') });
 
       if (spec?.clientVersion)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader(['uid', 'clientversion'], spec.clientVersion, dec112Domain, 'ClientVer') });
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'clientversion'], spec.clientVersion, DEC112_DOMAIN, 'ClientVer') });
 
       if (spec?.langauge)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader(['uid', 'language'], spec.langauge, dec112Domain, 'Lang') });
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'language'], spec.langauge, DEC112_DOMAIN, 'Lang') });
     }
 
     if (isTest)
