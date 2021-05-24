@@ -1,9 +1,0 @@
-SIP/2.0 200 OK
-{{VIA}};received=178.112.124.34;branch=z9hG4bK9184688
-To: <sip:1234@dec112.at>;tag=gslcv1a0u4
-From: <sip:user@dec112.at>;{{FROM_TAG}}
-{{CALL_ID}}
-{{CSEQ}}
-Supported: outbound
-Content-Length: 0
-

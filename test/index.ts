@@ -1,56 +1,26 @@
-import WS from 'jest-websocket-mock';
-import { Agent } from '../dist/node';
+import { Agent, SipAdapter } from '../dist/node';
 import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip';
-import path from 'path';
-import fs from 'fs';
-import { cacheValues, fillValues } from './utils/sip';
+// import { SipJsAdapter } from 'ng112-js-sip-adapter-sipjs';
 
 export * from '../dist/node';
 
-export const getAgent = () => new Agent({
-  // TODO: ensure that all tests are also run with sip.js
-  sipAdapterFactory: JsSipAdapter.factory,
-  endpoint: 'ws://localhost:1234',
-  domain: 'dec112.at',
-  user: 'user',
-  password: 'password',
-  displayName: 'Alice',
-  // debug: true,
-});
+export const getAgents = () => {
+  const adapters: ((config: any) => SipAdapter)[] = [
+    JsSipAdapter.factory,
+    // TODO: currently not possible to also test with sip.js as sip.js requires ESM modules
+    // SipJsAdapter.factory,
+  ];
 
-let _server: WS;
-
-const initialize = () => {
-  _server = new WS("ws://localhost:1234");
+  return adapters.map(adapter => new Agent({
+    sipAdapterFactory: adapter,
+    endpoint: 'ws://127.0.0.1:8088',
+    domain: 'service.dec112.home',
+    user: 'user',
+    password: '',
+    displayName: 'Alice Smith',
+    debug: {
+      // default: true,
+      // sipAdapter: true,
+    }
+  }));
 }
-
-const send = (filename: string) => {
-  const pathParts: string[] = [
-    __dirname,
-    'res',
-    ...filename.split('/'),
-  ]
-
-  let msg = fs.readFileSync(`${path.join(...pathParts)}.txt`, { encoding: 'utf-8' });
-  msg = fillValues(msg);
-
-  _server.send(msg);
-}
-
-const clean = () => WS.clean();
-
-const nextMessage = async () => {
-  let msg = (await _server.nextMessage) as string;
-  cacheValues(msg);
-  return msg;
-}
-
-export const server = {
-  send,
-  clean,
-  initialize,
-  is: () => _server,
-  expect: {
-    message: nextMessage,
-  },
-};

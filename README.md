@@ -273,6 +273,21 @@ agent.addConversationListener((conversation) => {
 
 ```
 
+## Local Build
+
+```shell
+npm run build
+```
+
+## Testing
+
+ng112-js testing relies on docker and docker-compose. Therefore you will need this programs to be installed to successfully run automated tests. \
+There is an example docker-compose.yml in the test directory. You'll need a Kamailio docker image and a NG112 compatible PSAP image to successfully run the integration tests.
+
+```shell
+npm run test
+```
+
 ## Documentation
 
 Documentation can be found at https://www.dec112.at/docs/ng112-js
@@ -280,15 +295,7 @@ Documentation can be found at https://www.dec112.at/docs/ng112-js
 Generate documentation by using the following command. It will be saved in folder `./docs`
 
 ```shell
-npm install
 npm run docs
-```
-
-## Local Build
-
-```shell
-npm install
-npm run build
 ```
 
 ---
