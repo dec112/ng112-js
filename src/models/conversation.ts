@@ -539,6 +539,17 @@ export class Conversation {
   }
 
   /**
+   * Unregisters a previously registered message listener
+   * 
+   * @param callback Callback function that is called each time a new incoming or outgoing message is received/sent
+   */
+  removeMessageListener = (callback: (message: Message) => unknown) => {
+    const index = this._messageListeners.indexOf(callback);
+    if (index !== -1)
+      this._messageListeners.splice(index, 1);
+  }
+
+  /**
    * Registers a new listener for conversation state changes
    * 
    * @param callback Callback function that is called each time the conversation's state changes

@@ -25,6 +25,7 @@ Object has different properties!
 - Support for binaries.
 - Support for parsing extra multiparts.
 - Support for History-Info header.
+- Ability to remove message listeners.
 
 ---
 
