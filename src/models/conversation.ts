@@ -204,11 +204,11 @@ export class Conversation {
       message.location = message.vcard = undefined;
   }
 
-  private _sendSipMessage = ({
+  private _sendSipMessage = async ({
     message,
     resolve,
     reject,
-  }: QueueItem): void => {
+  }: QueueItem): Promise<void> => {
     this._updateMessagePropsIfIsClient(message);
 
     let replyToSipUri = this._store.originSipUri;
@@ -229,23 +229,28 @@ export class Conversation {
       });
 
       const multiObj = multipart.create();
-      this._agent.message(this._targetUri, multiObj.body, {
+      await this._agent.message(this._targetUri, multiObj.body, {
         contentType: multiObj.contentType,
         extraHeaders: headers.map(h => getHeaderString(h)),
-      })
-        .then(() => resolve())
-        .catch((ex: MessageError | undefined) => {
-          if (ex?.origin === Origin.REMOTE)
-            this._setState(ConversationState.ERROR, ex.origin)();
-          else
-            this._logger.error('Could not send SIP message.', message, ex);
-        });
-
-    } catch (e) {
-      this._logger.error(e);
-      reject({
-        origin: Origin.SYSTEM,
       });
+
+      resolve();
+    } catch (e) {
+      const ex: MessageError = e ?? {
+        origin: Origin.SYSTEM,
+      };
+
+      // TODO: What do we do when we get a 404?
+      // TODO: What do we do when the error already happens at the first message?
+      // TODO: What if we don't have network connection?
+
+      // TODO: Setup local Kamailio for testing
+      if (ex.origin === Origin.REMOTE)
+        this._setState(ConversationState.ERROR, ex.origin)();
+
+      this._logger.error('Could not send SIP message.', message, ex);
+
+      reject(ex);
     }
   }
 

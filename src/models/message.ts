@@ -103,7 +103,15 @@ export interface Message {
 }
 
 export interface MessageError {
+  /**
+   * Origin, who produced this error
+   */
   origin: Origin,
+  /**
+   * SIP error code
+   * @example 404 Not Found
+   */
+  code: number,
 }
 
 export const nextUniqueId = (() => {
