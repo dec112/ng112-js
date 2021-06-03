@@ -270,11 +270,17 @@ export class Conversation {
     if (this._heartbeatInterval || !this._isHeartbeatAllowed())
       return;
 
+    const intervalMs = this._store.getHeartbeatInterval();
+
+    this._logger.log(`Starting heartbeat with interval of ${intervalMs} ms.`);
     this._heartbeatInterval = setInterval(
-      this._store.getHeartbeatInterval(),
-      () => this.sendMessage({
-        type: EmergencyMessageType.HEARTBEAT,
-      }),
+      intervalMs,
+      () => {
+        const msg = this.sendMessage({
+          type: EmergencyMessageType.HEARTBEAT,
+        });
+        this._logger.log(`Sending heartbeat message.`, msg);
+      },
     );
   }
 
@@ -282,6 +288,7 @@ export class Conversation {
     if (!this._heartbeatInterval)
       return;
 
+    this._logger.log(`Stopping heartbeat.`);
     clearInterval(this._heartbeatInterval);
     this._heartbeatInterval = undefined;
   }
