@@ -43,11 +43,28 @@ export interface AgentConfiguration {
    */
   displayName?: string,
   /**
-   * If `debug` is set to `true`, verbose log messages will be printed to the console \
-   * If `debug` is set to a `LogLevel` bitmask, specified log messages will be printed to the console \
-   * If `debug` is set to a callback, this callback will be called for each debug statement
+   * Defines debug handling. \
+   * If `debug` is `undefined`, logging will be disabled.
    */
-  debug?: boolean | number | ((level: number, ...values: any[]) => unknown),
+  debug?: {
+    /**
+     * Defines debug handling for log messages that are created within ng112-js.
+     * 
+     * If set to `true`, verbose log messages will be printed to the console \
+     * If set to a `LogLevel` bitmask, specified log messages will be printed to the console \
+     * If set to a callback, this callback will be called for each debug statement
+     */
+    default?: boolean | number | ((level: number, ...values: any[]) => unknown),
+    /**
+     * Defines debug handling for log messages that are created by the SIP adapter. \
+     * Note that some SIP adapters may not or only partially support logging or a custom callback function!
+     * 
+     * If set to `true`, verbose log messages will be printed to the console \
+     * If set to a `LogLevel` bitmask, specified log messages will be printed to the console \
+     * If set to a callback, this callback will be called for each debug statement
+     */
+    sipAdapter?: boolean | number | ((level: number, ...values: any[]) => unknown),
+  },
   /**
    * Configuration object for cross compatibility between ETSI and DEC112 environments.\
    * Currently, only {@link DEC112Specifics | DEC112Specifics} is supported.\
@@ -96,27 +113,14 @@ export class Agent {
       user,
       namespaceSpecifics,
       customSipHeaders,
-    } = config;
-
-    let {
-      debug = LogLevel.NONE,
+      debug,
     } = config;
 
     const originSipUri = customSipHeaders?.from ?
       CustomSipHeader.resolve(customSipHeaders.from) :
       `sip:${user ? `${user}@` : ''}${domain}`;
 
-    let debugFunction: ((level: number, ...values: any[]) => unknown) | undefined = undefined;
-    if (debug === true)
-      debug = LogLevel.ALL;
-    else if (typeof debug === 'function') {
-      debugFunction = debug;
-      debug = LogLevel.ALL;
-    }
-    else if (!debug)
-      debug = LogLevel.NONE;
-
-    this._logger = new Logger(debug, debugFunction);
+    this._logger = Logger.getFromConfig(debug?.default);
 
     this._store = new Store(
       originSipUri,
@@ -127,7 +131,7 @@ export class Agent {
     this._agent = config.sipAdapterFactory({
       ...config,
       originSipUri,
-      logger: this._logger,
+      logger: Logger.getFromConfig(debug?.sipAdapter),
     });
 
     const hasDEC112Specifics = namespaceSpecifics instanceof DEC112Specifics;

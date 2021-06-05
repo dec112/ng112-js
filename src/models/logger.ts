@@ -34,4 +34,18 @@ export class Logger {
   isActive = (): boolean => this.level !== LogLevel.NONE;
   isExternal = (): boolean => !!this.logCallback;
   isFallback = (): boolean => !this.logCallback;
+
+  static getFromConfig = (config?: boolean | number | ((level: number, ...values: any[]) => unknown)) => {
+    let debugFunction: ((level: number, ...values: any[]) => unknown) | undefined = undefined;
+    if (config === true)
+      config = LogLevel.ALL;
+    else if (typeof config === 'function') {
+      debugFunction = config;
+      config = LogLevel.ALL;
+    }
+    else if (!config)
+      config = LogLevel.NONE;
+
+    return new Logger(config, debugFunction);
+  }
 }
