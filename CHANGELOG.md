@@ -18,6 +18,7 @@ This also means you can write your own adapter and use any SIP library of your c
 - **BREAKING**: New object for message send errors: `MessageError` instead of former object `MessageFailedEvent` \
 Object has different properties!
 - **BREAKING**: `DEC112Specifics` constructor uses object `DEC112Config` instead of individual parameters for initialization.
+- **BREAKING**: Updating `Agent`'s heartbeat interval with invalid values will not result in an exception, but will rather log an error message.
 - Improved build process, enabling better tree shaking for dependency `pidf-lo`.
 ### Added
 - Agent mode that can be used to indicate an app is running in the background.

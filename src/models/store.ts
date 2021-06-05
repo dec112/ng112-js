@@ -64,7 +64,7 @@ export class Store {
    */
   setHeartbeatInterval = (interval: number = defaultHeartbeatInterval) => {
     if (interval > 20000 || interval < 0)
-      throw new Error('TS 103 698 does not allow intervals greater than 20000 or smaller than 0 milliseconds.');
+      this.logger.error('TS 103 698 does not allow intervals greater than 20000 or smaller than 0 milliseconds.');
 
     if (interval !== this._heartbeatInterval) {
       this._heartbeatInterval = interval;
