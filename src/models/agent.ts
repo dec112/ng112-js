@@ -214,7 +214,7 @@ export class Agent {
    * If there are still open calls, this grace period applies to each call closure. \
    * Grace period also applies to unregistering and disconnecting the agent.
    */
-  dispose = async (gracePeriod: number = 2000): Promise<void> => {
+  dispose = async (gracePeriod: number = 10000): Promise<void> => {
     const openConversations = this.conversations.filter(x => x.state.value !== ConversationState.STOPPED);
 
     if (openConversations.length > 0)
