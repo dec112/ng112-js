@@ -22,7 +22,7 @@ export const clearInterval = (interval: Timeout): void => {
  */
 export const timedoutPromise = <T>(promise: Promise<T>, timeout: number): Promise<T> => {
   return new Promise<T>(async (resolve, reject) => {
-    const t = setTimeout(reject, timeout);
+    const t = setTimeout(() => reject(), timeout);
     try {
       resolve(await promise);
     } catch (e) {

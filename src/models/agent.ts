@@ -206,6 +206,17 @@ export class Agent {
   }
 
   /**
+   * Internal dispose function of the agent
+   */
+  private _dispose = async (): Promise<void> => {
+    await this._agent.unregister();
+    this._logger.log('Unregistered.');
+
+    await this._agent.stop();
+    this._logger.log('Disconnected.');
+  }
+
+  /**
    * Unregisteres from the ESRP and disposes the SIP agent. \
    * Closes open calls, if there are any. \
    * This function has to be called before exiting the application.
@@ -228,17 +239,8 @@ export class Agent {
       }
     }
 
-    const unregisterPromise = this._agent.unregister();
-    const disconnectPromise = this._agent.stop();
-
     try {
-      unregisterPromise.then(() => this._logger.log('Unregistered.'));
-      disconnectPromise.then(() => this._logger.log('Disconnected.'));
-
-      await timedoutPromise(Promise.all([
-        unregisterPromise,
-        disconnectPromise,
-      ]), gracePeriod);
+      await timedoutPromise(this._dispose(), gracePeriod);
     }
     catch {
       this._logger.error(`Could not dispose agent. Timeout after ${gracePeriod}ms.`);
