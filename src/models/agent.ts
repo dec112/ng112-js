@@ -8,7 +8,7 @@ import { CustomSipHeaders, Store, AgentMode } from './store';
 import { VCard } from './vcard';
 import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
 import { CustomSipHeader } from './custom-sip-header';
-import { Logger, LogLevel } from './logger';
+import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
 import { timedoutPromise } from '../utils';
 
