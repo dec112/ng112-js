@@ -8,13 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ## Unreleased - [2.0.0]
 ### Changed
-- **BREAKING**: `JsSIP` is no longer a direct dependency, but a peer dependency of `ng112-js`. \
-This is due to the added compatibility with `sip.js`. \
-You can now can choose which SIP library they want to use. \
-The new property `sipAdapterFactory` has been introduced on `Agent`. \
+- **BREAKING**: `JsSIP` is no longer a direct dependency, because SIP handling is now handled via SIP adapters. \
+You can choose now which SIP library to use in combination with ng112-js. For this reason a new property `sipAdapterFactory` has been introduced on `Agent`. \
 You need to pass a factory function that returns an appropriate SIP adapter. \
-This also means you can write your own adapter and use any SIP library of your choice in combination with ng112-js. \
-`JsSIP` and `SIP.js` are supported by default. Examples can be found under `./example/snippets/`.
+Examples and pre-existing adapter packages can be found in `README.md` or at `./example/snippets/`.
 - **BREAKING**: New object for message send errors: `MessageError` instead of former object `MessageFailedEvent` \
 Object has different properties!
 - **BREAKING**: `DEC112Specifics` constructor uses object `DEC112Config` instead of individual parameters for initialization.
