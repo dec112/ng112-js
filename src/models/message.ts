@@ -25,6 +25,7 @@ export enum MessageState {
 }
 
 export interface Binary {
+  // TODO: this should also include the file's name
   mimeType: string,
   value: ArrayBuffer,
 }
