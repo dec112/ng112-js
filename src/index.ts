@@ -56,17 +56,6 @@ export {
 } from 'pidf-lo/dist/node';
 
 export {
-  SipAdapter,
-  SipAdapterConfig,
-  DelegateObject,
-  NewMessageEvent,
-  SendMessageOptions,
-  SipUri,
-
-  getUserAgentString,
-} from './adapters';
-
-export {
   Multipart,
   MultipartPart,
 } from './models/multipart';

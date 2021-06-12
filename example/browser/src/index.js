@@ -9,7 +9,7 @@ import {
   Origin,
   VCard,
 } from 'ng112-js/dist/browser';
-import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip/dist/browser';
+import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip/dist';
 import { SipJsAdapter } from "ng112-js-sip-adapter-sipjs";
 
 const availableSipLibraries = {

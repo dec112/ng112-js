@@ -91,4 +91,22 @@ fs.copyFileSync(
   path.join(root, 'dist', 'node', 'index.d.ts'),
 );
 
+// ok now building the last version of our SDK
+// this is intended to be consumed by SIP adapter packages
+console.log('Building adapter version...');
+
+// moving all previously built data to a temporary location
+moveFile('dist', 'dist-temp');
+
+// running the adapter build
+proc.execSync('npm run build:adapter');
+
+// integrating the adapter version into our finaal folder
+moveFile('dist/adapter', 'dist-temp/adapter');
+// removing the current adapter version's build folder
+fs.rmSync(path.join(root, 'dist'), { recursive: true });
+// moving everything back to the correct folder
+moveFile('dist-temp', 'dist');
+
+// finally...
 console.log('Build finished!');

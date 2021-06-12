@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "ng112-js": "file:../..",
-    "ng112-js-sip-adapter-jssip": "0.1.0",
+    "ng112-js-sip-adapter-jssip": "^0.1.1",
     "ng112-js-sip-adapter-sipjs": "0.1.0"
   }
 }
