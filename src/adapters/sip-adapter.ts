@@ -179,5 +179,5 @@ export interface DelegateObject {
 
 export const getUserAgentString = (sipLibName: string, sipLibVersion: string) => {
   const packageInfo = getPackageInfo();
-  return `${packageInfo.name} ${packageInfo.version}, ${sipLibName}, ${sipLibVersion}`;
+  return `${packageInfo.name} ${packageInfo.version}, ${sipLibName} ${sipLibVersion}`;
 }
