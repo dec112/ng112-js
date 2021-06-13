@@ -32,7 +32,7 @@ export interface NamespacedConversation {
   parseMessageFromEvent(evt: NewMessageEvent): OmitStrict<Message, 'conversation'>;
 
   getName(): string;
-  isStartConversationByClientAllowed(): boolean;
+  supportsPsapStartMessage(): boolean;
   isCompatible(headers: string[]): boolean;
 
   getCallIdFromHeaders(headers: string[]): string | undefined;

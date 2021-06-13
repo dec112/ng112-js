@@ -58,9 +58,9 @@ export class DEC112Mapper extends EmergencyMapper {
   }
 
   getName = () => 'DEC112';
-  // DEC112 allows starting a conversation by the client
-  // ETSI standard only allows PSAP to finally start the conversation
-  isStartConversationByClientAllowed = (): boolean => true;
+  // DEC112 does not have a specific message type for starting the conversation
+  // ETSI standard specifies a dedicated START message
+  supportsPsapStartMessage = (): boolean => false;
 
   isCompatible = (headers: string[]): boolean =>
     // checks if at least one element satisfies DEC112 call info headers

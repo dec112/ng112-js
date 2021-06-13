@@ -18,6 +18,7 @@ Object has different properties!
 - **BREAKING**: Updating `Agent`'s heartbeat interval with invalid values will not result in an exception, but will rather log an error message.
 - **BREAKING**: `Agent`'s `debug` is now an object. This way, separate log-levels and handlers for in-library log messages and log messages created by the SIP adapter can be specified.
 - Improved build process, enabling better tree shaking for dependency `pidf-lo`.
+- Conversations in DEC112 environments are only started after an initial message sent by the PSAP.
 ### Added
 - Agent mode that can be used to indicate an app is running in the background.
 - Support for DIDs.
