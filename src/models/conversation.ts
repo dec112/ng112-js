@@ -335,10 +335,10 @@ export class Conversation {
    * @returns function to notify all listeners
    */
   private _setState = (state: ConversationState, origin: Origin = Origin.SYSTEM): () => void => {
-    if (
-      state === this._state.value &&
-      origin === this._state.origin
-    )
+    // it only matters what state the conversation currently has
+    // it does not matter which communicating party changed the state
+    // that's why we don't check `origin` here
+    if (state === this._state.value)
       return () => undefined;
 
     this._state = {

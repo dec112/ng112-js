@@ -26,6 +26,8 @@ Object has different properties!
 - Support for parsing extra multiparts.
 - Support for History-Info header.
 - Ability to remove message listeners.
+### Fixed
+- Conversation state only changes if the state value itself changes. If origin is different but state is the same, it won't trigger a state change.
 
 ---
 
