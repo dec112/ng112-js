@@ -5,6 +5,7 @@ export {
   Agent,
   AgentConfiguration,
   AgentState,
+  DebugConfig,
 } from './models/agent';
 
 export {

@@ -12,6 +12,26 @@ import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
 import { timedoutPromise } from '../utils';
 
+export interface DebugConfig {
+  /**
+   * Defines debug handling for log messages that are created within ng112-js.
+   * 
+   * If set to `true`, verbose log messages will be printed to the console \
+   * If set to a `LogLevel` bitmask, specified log messages will be printed to the console \
+   * If set to a callback, this callback will be called for each debug statement
+   */
+  default?: boolean | number | ((level: number, ...values: any[]) => unknown),
+  /**
+   * Defines debug handling for log messages that are created by the SIP adapter. \
+   * Note that some SIP adapters may not or only partially support logging or a custom callback function!
+   * 
+   * If set to `true`, verbose log messages will be printed to the console \
+   * If set to a `LogLevel` bitmask, specified log messages will be printed to the console \
+   * If set to a callback, this callback will be called for each debug statement
+   */
+  sipAdapter?: boolean | number | ((level: number, ...values: any[]) => unknown),
+}
+
 export interface AgentConfiguration {
   /**
    * A factory that delivers an abstraction of a SIP library that will be used for sending messages
@@ -46,25 +66,7 @@ export interface AgentConfiguration {
    * Defines debug handling. \
    * If `debug` is `undefined`, logging will be disabled.
    */
-  debug?: {
-    /**
-     * Defines debug handling for log messages that are created within ng112-js.
-     * 
-     * If set to `true`, verbose log messages will be printed to the console \
-     * If set to a `LogLevel` bitmask, specified log messages will be printed to the console \
-     * If set to a callback, this callback will be called for each debug statement
-     */
-    default?: boolean | number | ((level: number, ...values: any[]) => unknown),
-    /**
-     * Defines debug handling for log messages that are created by the SIP adapter. \
-     * Note that some SIP adapters may not or only partially support logging or a custom callback function!
-     * 
-     * If set to `true`, verbose log messages will be printed to the console \
-     * If set to a `LogLevel` bitmask, specified log messages will be printed to the console \
-     * If set to a callback, this callback will be called for each debug statement
-     */
-    sipAdapter?: boolean | number | ((level: number, ...values: any[]) => unknown),
-  },
+  debug?: DebugConfig,
   /**
    * Configuration object for cross compatibility between ETSI and DEC112 environments.\
    * Currently, only {@link DEC112Specifics | DEC112Specifics} is supported.\
