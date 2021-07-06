@@ -101,6 +101,8 @@ moveFile('dist', 'dist-temp');
 // running the adapter build
 proc.execSync('npm run build:adapter');
 
+// index.js is in the wrong directory. This is probably a TSDX bug
+moveFile('dist', 'dist/adapter', 'index.js');
 // integrating the adapter version into our finaal folder
 moveFile('dist/adapter', 'dist-temp/adapter');
 // removing the current adapter version's build folder
