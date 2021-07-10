@@ -6,6 +6,7 @@ import {
   EmergencyMessageType,
   Gender,
   LocationMethod,
+  LogLevel,
   Origin,
   VCard,
 } from 'ng112-js/dist/browser';
@@ -237,12 +238,17 @@ const disable = (element, value) => {
       domain: domain.value,
       user: user.value,
       password: password.value,
-      // debug: true,
       namespaceSpecifics,
       displayName: displayName.value,
       customSipHeaders: {
         from: from.value,
       },
+      debug: {
+        default: ((level, ...values) => {
+          // TODO: distinguish between levels
+          console.log(...values);
+        })
+      }
     });
 
     agent.addConversationListener((newConversation) => {
