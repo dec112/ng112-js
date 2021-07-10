@@ -1,5 +1,5 @@
 import { Agent } from "ng112-js/dist/node";
-import { JsSipAdapter } from "ng112-js-sip-adapter-jssip/dist/node";
+import { JsSipAdapter } from "ng112-js-sip-adapter-jssip";
 import { endExample } from './util';
 
 it('Shows the creation of ng112-js instance with different SIP stacks', async () => {

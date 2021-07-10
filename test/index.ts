@@ -1,6 +1,6 @@
 import WS from 'jest-websocket-mock';
 import { Agent } from '../dist/node';
-import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip/dist/node';
+import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip';
 import path from 'path';
 import fs from 'fs';
 import { cacheValues, fillValues } from './utils/sip';

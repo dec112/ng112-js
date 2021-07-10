@@ -1,5 +1,5 @@
 import { Agent } from "ng112-js/dist/node";
-import { JsSipAdapter } from "ng112-js-sip-adapter-jssip/dist/node";
+import { JsSipAdapter } from "ng112-js-sip-adapter-jssip";
 
 export const createAgent = async (): Promise<Agent> => {
   const agent = new Agent({
