@@ -1,17 +1,19 @@
 export type Timeout = number | NodeJS.Timeout;
 
+const getGlobal = () => {
+  if (typeof self !== 'undefined') return self;
+  if (typeof window !== 'undefined') return window;
+  if (typeof global !== 'undefined') return global;
+  throw new Error('unable to locate global object');
+};
+
 export const setInterval = (timeout: number, callback: () => unknown): Timeout => {
-  if (typeof window !== 'undefined')
-    return window.setInterval(callback, timeout);
-  else
-    return globalThis.setInterval(callback, timeout);
+  return getGlobal().setInterval(callback, timeout);
 }
 
 export const clearInterval = (interval: Timeout): void => {
-  if (typeof interval === 'number')
-    window.clearInterval(interval);
-  else
-    globalThis.clearInterval(interval);
+  // @ts-expect-error
+  getGlobal().clearInterval(interval);
 }
 
 /**
