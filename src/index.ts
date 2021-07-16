@@ -46,6 +46,8 @@ export {
 } from './models/logger';
 
 export {
+  Civic,
+  CivicAddress,
   Circle,
   Device,
   LocationMethod,
