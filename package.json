@@ -1,6 +1,6 @@
 {
   "name": "ng112-js",
-  "version": "2.0.0-dev.5",
+  "version": "2.0.0-dev.6",
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
   "types": "dist/types/index.d.ts",
@@ -56,7 +56,6 @@
     "typescript": "^4.2.2"
   },
   "dependencies": {
-    "pidf-lo": "^0.3.3",
-    "xmldom": "^0.4.0"
+    "pidf-lo": "^0.6.0"
   }
 }
