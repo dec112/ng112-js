@@ -115,6 +115,8 @@ const disable = (element, value) => {
   const iframe = el('iframe');
   const message = el('txtMessage');
   const send = el('btnSend');
+  
+  const remoteSipUri = el('txtRemoteSipUri');
   const remoteDisplayName = el('txtRemoteDisplayName');
 
   const chatarea = el('chatarea');
@@ -212,7 +214,8 @@ const disable = (element, value) => {
       iframe.setAttribute('src', msg.uris[0]);
     }
 
-    remoteDisplayName.textContent = `(${msg.conversation.remoteDisplayName || 'Unknown'})`;
+    remoteSipUri.textContent = msg.conversation.remoteSipUri;
+    remoteDisplayName.textContent = `<${msg.conversation.remoteDisplayName || 'Unknown'}>`;
   }
 
   register.addEventListener('click', async () => {

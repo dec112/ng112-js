@@ -27,6 +27,7 @@ Object has different properties!
 - Support for History-Info header.
 - Support platforms without support for `globalThis`.
 - Ability to remove message listeners.
+- Interface for fetching the remote SIP URI.
 ### Fixed
 - Conversation state only changes if the state value itself changes. If origin is different but state is the same, it won't trigger a state change.
 

@@ -109,6 +109,14 @@ export class Conversation {
   private _requestedUri?: string;
 
   /**
+   * This is the other communicating party's SIP URI \
+   * \
+   * Keep in mind that this property is only set after the first remote message was processed!
+   */
+  public get remoteSipUri() { return this._remoteSipUri }
+  private _remoteSipUri?: string;
+
+  /**
    * This is the other communicating party's display name (if sent) \
    * \
    * Keep in mind that this property is only set after the first remote message was processed!
@@ -526,6 +534,8 @@ export class Conversation {
 
       // TODO: check if this should only be set the first time the clients sends a message
       this._requestedUri = to.uri.toString();
+      
+      this._remoteSipUri = from.uri.toString();
       this._remoteDisplayName = from.displayName;
 
       this._notifyQueue();
