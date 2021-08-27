@@ -228,7 +228,10 @@ export class Agent {
    * Grace period also applies to unregistering and disconnecting the agent.
    */
   dispose = async (gracePeriod: number = 10000): Promise<void> => {
-    const openConversations = this.conversations.filter(x => x.state.value !== ConversationState.STOPPED);
+    const openConversations = this.conversations.filter(x =>
+      x.state.value !== ConversationState.STOPPED &&
+      x.state.value !== ConversationState.ERROR
+    );
 
     if (openConversations.length > 0)
       this._logger.log(`Closing ${openConversations.length} open call(s) on agent dispose.`)
