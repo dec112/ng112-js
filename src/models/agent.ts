@@ -188,7 +188,10 @@ export class Agent {
    * If registration fails, promise will be rejected
    */
   initialize = async (): Promise<Agent> => {
-    const newState = this._notifyStateListeners;
+    const newState = (newState: AgentState) => {
+      this._logger.log(newState);
+      this._notifyStateListeners(newState);
+    }
 
     const del = this._agent.delegate;
 
@@ -212,10 +215,7 @@ export class Agent {
    */
   private _dispose = async (): Promise<void> => {
     await this._agent.unregister();
-    this._logger.log('Unregistered.');
-
     await this._agent.stop();
-    this._logger.log('Disconnected.');
   }
 
   /**
