@@ -62,3 +62,5 @@ export {
   Multipart,
   MultipartPart,
 } from './models/multipart';
+
+export * from './adapters';
