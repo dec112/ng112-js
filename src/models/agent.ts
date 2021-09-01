@@ -11,6 +11,7 @@ import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
 import { timedoutPromise } from '../utils';
+import { SipResponseOptions } from '../adapters/sip-adapter';
 
 export interface DebugConfig {
   /**
@@ -88,6 +89,11 @@ export enum AgentState {
   REGISTRATION_FAILED = 'registrationFailed',
 }
 
+const rejectIfDefined = async (evt: NewMessageEvent, options?: SipResponseOptions) => {
+  if (evt.reject)
+    await evt.reject(options);
+}
+
 /**
  * Main instance for establishing connection with an ETSI/DEC112 infrastructure
  */
@@ -150,7 +156,9 @@ export class Agent {
   }
 
   private _handleMessageEvent = (evt: NewMessageEvent) => {
-    const callInfoHeaders = evt.getHeaders(CALL_INFO);
+    const req = evt.request;
+
+    const callInfoHeaders = req.getHeaders(CALL_INFO);
     let mapper: NamespacedConversation;
 
     if (this._mapper.dec112.isCompatible(callInfoHeaders))
@@ -158,11 +166,16 @@ export class Agent {
     else if (this._mapper.etsi.isCompatible(callInfoHeaders))
       mapper = this._mapper.etsi;
     else {
-      this._logger.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore not be processed.');
+      this._logger.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore be rejected.');
+      rejectIfDefined(evt, {
+        // TODO:
+        statusCode: 500,
+      });
+
       return;
     }
 
-    const conversationId = mapper.getCallIdFromHeaders(evt.getHeaders(CALL_INFO));
+    const conversationId = mapper.getCallIdFromHeaders(req.getHeaders(CALL_INFO));
 
     if (conversationId) {
       let conversation = this.conversations.find(x => x.id == conversationId);
@@ -175,11 +188,21 @@ export class Agent {
 
       if (conversation)
         conversation.handleMessageEvent(evt);
-      else
-        this._logger.warn('Omitted incoming message. No corresponding conversation found and no active conversation listeners listening. Is something wrong with the setup?', evt);
+      else {
+        this._logger.warn('Rejected incoming message. No corresponding conversation found and no active conversation listeners listening. Is something wrong with the setup?', evt);
+        rejectIfDefined(evt, {
+          // TODO:
+          statusCode: 500,
+        });
+      }
     }
-    else
+    else {
       this._logger.warn('Can not process message due to missing call id.');
+      rejectIfDefined(evt, {
+        // TODO:
+        statusCode: 500,
+      });
+    }
   }
 
   /**

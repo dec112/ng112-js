@@ -480,7 +480,8 @@ export class Conversation {
     if (!this._created)
       this._created = new Date();
 
-    const { from, to, origin } = evt;
+    const req = evt.request;
+    const { from, to, origin } = req;
 
     const message = this.mapper.parseMessageFromEvent(evt);
     const { type: messageType } = message;
@@ -528,9 +529,9 @@ export class Conversation {
     }
 
     if (origin === Origin.REMOTE) {
-      if (evt.hasHeader(REPLY_TO))
+      if (req.hasHeader(REPLY_TO))
         // this is type safe as we've already checked whether this header exists or not
-        this._targetUri = evt.getHeader(REPLY_TO) as string;
+        this._targetUri = req.getHeader(REPLY_TO) as string;
 
       // TODO: check if this should only be set the first time the clients sends a message
       this._requestedUri = to.uri.toString();
@@ -543,6 +544,8 @@ export class Conversation {
       this._addNewMessage({
         ...message,
         conversation: this,
+        reject: evt.reject,
+        accept: evt.accept,
       });
     }
 
@@ -602,7 +605,7 @@ export class Conversation {
     mapper: NamespacedConversation,
     event: NewMessageEvent,
   ) => {
-    const request = event;
+    const request = event.request;
 
     const conversation = new Conversation(
       ua,

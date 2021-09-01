@@ -1,4 +1,5 @@
 import type { PidfLo } from 'pidf-lo';
+import { SipResponseOptions } from '../adapters/sip-adapter';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
@@ -101,6 +102,14 @@ export interface Message {
    * For outgoing messages this will only be resolved after property `promise` is resolved
    */
   sipStackMessage?: any,
+  /**
+   * Accepts the message
+   */
+  accept?: (options?: SipResponseOptions) => Promise<void>
+  /**
+   * Rejects the message
+   */
+  reject?: (options?: SipResponseOptions) => Promise<void>
 }
 
 export interface MessageError {

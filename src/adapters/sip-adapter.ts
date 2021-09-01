@@ -21,12 +21,48 @@ export type SipAdapterConfig = OmitStrict<AgentConfiguration, 'debug' | 'namespa
    */
   originSipUri: string;
   /**
-   * Loging instance to integrate with ng112-js logging
+   * Logging instance to integrate with ng112-js logging
    */
   logger: Logger;
 };
 
+export interface SipResponseOptions {
+  /** 
+   * Status code of the response. 
+   */
+  statusCode: number;
+  /** 
+   * Reason phrase of the response. 
+   */
+  reasonPhrase?: string;
+  /** 
+   * Extra headers to include in the message. 
+   */
+  extraHeaders?: string[];
+  /** 
+   * Body to include in the message. 
+   */
+  body?: string;
+}
+
 export interface NewMessageEvent {
+  /**
+   * The message will be accepted by the consumer
+   * This function should be undefined, if message origin is LOCAL, as explicitly accepting a local message does not make sense
+   */
+  accept?: (options?: SipResponseOptions) => Promise<void>;
+  /**
+   * The message will be rejected by the consumer
+   * This function should be undefined, if message origin is LOCAL, as explicitly rejecting a local message does not make sense
+   */
+  reject?: (options?: SipResponseOptions) => Promise<void>;
+  /**
+   * The request object
+   */
+  request: NewMessageRequest;
+}
+
+export interface NewMessageRequest {
   /**
    * Determine if SIP header exists
    */

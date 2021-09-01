@@ -67,7 +67,7 @@ export class DEC112Mapper extends EmergencyMapper {
     headers.some(h => getRegEx(getAnyHeaderValue).test(h));
 
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
-  getIsTestFromEvent = (evt: NewMessageEvent): boolean => evt.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
+  getIsTestFromEvent = (evt: NewMessageEvent): boolean => evt.request.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
 
   createMessageParts = ({
     targetUri,

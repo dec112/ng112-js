@@ -217,10 +217,11 @@ export class EmergencyMapper implements NamespacedConversation {
   }
 
   protected parseCommonMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => {
-    const { body, origin } = evt;
+    const req = evt.request;
+    const { body, origin } = req;
     let message: Partial<Message> = {};
 
-    const contentType = evt.getHeader(CONTENT_TYPE);
+    const contentType = req.getHeader(CONTENT_TYPE);
     if (contentType && contentType.indexOf(MULTIPART_MIXED) !== -1 && body) {
       message = {
         ...message,
@@ -232,7 +233,7 @@ export class EmergencyMapper implements NamespacedConversation {
     else if (body)
       message.text = body;
 
-    const callInfoHeaders = evt.getHeaders(CALL_INFO);
+    const callInfoHeaders = req.getHeaders(CALL_INFO);
 
     let type = this.getMessageTypeFromHeaders(callInfoHeaders, message.text);
     if (!type) {
@@ -256,7 +257,7 @@ export class EmergencyMapper implements NamespacedConversation {
       type,
       state: MessageState.SUCCESS,
       promise: Promise.resolve(),
-      sipStackMessage: evt.sipStackMessage,
+      sipStackMessage: req.sipStackMessage,
       did: this.getDIDFromHeaders(callInfoHeaders),
     };
   }
