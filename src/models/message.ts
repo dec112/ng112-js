@@ -1,5 +1,6 @@
 import type { PidfLo } from 'pidf-lo';
 import { SipResponseOptions } from '../adapters/sip-adapter';
+import { Header } from '../utils';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
@@ -97,6 +98,10 @@ export interface Message {
    * Additional (custom) Multipart MIME parts to add to the message
    */
   extraParts?: MultipartPart[],
+  /**
+   * Additional SIP headers to be sent with the message
+   */
+  extraHeaders?: Header[],
   /**
    * The corresponding raw message from the SIP stack `JsSIP`\
    * For outgoing messages this will only be resolved after property `promise` is resolved

@@ -25,6 +25,8 @@ export {
   EmergencyMessageType,
 } from './constants/message-types/emergency';
 
+export * from './constants/headers'
+
 export {
   Conversation,
   ConversationState,

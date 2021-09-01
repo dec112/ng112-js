@@ -1,4 +1,4 @@
-import { getHeaderString, getRandomString } from '../utils';
+import { getHeaderString, getRandomString, Header } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
@@ -44,6 +44,10 @@ export interface SendMessageObject {
    * Additional (custom) Multipart MIME parts to add to the message
    */
   extraParts?: MultipartPart[],
+  /**
+   * Additional SIP headers to be sent with the message
+   */
+  extraHeaders?: Header[],
   /**
    * Message type (bitmask) according to ETSI TS 103 698\
    * Defaults to `EmergencyMessageType.IN_CHAT`\
@@ -236,10 +240,14 @@ export class Conversation {
         endpointType: this._endpointType,
       });
 
+      let extraHeaders = headers;
+      if (message.extraHeaders)
+        extraHeaders = extraHeaders.concat(message.extraHeaders);
+
       const multiObj = multipart.create();
       await this._agent.message(this._targetUri, multiObj.body, {
         contentType: multiObj.contentType,
-        extraHeaders: headers.map(h => getHeaderString(h)),
+        extraHeaders: extraHeaders.map(h => getHeaderString(h)),
       });
 
       resolve();
@@ -414,6 +422,7 @@ export class Conversation {
     uris,
     binaries,
     extraParts,
+    extraHeaders,
     type = EmergencyMessageType.IN_CHAT,
     messageId,
   }: SendMessageObject): Message => {
@@ -445,6 +454,7 @@ export class Conversation {
       uris,
       binaries,
       extraParts,
+      extraHeaders,
       // This is just a dummy value to satisfy TypeScript
       promise: new Promise(() => { }),
     };
@@ -535,7 +545,7 @@ export class Conversation {
 
       // TODO: check if this should only be set the first time the clients sends a message
       this._requestedUri = to.uri.toString();
-      
+
       this._remoteSipUri = from.uri.toString();
       this._remoteDisplayName = from.displayName;
 
@@ -614,7 +624,7 @@ export class Conversation {
       mapper,
       {
         id: mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO)),
-        isTest: mapper.getIsTestFromEvent(request),
+        isTest: mapper.getIsTestFromEvent(event),
       },
     );
 

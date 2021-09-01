@@ -27,6 +27,7 @@ Object has different properties!
 - Support for History-Info header.
 - Support platforms without support for `globalThis`.
 - Support for explicitly accepting or rejecting messages.
+- Support for sending custom SIP headers.
 - Ability to remove message listeners.
 - Interface for fetching the remote SIP URI.
 ### Fixed
