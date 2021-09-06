@@ -252,7 +252,7 @@ export class Conversation {
 
       resolve();
     } catch (e) {
-      const ex: MessageError = e ?? {
+      const ex: MessageError = e as MessageError ?? {
         origin: Origin.SYSTEM,
       };
 
