@@ -295,25 +295,15 @@ const disable = (element, value) => {
     updateLocation();
     updateMode();
 
-    // TODO: that should be made configurable
-    agent.updateVCard(new VCard()
-      .addFullName('Alice Smith MSc.')
-      .addFirstname('Alice')
-      .addLastname('Smith')
-      .addBirthday(new Date(1990, 5, 11))
-      .addGender(Gender.FEMALE)
-      .addStreet('Example Street 3')
-      .addLocality('Humble Village')
-      .addCode('4786')
-      .addCountry('Austria')
-      .addTelephone('+4366412345678')
-      .addEmail('alice.smith@dec112.at')
-      .addNote(JSON.stringify({
-        some: 'additional',
-        data: 'to',
-        be: 'sent',
-      }))
-    );
+    if (config.vcard) {
+      const vcard = new VCard();
+
+      for (const prop in config.vcard) {
+        vcard.add(prop, config.vcard[prop]);
+      }
+
+      agent.updateVCard(vcard);
+    }
 
     conversation = agent.createConversation(call.value, {
       isTest: isTest.checked,

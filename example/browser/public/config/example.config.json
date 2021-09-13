@@ -12,4 +12,10 @@
   "call": "sip:112@dec112.at",
   "isTest": true,
   "isActive": true
+
+  "vcard": {
+    "fn": "Alice Smith",
+    "tel": "004366412345678",
+    "email": "alice.smith@dec112.at"
+  }
 }
