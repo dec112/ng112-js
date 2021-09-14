@@ -123,6 +123,12 @@ const disable = (element, value) => {
 
   const lastMessage = el('lastMessage');
 
+  const popMessageText = () => {
+    const text = message.value;
+    message.value = '';
+    return text;
+  }
+
   // try to unregister if window is unloaded
   window.onbeforeunload = () => unregister.click();
 
@@ -289,7 +295,7 @@ const disable = (element, value) => {
   });
   disable(unregister, true);
 
-  start.addEventListener('click', async () => {
+  start.addEventListener('click', () => {
     chatarea.innerHTML = '';
 
     updateLocation();
@@ -309,15 +315,19 @@ const disable = (element, value) => {
       isTest: isTest.checked,
     });
 
-    await conversation.start().promise;
+    conversation.start({
+      text: popMessageText(),
+    }).promise;
   });
   disable(start, true);
 
-  end.addEventListener('click', async () => {
+  end.addEventListener('click', () => {
     if (!conversation)
       return;
 
-    await conversation.stop().promise;
+    conversation.stop({
+      text: popMessageText(),
+    }).promise;
   });
   disable(end, true);
 
@@ -350,11 +360,10 @@ const disable = (element, value) => {
     }
 
     conversation.sendMessage({
-      text: message.value,
+      text: popMessageText(),
       binaries,
       uris,
     });
-    message.value = '';
   });
   disable(send, true);
 
