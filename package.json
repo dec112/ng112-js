@@ -1,6 +1,6 @@
 {
   "name": "ng112-js",
-  "version": "2.0.0-dev.10",
+  "version": "2.0.0-dev.11",
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
   "types": "dist/types/index.d.ts",
@@ -44,8 +44,6 @@
     "jest-websocket-mock": "^2.2.0",
     "jssip": "^3.7.5",
     "mock-socket": "^9.0.3",
-    "ng112-js-sip-adapter-jssip": "^0.1.2",
-    "ng112-js-sip-adapter-sipjs": "^0.2.0",
     "rollup-plugin-modify": "^3.0.0",
     "sip.js": "^0.20.0",
     "size-limit": "^4.7.0",
