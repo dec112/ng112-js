@@ -2,7 +2,7 @@ import { XMLCompat } from 'pidf-lo/dist/node';
 
 export const VCARD_XML_NAMESPACE = 'urn:ietf:params:xml:ns:vcard-4.0';
 
-enum KeyId {
+export enum KeyId {
   FULL_NAME = 'fn',
   FIRST_NAME = 'surname',
   LAST_NAME = 'given',

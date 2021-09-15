@@ -17,8 +17,9 @@ export {
 } from './models/message';
 
 export {
-  VCard,
+  KeyId,
   Gender,
+  VCard,
 } from './models/vcard';
 
 export {
