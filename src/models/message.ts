@@ -1,9 +1,9 @@
 import type { PidfLo } from 'pidf-lo';
-import { SipResponseOptions } from '../adapters/sip-adapter';
 import { Header } from '../utils';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
+import { NewMessageEvent } from '../adapters';
 
 export enum Origin {
   /**
@@ -113,9 +113,9 @@ export interface Message {
    */
   tag?: any,
   /**
-   * Rejects the message
+   * Raw SIP event
    */
-  reject?: (options?: SipResponseOptions) => Promise<void>
+  event?: NewMessageEvent,
 }
 
 export interface MessageError {

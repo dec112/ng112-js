@@ -13,6 +13,7 @@ import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter } from '../adapters';
+import { NewMessageRequest } from '../adapters/sip-adapter';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -500,6 +501,9 @@ export class Conversation {
     const { from, to, origin } = req;
 
     const message = this.mapper.parseMessageFromEvent(evt);
+    // attach raw SIP event to message
+    message.event = evt;
+
     const { type: messageType } = message;
 
     let stateCallback: (() => void) | undefined = undefined;
@@ -560,8 +564,7 @@ export class Conversation {
       this._addNewMessage({
         ...message,
         conversation: this,
-        reject: evt.reject,
-        accept: evt.accept,
+        event: evt,
       });
     }
 
