@@ -1,11 +1,11 @@
-import { getHeaderString, getRandomString, Header } from '../utils';
+import { getHeaderString, getRandomString, Header, parseHeader } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store, AgentMode } from './store';
 import { Message, Origin, MessageState, MessageError, nextUniqueId, Binary } from './message';
-import { CALL_INFO, REPLY_TO } from '../constants/headers';
+import { CALL_INFO, REPLY_TO, ROUTE } from '../constants/headers';
 import { MultipartPart } from './multipart';
 import { ConversationConfiguration } from './interfaces';
 import { clearInterval, setInterval, Timeout } from '../utils';
@@ -118,12 +118,19 @@ export class Conversation {
   private _requestedUri?: string;
 
   /**
+   * The final destination within the ESinet
+   * This property is most useful for PSAPs, as it represents the final routing decision made by ECRF, PRF ...
+   */
+  public get routedUri() { return this._routedUri }
+  private _routedUri?: string;
+
+  /**
    * This is the other communicating party's SIP URI \
    * \
    * Keep in mind that this property is only set after the first remote message was processed!
    */
-  public get remoteSipUri() { return this._remoteSipUri }
-  private _remoteSipUri?: string;
+  public get remoteUri() { return this._remoteUri }
+  private _remoteUri?: string;
 
   /**
    * This is the other communicating party's display name (if sent) \
@@ -498,7 +505,7 @@ export class Conversation {
       this._created = new Date();
 
     const req = evt.request;
-    const { from, to, origin } = req;
+    const { origin } = req;
 
     const message = this.mapper.parseMessageFromEvent(evt);
     // attach raw SIP event to message
@@ -553,11 +560,7 @@ export class Conversation {
         // this is type safe as we've already checked whether this header exists or not
         this._targetUri = req.getHeader(REPLY_TO) as string;
 
-      // TODO: check if this should only be set the first time the clients sends a message
-      this._requestedUri = to.uri.toString();
-
-      this._remoteSipUri = from.uri.toString();
-      this._remoteDisplayName = from.displayName;
+      this._setPropsFromIncomingMessage(req);
 
       this._notifyQueue();
 
@@ -573,6 +576,33 @@ export class Conversation {
     // however, listeners always have the possibility of retrieving the state from the conversation object at any time
     if (stateCallback)
       stateCallback();
+  }
+
+  // TODO: find a better name
+  // this sets fields from an incoming message
+  private _setPropsFromIncomingMessage = (req: NewMessageRequest) => {
+    const { to, from } = req;
+
+    // This property is most useful for PSAPs
+    // Usually, this property is set with the client's first message
+    // It represents the initial "To" header that was set by the client
+    if (!this._requestedUri)
+      this._requestedUri = to.uri.toString();
+
+    // This property is most useful for PSAPs
+    // Usually, this property is set with the client's first message
+    // Most probably, the client did not request for the final destination of the PSAP within the ESinet
+    // Routing logic (ECRF, PRF) will define the final destination
+    // This is what routedUri represents, the final destination
+    if (!this._routedUri) {
+      const routeHeader = req.getHeader(ROUTE);
+
+      if (routeHeader)
+        this._routedUri = parseHeader(routeHeader)?.value;
+    }
+
+    this._remoteUri = from.uri.toString();
+    this._remoteDisplayName = from.displayName;
   }
 
   /**
@@ -637,6 +667,7 @@ export class Conversation {
       },
     );
 
+    conversation._setPropsFromIncomingMessage(event.request);
     conversation._endpointType = ConversationEndpointType.PSAP;
 
     return conversation;

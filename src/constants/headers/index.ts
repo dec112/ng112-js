@@ -7,3 +7,4 @@ export const REPLY_TO = 'Reply-To';
 export const MIME_VERSION = 'MIME-Version';
 export const GEOLOCATION = 'Geolocation';
 export const GEOLOCATION_ROUTING = 'Geolocation-Routing';
+export const ROUTE = 'Route';
