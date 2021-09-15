@@ -529,19 +529,18 @@ export class Conversation {
           messageType === EmergencyMessageType.START &&
           origin === Origin.REMOTE
         ) ||
-        // psap conversation is only allowed to be started by PSAP
-        (
-          this._endpointType === ConversationEndpointType.PSAP &&
-          this.mapper.supportsPsapStartMessage() &&
-          messageType === EmergencyMessageType.START &&
-          origin === Origin.LOCAL
-        ) ||
         // DEC112 environments
         (
           this._endpointType === ConversationEndpointType.CLIENT &&
           !this.mapper.supportsPsapStartMessage() &&
           EmergencyMessageType.isStarted(messageType) &&
           origin === Origin.REMOTE
+        ) ||
+        // psap conversation is only allowed to be started by PSAP
+        (
+          this._endpointType === ConversationEndpointType.PSAP &&
+          messageType === EmergencyMessageType.START &&
+          origin === Origin.LOCAL
         )
       )
         stateCallback = this._setState(ConversationState.STARTED, origin);
