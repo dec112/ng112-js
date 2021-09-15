@@ -60,6 +60,10 @@ export interface SendMessageObject {
    * This does not apply for all incoming messages. They can have _another_ set of unique message ids.
    */
   messageId?: number,
+  /**
+   * A free to use property for internal identification and matching of messages
+   */
+  tag?: any,
 }
 
 export interface StateObject {
@@ -425,6 +429,7 @@ export class Conversation {
     extraHeaders,
     type = EmergencyMessageType.IN_CHAT,
     messageId,
+    tag,
   }: SendMessageObject): Message => {
 
     // both a client and a server's first message has to be START message
@@ -455,6 +460,7 @@ export class Conversation {
       binaries,
       extraParts,
       extraHeaders,
+      tag,
       // This is just a dummy value to satisfy TypeScript
       promise: new Promise(() => { }),
     };

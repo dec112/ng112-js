@@ -108,9 +108,10 @@ export interface Message {
    */
   sipStackMessage?: any,
   /**
-   * Accepts the message
+   * A free to use property for internal identification and matching of messages
+   * This is helpful, if you want to use ng112-js as a PSAP and want to tag incoming messages
    */
-  accept?: (options?: SipResponseOptions) => Promise<void>
+  tag?: any,
   /**
    * Rejects the message
    */
