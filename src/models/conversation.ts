@@ -1,4 +1,4 @@
-import { getHeaderString, getRandomString, Header, parseHeader } from '../utils';
+import { getHeaderString, getRandomString, Header, parseNameAddrHeaderValue } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
@@ -118,11 +118,11 @@ export class Conversation {
   private _requestedUri?: string;
 
   /**
-   * The final destination within the ESinet
+   * The final destination within the ESinet, derived from SIP Route header
    * This property is most useful for PSAPs, as it represents the final routing decision made by ECRF, PRF ...
    */
-  public get routedUri() { return this._routedUri }
-  private _routedUri?: string;
+  public get routeUri() { return this._routeUri }
+  private _routeUri?: string;
 
   /**
    * This is the other communicating party's SIP URI \
@@ -593,11 +593,11 @@ export class Conversation {
     // Most probably, the client did not request for the final destination of the PSAP within the ESinet
     // Routing logic (ECRF, PRF) will define the final destination
     // This is what routedUri represents, the final destination
-    if (!this._routedUri) {
+    if (!this._routeUri) {
       const routeHeader = req.getHeader(ROUTE);
 
       if (routeHeader)
-        this._routedUri = parseHeader(routeHeader)?.value;
+        this._routeUri = parseNameAddrHeaderValue(routeHeader)?.uri;
     }
 
     this._remoteUri = from.uri.toString();
