@@ -26,12 +26,14 @@ Object has different properties!
 - Support for parsing extra multiparts.
 - Support for History-Info header.
 - Support platforms without support for `globalThis`.
-- Support for explicitly accepting or rejecting messages.
+- Support for accessing raw SIP events. This enables accepting or rejecting the SIP message and allows for direct access of SIP headers.
 - Support for sending custom SIP headers.
+- Support for tagging messages.
 - Ability to remove message listeners.
-- Interface for fetching the remote SIP URI.
+- Interfaces for easily fetching SIP information like TO, FROM and ROUTE headers.
 ### Fixed
 - Conversation state only changes if the state value itself changes. If origin is different but state is the same, it won't trigger a state change.
+- Message start logic in PSAP environments.
 
 ---
 
