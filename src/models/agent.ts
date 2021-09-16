@@ -110,7 +110,7 @@ export class Agent {
   private _store: Store;
   private _logger: Logger;
 
-  private _conversationListeners: ((conversation: Conversation) => void)[] = [];
+  private _conversationListeners: ((conversation: Conversation, event?: NewMessageEvent) => void)[] = [];
 
   /**
    * Creates a new instance of an agent for communication with an ETSI/DEC112 infrastructure
@@ -307,6 +307,7 @@ export class Agent {
     mapper: NamespacedConversation = this._mapper.default,
   ) {
     let conversation: Conversation | undefined = undefined;
+    let event: NewMessageEvent | undefined = undefined;
 
     if (typeof value === 'string') {
       conversation = new Conversation(
@@ -318,11 +319,13 @@ export class Agent {
       );
     }
     else if (typeof value === 'object') {
+      event = value as NewMessageEvent;
+      
       conversation = Conversation.fromIncomingSipMessage(
         this._agent,
         this._store,
         mapper,
-        value as NewMessageEvent,
+        event,
       );
     }
 
@@ -343,7 +346,7 @@ export class Agent {
       conversation.addStateListener(stopListener);
 
       for (const callback of this._conversationListeners) {
-        callback(conversation);
+        callback(conversation, event);
       }
 
       return conversation;

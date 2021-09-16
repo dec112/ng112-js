@@ -19,6 +19,7 @@ Object has different properties!
 - **BREAKING**: `Agent`'s `debug` is now an object. This way, separate log-levels and handlers for in-library log messages and log messages created by the SIP adapter can be specified.
 - Improved build process, enabling better tree shaking for dependency `pidf-lo`.
 - Conversations in DEC112 environments are only started after an initial message sent by the PSAP.
+- A second parameter is passed to conversation listeners that contains the raw SIP event.
 ### Added
 - Agent mode that can be used to indicate an app is running in the background.
 - Support for DIDs.
@@ -26,7 +27,7 @@ Object has different properties!
 - Support for parsing extra multiparts.
 - Support for History-Info header.
 - Support platforms without support for `globalThis`.
-- Support for accessing raw SIP events. This enables accepting or rejecting the SIP message and allows for direct access of SIP headers.
+- Support for accessing raw SIP events. This enables accepting or rejecting the SIP message and allows for direct access of SIP headers. \
 - Support for sending custom SIP headers.
 - Support for tagging messages.
 - Ability to remove message listeners.
