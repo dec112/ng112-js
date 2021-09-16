@@ -28,6 +28,7 @@ Object has different properties!
 - Support for History-Info header.
 - Support platforms without support for `globalThis`.
 - Support for accessing raw SIP events. This enables accepting or rejecting the SIP message and allows for direct access of SIP headers. \
+Rejecting the initial message of a conversation leads to the conversation being set closed automatically.
 - Support for sending custom SIP headers.
 - Support for tagging messages.
 - Ability to remove message listeners.

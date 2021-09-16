@@ -669,6 +669,17 @@ export class Conversation {
     conversation._setPropsFromIncomingMessage(event.request);
     conversation._endpointType = ConversationEndpointType.PSAP;
 
+    if (event.reject) {
+      // if reject is possible, we monkey-patch it here
+      // if SDK consumer rejects the initial message, we'll stop the conversation
+      // rejecting the first message means the consumer can not process this call
+      const sipReject = event.reject;
+      event.reject = (options) => {
+        conversation._setState(ConversationState.STOPPED, Origin.LOCAL);
+        return sipReject(options);
+      }
+    }
+
     return conversation;
   }
 }
