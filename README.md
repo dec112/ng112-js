@@ -69,6 +69,7 @@ import {
   Agent,
   DEC112Specifics,
   LocationMethod,
+  Origin,
   VCard,
 } from 'ng112-js/dist/browser';
 import { 
@@ -137,6 +138,10 @@ const conversation = agent.createConversation('sip:144@dec112.at');
 conversation.addMessageListener((msg) => {
   // print message metadata
   console.log(`${msg.origin} (${msg.type}): ${msg.text}`);
+
+  // For some SIP stacks you will need to explicitly `accept` or `reject` incoming messages
+  if (msg.origin === Origin.REMOTE && msg.event && msg.event.accept)
+    msg.event.accept();
 });
 
 // initiate the emergency conversation
@@ -168,6 +173,7 @@ await agent.dispose();
 ```javascript
 import { 
   Agent,
+  Origin,
   ConversationState,
 } from 'ng112-js/dist/node';
 import { 
@@ -232,6 +238,10 @@ agent.addConversationListener((conversation) => {
         simpleLoc.method,
       )
     }
+
+    // For some SIP stacks you will need to explicitly `accept` or `reject` incoming messages
+    if (msg.origin === Origin.REMOTE && msg.event && msg.event.accept)
+      msg.event.accept();
   });
 
   // listen for conversation state updates
