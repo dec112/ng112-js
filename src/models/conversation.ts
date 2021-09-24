@@ -4,7 +4,7 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store, AgentMode } from './store';
-import { Message, Origin, MessageState, MessageError, nextUniqueId, Binary } from './message';
+import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from './message';
 import { CALL_INFO, REPLY_TO, ROUTE } from '../constants/headers';
 import { MultipartPart } from './multipart';
 import { ConversationConfiguration } from './interfaces';
@@ -429,16 +429,11 @@ export class Conversation {
   /**
    * Sends a text message
    */
-  sendMessage = ({
-    text,
-    uris,
-    binaries,
-    extraParts,
-    extraHeaders,
-    type = EmergencyMessageType.IN_CHAT,
-    messageId,
-    tag,
-  }: SendMessageObject): Message => {
+  sendMessage = (sendMessageObj: SendMessageObject): Message => {
+    let {
+      type = EmergencyMessageType.IN_CHAT,
+      messageId,
+    } = sendMessageObj;
 
     // both a client and a server's first message has to be START message
     // except if one wants to STOP, TRANSFER, REDIRECT a conversation
@@ -454,24 +449,13 @@ export class Conversation {
         type = EmergencyMessageType.START;
     }
 
-    const message: Message = {
+    const message = createLocalMessage(
+      this,
       // if no message id is specified, use the internal sequence
-      id: messageId ?? this._messageId++,
-      uniqueId: nextUniqueId(),
-      origin: Origin.LOCAL,
-      conversation: this,
-      dateTime: new Date(),
+      messageId ?? this._messageId++,
       type,
-      state: MessageState.PENDING,
-      text,
-      uris,
-      binaries,
-      extraParts,
-      extraHeaders,
-      tag,
-      // This is just a dummy value to satisfy TypeScript
-      promise: new Promise(() => { }),
-    };
+      sendMessageObj,
+    );
 
     this._updateMessagePropsIfIsClient(message);
 

@@ -1,9 +1,10 @@
 import type { PidfLo } from 'pidf-lo';
-import { Header } from '../utils';
+import { Header, isValidUri } from '../utils';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
 import { NewMessageEvent } from '../adapters';
+import { SendMessageObject } from '..';
 
 export enum Origin {
   /**
@@ -134,3 +135,47 @@ export const nextUniqueId = (() => {
   let _uniqueSequence = 0;
   return () => _uniqueSequence++;
 })();
+
+export const createLocalMessage = (
+  conversation: Conversation,
+  messageId: string | number,
+  /**
+   * Emergency message type
+   */
+  type: number,
+  {
+    text,
+    uris,
+    binaries,
+    extraParts,
+    extraHeaders,
+    tag,
+  }: SendMessageObject,
+): Message => {
+  // check properties
+  if (uris) {
+    // check if all uris are valid
+    for (const uri of uris) {
+      if (!isValidUri(uri))
+        throw new Error(`${uri} is not a well formed URI!`);
+    }
+  }
+
+  return {
+    id: messageId,
+    uniqueId: nextUniqueId(),
+    origin: Origin.LOCAL,
+    conversation,
+    dateTime: new Date(),
+    type,
+    state: MessageState.PENDING,
+    text,
+    uris,
+    binaries,
+    extraParts,
+    extraHeaders,
+    tag,
+    // This is just a dummy value to satisfy TypeScript
+    promise: new Promise(() => { }),
+  };
+}

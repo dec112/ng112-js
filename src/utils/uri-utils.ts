@@ -1,0 +1,1 @@
+export const isValidUri = (uri: string): boolean => /^(?:\w+?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/.test(uri);
