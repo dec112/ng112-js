@@ -67,5 +67,4 @@ export {
 } from './models/multipart';
 
 export * from './adapters';
-
-export * as SipUtils from './utils/sip-utils';
+export * as Utils from './utils';
