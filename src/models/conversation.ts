@@ -492,8 +492,6 @@ export class Conversation {
     const { origin } = req;
 
     const message = this.mapper.parseMessageFromEvent(evt);
-    // attach raw SIP event to message
-    message.event = evt;
 
     const { type: messageType } = message;
 

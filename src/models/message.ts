@@ -104,11 +104,6 @@ export interface Message {
    */
   extraHeaders?: Header[],
   /**
-   * The corresponding raw message from the SIP stack `JsSIP`\
-   * For outgoing messages this will only be resolved after property `promise` is resolved
-   */
-  sipStackMessage?: any,
-  /**
    * A free to use property for internal identification and matching of messages
    * This is helpful, if you want to use ng112-js as a PSAP and want to tag incoming messages
    */

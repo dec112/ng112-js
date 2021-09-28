@@ -257,8 +257,9 @@ export class EmergencyMapper implements NamespacedConversation {
       type,
       state: MessageState.SUCCESS,
       promise: Promise.resolve(),
-      sipStackMessage: req.sipStackMessage,
       did: this.getDIDFromHeaders(callInfoHeaders),
+      // attach raw SIP event to message
+      event: evt,
     };
   }
 
