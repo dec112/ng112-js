@@ -125,14 +125,6 @@ export class Conversation {
   private _routeUri?: string;
 
   /**
-   * This is the other communicating party's SIP URI \
-   * \
-   * Keep in mind that this property is only set after the first remote message was processed!
-   */
-  public get remoteUri() { return this._remoteUri }
-  private _remoteUri?: string;
-
-  /**
    * This is the other communicating party's display name (if sent) \
    * \
    * Keep in mind that this property is only set after the first remote message was processed!
@@ -583,7 +575,6 @@ export class Conversation {
         this._routeUri = parseNameAddrHeaderValue(routeHeader)?.uri;
     }
 
-    this._remoteUri = from.uri.toString();
     this._remoteDisplayName = from.displayName;
   }
 
