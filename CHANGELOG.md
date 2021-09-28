@@ -33,6 +33,7 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - Support for sending custom SIP headers.
 - Support for tagging messages.
 - Ability to remove message listeners.
+- Ability to specify endpoint type for each conversation.
 - Interfaces for easily fetching SIP information like TO, FROM and ROUTE headers.
 ### Fixed
 - Conversation state only changes if the state value itself changes. If origin is different but state is the same, it won't trigger a state change.

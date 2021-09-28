@@ -82,7 +82,7 @@ export class Conversation {
 
   private _messageId: number;
   private _heartbeatInterval?: Timeout;
-  private _endpointType = ConversationEndpointType.CLIENT;
+  private _endpointType: ConversationEndpointType;
 
   private _queue: QueueItem[];
   private _messageListeners: ((message: Message) => void)[] = [];
@@ -179,6 +179,7 @@ export class Conversation {
       origin: Origin.SYSTEM,
     };
     this.isTest = config?.isTest ?? false;
+    this._endpointType = config?.endpointType ?? ConversationEndpointType.CLIENT;
 
     this._logger = this._store.logger;
 

@@ -1,4 +1,4 @@
-import { StateObject } from "./conversation";
+import { ConversationEndpointType, StateObject } from "./conversation";
 
 export interface ConversationConfiguration {
   /**
@@ -16,4 +16,8 @@ export interface ConversationConfiguration {
    * Can be used to restore a conversation from storage, if client or PSAP was suspended
    */
   state?: StateObject,
+  /**
+   * Specifies the endpoint type for this conversation
+   */
+  endpointType?: ConversationEndpointType,
 }
