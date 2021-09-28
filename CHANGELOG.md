@@ -20,6 +20,7 @@ Object has different properties!
 - Improved build process, enabling better tree shaking for dependency `pidf-lo`.
 - Conversations in DEC112 environments are only started after an initial message sent by the PSAP.
 - A second parameter is passed to conversation listeners that contains the raw SIP event.
+- Conversations can be set from the agent. This allows PSAP environments to easily restore conversations that have not ended yet.
 ### Added
 - Agent mode that can be used to indicate an app is running in the background.
 - Support for DIDs.

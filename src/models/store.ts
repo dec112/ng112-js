@@ -25,7 +25,7 @@ export enum AgentMode {
 export const defaultHeartbeatInterval = 15000; // TS 103 698, 6.2.5: at least every 20 seconds
 
 export class Store {
-  public readonly conversations: Conversation[] = [];
+  public conversations: Conversation[] = [];
 
   private _lastKnownLocation?: PidfLo;
   private _heartbeatInterval: number = defaultHeartbeatInterval;

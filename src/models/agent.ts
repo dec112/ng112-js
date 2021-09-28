@@ -426,9 +426,8 @@ export class Agent {
    * All conversations that have not been stopped already
    */
   public get conversations() { return this._store.conversations }
-
-  // newCall = async (targetSipUri: string): Promise<Call> => {
-  //   const call = new Call(this._agent, targetSipUri);
-  //   return call.initialize();
-  // }
+  /**
+   * All conversations that have not been stopped already
+   */
+  public set conversations(value) { this._store.conversations = value }
 }
