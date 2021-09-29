@@ -31,6 +31,7 @@ export * from './constants/headers'
 export {
   Conversation,
   ConversationState,
+  ConversationEndpointType,
   SendMessageObject,
   StateObject,
 } from './models/conversation';
