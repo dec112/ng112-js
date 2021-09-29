@@ -402,8 +402,10 @@ export class Agent {
    * Adds a conversation listener. Callback will be notified about any new conversations.
    * 
    * @param callback Callback function that is called each time a new conversation is started.
+   * @param event Message event that triggered the creation of this conversation. \
+   * Property is only defined if conversation was started by a remote message (e.g. mostly in PSAP environments).
    */
-  addConversationListener = (callback: (conversation: Conversation) => void): void => {
+  addConversationListener = (callback: (conversation: Conversation, event?: NewMessageEvent) => void): void => {
     this._conversationListeners.push(callback);
   }
 
