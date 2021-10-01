@@ -2,7 +2,7 @@ import { getHeaderString, getRandomString, Header, parseNameAddrHeaderValue } fr
 import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
-import { NamespacedConversation } from '../namespaces/interfaces';
+import { Mapper } from '../namespaces/interfaces';
 import { Store, AgentMode } from './store';
 import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from './message';
 import { CALL_INFO, REPLY_TO, ROUTE } from '../constants/headers';
@@ -155,7 +155,7 @@ export class Conversation {
     /**
      * The mapper for this environment for compatibility
      */
-    public readonly mapper: NamespacedConversation,
+    public readonly mapper: Mapper,
 
     /**
      * Configuration object for additional conversation configuration
@@ -624,7 +624,7 @@ export class Conversation {
   static fromIncomingSipMessage = (
     ua: SipAdapter,
     store: Store,
-    mapper: NamespacedConversation,
+    mapper: Mapper,
     event: NewMessageEvent,
   ) => {
     const request = event.request;

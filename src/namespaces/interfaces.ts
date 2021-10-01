@@ -27,11 +27,16 @@ export type MessagePartsParams = OmitStrict<Message,
   replyToSipUri: string,
 }
 
-export interface NamespacedConversation {
+export enum Namespace {
+  DEC112 = 'DEC112',
+  ETSI = 'ETSI',
+}
+
+export interface Mapper {
   createMessageParts(params: MessagePartsParams): MessageParts;
   parseMessageFromEvent(evt: NewMessageEvent): OmitStrict<Message, 'conversation'>;
 
-  getName(): string;
+  getNamespace(): Namespace;
   supportsPsapStartMessage(): boolean;
   isCompatible(headers: string[]): boolean;
 

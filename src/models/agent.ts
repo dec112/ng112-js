@@ -1,7 +1,7 @@
 import { CALL_INFO } from '../constants/headers';
 import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
-import { NamespacedConversation, NamespaceSpecifics } from '../namespaces/interfaces';
+import { Namespace, Mapper, NamespaceSpecifics } from '../namespaces/interfaces';
 import { Conversation, ConversationState, StateObject } from './conversation';
 import { ConversationConfiguration } from './interfaces';
 import { CustomSipHeaders, Store, AgentMode } from './store';
@@ -101,8 +101,8 @@ export class Agent {
   private _agent: SipAdapter;
   private _stateListeners: ((state: AgentState) => void)[] = [];
 
-  private _mapper: {
-    default: NamespacedConversation,
+  private readonly _mapper: {
+    default: Mapper,
     etsi: EmergencyMapper,
     dec112: DEC112Mapper,
   };
@@ -159,7 +159,7 @@ export class Agent {
     const req = evt.request;
 
     const callInfoHeaders = req.getHeaders(CALL_INFO);
-    let mapper: NamespacedConversation;
+    let mapper: Mapper;
 
     if (this._mapper.dec112.isCompatible(callInfoHeaders))
       mapper = this._mapper.dec112;
@@ -288,7 +288,7 @@ export class Agent {
   createConversation(
     target: string,
     configuration?: ConversationConfiguration,
-    mapper?: NamespacedConversation,
+    mapper?: Mapper,
   ): Conversation;
   /**
    * Creates a new configuration on top of the underlying agent
@@ -299,12 +299,12 @@ export class Agent {
   createConversation(
     event: NewMessageEvent,
     configuration?: ConversationConfiguration,
-    mapper?: NamespacedConversation,
+    mapper?: Mapper,
   ): Conversation;
   createConversation(
     value: any,
     configuration?: ConversationConfiguration,
-    mapper: NamespacedConversation = this._mapper.default,
+    mapper: Mapper = this._mapper.default,
   ) {
     let conversation: Conversation | undefined = undefined;
     let event: NewMessageEvent | undefined = undefined;
@@ -320,7 +320,7 @@ export class Agent {
     }
     else if (typeof value === 'object') {
       event = value as NewMessageEvent;
-      
+
       conversation = Conversation.fromIncomingSipMessage(
         this._agent,
         this._store,
@@ -421,6 +421,15 @@ export class Agent {
   private _notifyStateListeners = (state: AgentState): void => {
     for (const listener of this._stateListeners) {
       listener(state);
+    }
+  }
+
+  getMapper = (namespace: Namespace): Mapper => {
+    switch (namespace) {
+      case Namespace.DEC112:
+        return this._mapper.dec112;
+      default:
+        return this._mapper.etsi;
     }
   }
 

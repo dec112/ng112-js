@@ -5,7 +5,7 @@ import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, 
 import { ConversationEndpointType } from '../models/conversation';
 import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
-import { MessageParts, MessagePartsParams, NamespacedConversation } from './interfaces'
+import { MessageParts, MessagePartsParams, Namespace, Mapper } from './interfaces'
 import { NewMessageEvent } from '../adapters';
 import { Message, MessageState, nextUniqueId } from '../models/message';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
@@ -45,12 +45,12 @@ const getDIDHeaderValue = (did: string) => `<${did}>; purpose=EmergencyCallData.
 
 const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader(['.+'], value, domain, '.+');
 
-export class EmergencyMapper implements NamespacedConversation {
+export class EmergencyMapper implements Mapper {
   constructor(
     private _logger: Logger,
   ) { }
 
-  getName = () => 'ETSI';
+  getNamespace = () => Namespace.ETSI;
   // ETSI TS 103 698 specifies that a conversation has to be started by PSAP only
   // PSAP has to respond with a "START" message to finally start the conversation
   supportsPsapStartMessage = (): boolean => true;

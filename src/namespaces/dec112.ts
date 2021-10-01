@@ -3,7 +3,7 @@ import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/de
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
 import { ConversationEndpointType } from '../models/conversation';
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
-import { MessageParts, MessagePartsParams, NamespaceSpecifics } from './interfaces';
+import { MessageParts, MessagePartsParams, Namespace, NamespaceSpecifics } from './interfaces';
 import { NewMessageEvent } from '../adapters';
 import { Base64 } from '../utils/base64';
 import { OmitStrict } from '../utils/ts-utils';
@@ -57,7 +57,7 @@ export class DEC112Mapper extends EmergencyMapper {
     super(_logger);
   }
 
-  getName = () => 'DEC112';
+  getNamespace = () => Namespace.DEC112;
   // DEC112 does not have a specific message type for starting the conversation
   // ETSI standard specifies a dedicated START message
   supportsPsapStartMessage = (): boolean => false;

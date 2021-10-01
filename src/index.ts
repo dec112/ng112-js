@@ -42,6 +42,9 @@ export {
 
 export {
   DEC112Specifics,
+  Mapper,
+  Namespace,
+  NamespaceSpecifics,
 } from './namespaces';
 
 export {
