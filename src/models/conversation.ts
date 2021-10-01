@@ -162,14 +162,26 @@ export class Conversation {
      */
     config?: ConversationConfiguration,
   ) {
-    this._messageId = 1;
+    this._messageId = config?.messageId ?? 1;
     this._queue = [];
 
     this.id = config?.id ?? getRandomString(30);
-    this._state = config?.state ?? {
+
+    // why do we set the state twice?
+    // well, here we please typescript so it does not complain about a non-defined instance property
+    this._state = {
       value: ConversationState.UNKNOWN,
       origin: Origin.SYSTEM,
     };
+    // and if another state was set externally
+    if (config?.state) {
+      const { value, origin } = config.state;
+      // we set it here...as _setState takes care of more (e.g. heartbeat)
+      // note that we don't call the state callback on purpose
+      // because it does not make sense to inform our listeners state has changed while we are still in the constructor
+      this._setState(value, origin);
+    }
+
     this.isTest = config?.isTest ?? false;
     this._endpointType = config?.endpointType ?? ConversationEndpointType.CLIENT;
 

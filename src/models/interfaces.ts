@@ -20,4 +20,10 @@ export interface ConversationConfiguration {
    * Specifies the endpoint type for this conversation
    */
   endpointType?: ConversationEndpointType,
+  /**
+   * Specifies the first message id that should be used in this conversation
+   * Can be used to restore a conversation from storage, if client or PSAP was suspended
+   * to continue with the last + 1 message id that was sent
+   */
+  messageId?: number,
 }

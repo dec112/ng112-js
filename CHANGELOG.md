@@ -33,6 +33,7 @@ Object has different properties!
 Rejecting the initial message of a conversation leads to the conversation being set closed automatically.
 - Support for sending custom SIP headers.
 - Support for tagging messages.
+- Support for starting a conversation with a custom message id.
 - Ability to remove message listeners.
 - Ability to specify endpoint type for each conversation.
 - Interfaces for easily fetching SIP information like TO, FROM and ROUTE headers.
