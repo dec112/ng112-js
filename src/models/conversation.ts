@@ -287,8 +287,14 @@ export class Conversation {
     // stopping messages can happen, if the PSAP is transferring to another PSAP
     // or if call is stopped entirely (captain obvious ;-))
     // if this is the case, we are only allowed to send START messages
-    let queue = this._state.value === ConversationState.STARTED ?
+
+    // TODO: this state handling is currently NOT correct!
+    // define at which states message can be sent
+    // this might differ between PSAP and CLIENT
+    // also consider conversation state while PSAP is handing over to another PSAP
+    let queue = this._hasBeenStarted && this.state.value !== ConversationState.STOPPED ?
       [...this._queue] :
+      // START messages can always be sent
       [...this._queue.filter(x => x.message.type === EmergencyMessageType.START)];
 
     // take first item out of queue and send it
