@@ -1,21 +1,21 @@
 {
-  "endpoint": "ws://dec112.at:8080",
-  "domain": "dec112.at",
+  "endpoint": "ws://example.com:8080",
+  "domain": "example.com",
   "user": "bob",
   "password": "mysupersecretpassword",
 
-  "from": "sip:bob@dec112.at:5071;transport=tls",
+  "from": "sip:bob@example.com:5071;transport=tls",
 
   "latitude": 43.6121235527826,
   "longitude": 7.04820156097412,
 
-  "call": "sip:112@dec112.at",
+  "call": "sip:112@example.com",
   "isTest": true,
-  "isActive": true
+  "isActive": true,
 
   "vcard": {
     "fn": "Alice Smith",
     "tel": "004366412345678",
-    "email": "alice.smith@dec112.at"
+    "email": "alice.smith@example.com"
   }
 }
