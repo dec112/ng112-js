@@ -12,6 +12,7 @@ import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
 import { timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
+import { BAD_REQUEST, NOT_FOUND } from '../constants/status-codes';
 
 export interface DebugConfig {
   /**
@@ -175,8 +176,8 @@ export class Agent {
     else {
       this._logger.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore be rejected.');
       rejectIfDefined(evt, {
-        // TODO:
-        statusCode: 500,
+        reasonPhrase: 'Bad request: Message incompatible',
+        statusCode: BAD_REQUEST,
       });
 
       return;
@@ -198,16 +199,16 @@ export class Agent {
       else {
         this._logger.warn('Rejected incoming message. No corresponding conversation found and no active conversation listeners listening. Is something wrong with the setup?', evt);
         rejectIfDefined(evt, {
-          // TODO:
-          statusCode: 500,
+          reasonPhrase: 'Not found: Conversation not found',
+          statusCode: NOT_FOUND,
         });
       }
     }
     else {
-      this._logger.warn('Can not process message due to missing call id.');
+      this._logger.warn('Can not process message due to missing conversation id.');
       rejectIfDefined(evt, {
-        // TODO:
-        statusCode: 500,
+        reasonPhrase: 'Bad request: CallId not present',
+        statusCode: BAD_REQUEST,
       });
     }
   }
@@ -313,7 +314,7 @@ export class Agent {
     value: any,
     configuration?: ConversationConfiguration,
     mapper: Mapper = this._mapper.default,
-  ) {
+  ): Conversation {
     let conversation: Conversation | undefined = undefined;
     let event: NewMessageEvent | undefined = undefined;
 
