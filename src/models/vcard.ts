@@ -34,6 +34,7 @@ export enum Gender {
 }
 
 export class VCard {
+  public get items() { return this._items; }
   private _items: KeyValue[] = [];
 
   private _push = (key: KeyId | string, value: any): VCard => {
