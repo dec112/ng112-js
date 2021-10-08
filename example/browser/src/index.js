@@ -181,7 +181,7 @@ const disable = (element, value) => {
     if (msg.location && msg.location.simple) {
       const loc = msg.location.simple;
 
-      if (loc)
+      if (loc && loc.latitude && loc.longitude)
         addInfos.push(`${loc.latitude.toFixed(2)}/${loc.longitude.toFixed(2)}`);
     }
 
