@@ -101,6 +101,13 @@ export class Agent {
   private _agent: SipAdapter;
   private _stateListeners: ((state: AgentState) => void)[] = [];
 
+  /**
+   * Returns the agent's current state
+   */
+  public get state() { return this._state; }
+  // Agent is disconnected by default
+  private _state = AgentState.DISCONNECTED;
+
   private readonly _mapper: {
     default: Mapper,
     etsi: EmergencyMapper,
@@ -213,6 +220,7 @@ export class Agent {
   initialize = async (): Promise<Agent> => {
     const newState = (newState: AgentState) => {
       this._logger.log(newState);
+      this._state = newState;
       this._notifyStateListeners(newState);
     }
 
