@@ -131,13 +131,13 @@ export class Conversation {
    */
   public get remoteDisplayName() { return this._remoteDisplayName }
   private _remoteDisplayName?: string;
-
+  
   /**
    * Date and time of the first sent/received message
    */
   public get created() { return this._created }
   private _created?: Date;
-
+  
   public readonly isTest: boolean;
 
   /**
@@ -274,6 +274,11 @@ export class Conversation {
       };
 
       // TODO: What do we do when we get a 404?
+      // The ESRP could connect us to another PSAP -> how can we transfer the whole communication to the new PSAP?
+      // this is currently not described in the standards documents
+      // maybe we should re-run the call with the initially requested URI
+      // so that the ESRP can direct us to a new PSAP
+
       // TODO: What do we do when the error already happens at the first message?
       // TODO: What if we don't have network connection?
 
@@ -365,6 +370,9 @@ export class Conversation {
     this._manageHeartbeat();
   }
 
+
+  // TODO: setState should be available publicly, as an app should also be able to set the conversation's state
+  // e.g. if conversation is in ERROR state and app wants to resume operation
   /**
    * This may look a bit odd but when closing the call it is necessary to set the conversation's call
    * without notifying listeners immediately
