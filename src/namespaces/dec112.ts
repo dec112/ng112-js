@@ -11,7 +11,6 @@ import { Message } from '../models/message';
 import { Logger } from '../models/logger';
 
 const UID = 'uid';
-const DEC112_DOMAIN = 'service.dec112.at';
 
 const getCallInfoHeader = (uri: string[], value: string, domain: string, type: string) =>
   `<urn:dec112:${uri.join(':')}:${value}:${domain}>; purpose=dec112-${type}`;
@@ -47,14 +46,20 @@ export class DEC112Specifics implements NamespaceSpecifics {
   constructor(
     public config: DEC112Config
   ) { }
+
+  getDomain = () => 'service.dec112.at';
 }
 
 export class DEC112Mapper extends EmergencyMapper {
+  private _dec112Specifics: DEC112Specifics;
+
   constructor(
     _logger: Logger,
-    public specifics?: DEC112Specifics,
+    specifics?: DEC112Specifics,
   ) {
     super(_logger);
+
+    this._dec112Specifics = this._specifics = specifics ?? new DEC112Specifics({});
   }
 
   getNamespace = () => Namespace.DEC112;
@@ -101,27 +106,28 @@ export class DEC112Mapper extends EmergencyMapper {
       hasTextMessage: !!text,
     });
 
+    const domain = this._dec112Specifics.getDomain();
     const headers = common.headers = [
       ...common.headers,
-      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, DEC112_DOMAIN) },
-      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), DEC112_DOMAIN) },
-      { key: CALL_INFO, value: getMessageTypeHeaderValue(dec112MessageType.toString(), DEC112_DOMAIN) },
+      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, domain) },
+      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), domain) },
+      { key: CALL_INFO, value: getMessageTypeHeaderValue(dec112MessageType.toString(), domain) },
     ];
 
     if (endpointType === ConversationEndpointType.CLIENT) {
-      const spec = this.specifics?.config;
+      const spec = this._dec112Specifics.config;
 
-      if (spec?.deviceId)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'deviceid'], spec.deviceId, DEC112_DOMAIN, 'DeviceId') });
+      if (spec.deviceId)
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'deviceid'], spec.deviceId, domain, 'DeviceId') });
 
-      if (spec?.registrationId)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'regid'], spec.registrationId, DEC112_DOMAIN, 'RegId') });
+      if (spec.registrationId)
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'regid'], spec.registrationId, domain, 'RegId') });
 
-      if (spec?.clientVersion)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'clientversion'], spec.clientVersion, DEC112_DOMAIN, 'ClientVer') });
+      if (spec.clientVersion)
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'clientversion'], spec.clientVersion, domain, 'ClientVer') });
 
-      if (spec?.langauge)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'language'], spec.langauge, DEC112_DOMAIN, 'Lang') });
+      if (spec.langauge)
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'language'], spec.langauge, domain, 'Lang') });
     }
 
     if (isTest)

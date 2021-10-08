@@ -5,7 +5,9 @@ import { Multipart } from '../models/multipart';
 import { Header } from '../utils';
 import { OmitStrict } from '../utils/ts-utils';
 
-export interface NamespaceSpecifics { }
+export interface NamespaceSpecifics {
+  getDomain(): string;
+}
 
 export interface MessageParts {
   headers: Header[],

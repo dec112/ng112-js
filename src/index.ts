@@ -42,6 +42,7 @@ export {
 
 export {
   DEC112Specifics,
+  EmergencySpecifics,
   Mapper,
   Namespace,
   NamespaceSpecifics,

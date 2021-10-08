@@ -153,7 +153,7 @@ export class Agent {
 
     // we have to use a type hint here, as typescript does not realize that `namepspaceSpecifics` is already type-safe
     const dec112 = new DEC112Mapper(this._logger, hasDEC112Specifics ? namespaceSpecifics as DEC112Specifics : undefined);
-    const etsi = new EmergencyMapper(this._logger);
+    const etsi = new EmergencyMapper(this._logger, namespaceSpecifics);
 
     this._mapper = {
       default: hasDEC112Specifics ? dec112 : etsi,

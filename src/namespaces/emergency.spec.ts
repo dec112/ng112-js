@@ -1,7 +1,9 @@
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { ConversationEndpointType } from '../models/conversation';
 import { Logger, LogLevel } from '../models/logger';
-import { EmergencyMapper } from './emergency';
+import { Header } from '../utils';
+import { EmergencyMapper, EmergencySpecifics } from './emergency';
+import { MessagePartsParams } from './interfaces';
 
 const logger = new Logger(LogLevel.NONE);
 
@@ -43,6 +45,44 @@ describe('Checking call info headers', () => {
   ]
   it.each(validDIDHeaders)('should be able to handle DID %s', (header) => {
     expect(mapper.getDIDFromHeaders([header])).toBe(validDID)
+  });
+});
+
+describe('Generating Call-Info headers', () => {
+  const defaultParams: MessagePartsParams = {
+    conversationId: 'cid-1',
+    endpointType: ConversationEndpointType.CLIENT,
+    id: 67,
+    isTest: false,
+    replyToSipUri: 'sip:reply-to@dec112.at',
+    targetUri: 'sip:target@dec112.at',
+    type: EmergencyMessageType.IN_CHAT,
+  };
+
+  it('contains all necessary headers', () => {
+    const mapper = new EmergencyMapper(logger);
+    const parts = mapper.createMessageParts(defaultParams);
+
+    expect(parts.headers.length).toBe(4);
+
+    expect(parts.headers).toContainEqual<Header>({ key: "History-Info", value: "<sip:target@dec112.at>;index=1" });
+    expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:uid:callid:cid-1:dec112.at>; purpose=EmergencyCallData.CallId" });
+    expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:service:uid:msgid:67:dec112.at>; purpose=EmergencyCallData.MsgId" });
+    expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:service:uid:msgtype:259:dec112.at>; purpose=EmergencyCallData.MsgType" });
+  });
+
+  it('can use a different domain', () => {
+    const mapper = new EmergencyMapper(logger, new EmergencySpecifics({
+      domain: 'another.sub.domain',
+    }));
+    const parts = mapper.createMessageParts(defaultParams);
+
+    expect(parts.headers.length).toBe(4);
+
+    expect(parts.headers).toContainEqual<Header>({ key: "History-Info", value: "<sip:target@dec112.at>;index=1" });
+    expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:uid:callid:cid-1:another.sub.domain>; purpose=EmergencyCallData.CallId" });
+    expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:service:uid:msgid:67:another.sub.domain>; purpose=EmergencyCallData.MsgId" });
+    expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:service:uid:msgtype:259:another.sub.domain>; purpose=EmergencyCallData.MsgType" });
   });
 });
 

@@ -11,6 +11,7 @@ import { Message, MessageState, nextUniqueId } from '../models/message';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { OmitStrict } from '../utils/ts-utils';
 import { Logger } from '../models/logger';
+import { NamespaceSpecifics } from '.';
 
 // we are quite generous when it comes to spaces
 // so if there is a header incoming with more than one space, we still accept it
@@ -45,10 +46,32 @@ const getDIDHeaderValue = (did: string) => `<${did}>; purpose=EmergencyCallData.
 
 const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader(['.+'], value, domain, '.+');
 
+export interface EmergencyConfig {
+  /**
+   * Domain that's used for different headers (Call-Info, Geolocation)
+   */
+  domain: string;
+}
+
+export class EmergencySpecifics implements NamespaceSpecifics {
+  constructor(
+    public config: EmergencyConfig
+  ) { }
+
+  getDomain = () => this.config.domain;
+}
+
 export class EmergencyMapper implements Mapper {
+  protected _specifics: NamespaceSpecifics;
+
   constructor(
     private _logger: Logger,
-  ) { }
+    specifics?: NamespaceSpecifics,
+  ) {
+    this._specifics = specifics ?? new EmergencySpecifics({
+      domain: 'dec112.at',
+    });
+  }
 
   getNamespace = () => Namespace.ETSI;
   // ETSI TS 103 698 specifies that a conversation has to be started by PSAP only
@@ -97,7 +120,7 @@ export class EmergencyMapper implements Mapper {
     }
 
     if (location) {
-      const locationContentId = `${getRandomString(12)}@dec112.app`;
+      const locationContentId = `${getRandomString(12)}@${this._specifics.getDomain()}`;
 
       headers = headers.concat([
         { key: GEOLOCATION_ROUTING, value: 'yes' },
@@ -289,11 +312,12 @@ export class EmergencyMapper implements Mapper {
       vcard,
     );
 
+    const domain = this._specifics.getDomain();
     const headers = parts.headers = [
       ...parts.headers,
-      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, 'dec112.at') },
-      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), 'service.dec112.at') },
-      { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), 'service.dec112.at') },
+      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, domain) },
+      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), domain) },
+      { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), domain) },
     ];
 
     if (did)
