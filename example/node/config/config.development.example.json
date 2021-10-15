@@ -1,0 +1,15 @@
+{
+  "endpoint": "wss://example.org:8081",
+  "domain": "example.org",
+
+  "user": "example",
+  "password": "examplePassword",
+
+  "isDebug": false,
+
+  "conversationTimeout": 60000,
+
+  "replies": [
+    "ng112-js emergency control center. How can we help you?"
+  ]
+}

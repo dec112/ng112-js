@@ -13,7 +13,7 @@ services:
     ports:
       - "8088:80"
   ng112-psap:
-    image: <INSERT NG112 compatible PSAP image HERE>
+    image: dec112/ng112-js-psap:latest
     container_name: ng112-psap
     networks:
       - dec112-net
