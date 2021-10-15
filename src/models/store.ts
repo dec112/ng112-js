@@ -1,6 +1,7 @@
 import type { PidfLo } from 'pidf-lo';
 import { Conversation } from './conversation';
 import { CustomSipHeader } from './custom-sip-header';
+import { HttpAdapter } from './http-adapter';
 import { Logger } from './logger';
 import { VCard } from './vcard';
 
@@ -33,6 +34,8 @@ export class Store {
   private _did?: string;
   private _mode: AgentMode = AgentMode.ACTIVE;
 
+  private _httpAdapter?: HttpAdapter;
+
   private _heartbeatIntervalListeners: ((interval: number) => unknown)[] = [];
 
   constructor(
@@ -51,6 +54,12 @@ export class Store {
   getDID = () => this._did;
   getLocation = () => this._lastKnownLocation;
   getMode = () => this._mode;
+  getHttpAdapter = (): HttpAdapter => {
+    if (!this._httpAdapter)
+      throw new Error('HttpAdapter was not set but is required.');
+    
+    return this._httpAdapter;
+  }
 
   getHeartbeatInterval = () => this._heartbeatInterval;
 
@@ -76,6 +85,8 @@ export class Store {
   }
 
   setMode = (mode = AgentMode.ACTIVE) => this._mode = mode;
+
+  setHttpAdapter = (adapter?: HttpAdapter) => this._httpAdapter = adapter;
 
   addHeartbeatIntervalListener = (callback: (interval: number) => unknown) => {
     this._heartbeatIntervalListeners.push(callback);

@@ -3,7 +3,7 @@ import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
 import { Namespace, Mapper, NamespaceSpecifics } from '../namespaces/interfaces';
 import { Conversation, ConversationState, StateObject } from './conversation';
-import { ConversationConfiguration } from './interfaces';
+import { ConversationConfiguration, DequeueRegistration, DequeueRegistrationRequest, DequeueRegistrationResponse, QueueState, QueueStateNotification, Subscriber } from './interfaces';
 import { CustomSipHeaders, Store, AgentMode } from './store';
 import { VCard } from './vcard';
 import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
@@ -12,7 +12,8 @@ import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
 import { timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
-import { BAD_REQUEST, NOT_FOUND } from '../constants/status-codes';
+import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
+import { HttpAdapter } from './http-adapter';
 
 export interface DebugConfig {
   /**
@@ -236,6 +237,10 @@ export class Agent {
 
     del.onNewMessage(this._handleMessageEvent);
 
+    // @experimental
+    if (del.onSubscribe)
+      del.onSubscribe(this._handleSubscribeEvent);
+
     await this._agent.start();
     await this._agent.register();
 
@@ -450,4 +455,133 @@ export class Agent {
    * All conversations that have not been stopped already
    */
   public set conversations(value) { this._store.conversations = value }
+
+  /////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////// DANGER ZONE BELOW /////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * The following danger zone consists of implementations that are not yet ready for production
+   * They are not part of any feature description or CHANGELOG
+   * However they may be included within documentation, marked with @experimental
+   * 
+   * DO NOT USE THESE INTERFACES IN PRODUCTION
+   * 
+   * They are subject to change, even within a major version, so be careful!
+   */
+
+  /**
+   * @experimental
+   * 
+   * Please be aware this interface is experimental and might change even within a major version!
+   * 
+   * Currently it's only used for dequeue registration.
+   * As dequeue registration is not stable as a whole, the same is true for this interface.
+   * 
+   * Sets an HTTP adapter for the agent.
+   * ng112-js does not have an internal library for issuing HTTP calls.
+   * Therefore it's dependent on an external implementation
+   * that can be set with this function call
+   * 
+   * @param adapter The adapter object to be used for HTTP calls
+   */
+  setHttpAdapter = (adapter?: HttpAdapter) => {
+    // this console.warn is intentional, just as warning towards the user
+    console.warn('You are using ng112-js HTTP adapter. This interface is not stable.\nDO NOT USE THIS IN PRODUCTION!');
+
+    this._store.setHttpAdapter(adapter);
+  }
+
+  /**
+   * @experimental
+   */
+  private _dequeueRegistrations: DequeueRegistration[] = [];
+  /**
+   * @experimental
+   */
+  private _subscribers: Subscriber[] = [];
+
+  /**
+   * @experimental
+   */
+  private _handleSubscribeEvent = (from: string, event: string) => {
+    // currently we only feature one event
+    // therefore we just ignore all other event subscriptions
+    if (event !== 'emergency-QueueState')
+      return;
+
+    const subscriber = {
+      sipUri: from,
+    };
+    this._subscribers.push(subscriber);
+  }
+
+  /**
+   * @experimental
+   */
+  notifySubscribers = (uri: string, length: number, maxLength: number, state: QueueState) => {
+    const notification: QueueStateNotification = {
+      QueueStateEventUri: uri,
+      QueueStateEventQueueLength: length,
+      QueueStateEventMaxLength: maxLength,
+      QueueStateValuesCode: state,
+    };
+
+    const stringified = JSON.stringify(notification);
+
+    for (const subscriber of this._subscribers) {
+      // TODO: provide constant
+      this._agent.notify(subscriber.sipUri, 'emergency-QueueState', stringified);
+    }
+  }
+
+  /**
+   * @experimental
+   */
+  registerForQueue = async (registration: DequeueRegistration): Promise<DequeueRegistration> => {
+    // this console.warn is intentional, just as warning towards the user
+    console.warn('You are using ng112-js dequeue registration. This interface is not stable.\nDO NOT USE THIS IN PRODUCTION!');
+
+    const req: DequeueRegistrationRequest = {
+      DequeueRegistrationDequeuer: this._store.originSipUri,
+      DequeueRegistrationQueueUri: registration.uri,
+      DequeueRegistrationExpirationTime: registration.expires,
+    };
+
+    if (registration.preference)
+      req.DequeueRegistrationDequeuePreference = registration.preference;
+
+    const res: DequeueRegistrationResponse = await this._store.getHttpAdapter().post(registration.endpoint, req);
+
+    if (res.DequeueRegistrationStatusCode === OK && res.DequeueRegistrationExpirationTime > 0) {
+      registration.expires = res.DequeueRegistrationExpirationTime;
+
+      // TODO: automatic renewal
+      this._dequeueRegistrations.push(registration);
+    }
+
+    return registration;
+  }
+
+  /**
+   * @experimental
+   */
+  unregisterFromQueue = async (uri: string): Promise<DequeueRegistration> => {
+    const reg = this._dequeueRegistrations.find(x => x.uri === uri);
+
+    if (!reg)
+      throw new Error(`Not registered for queue ${uri}`);
+
+    // 0 -> unregister
+    reg.expires = 0;
+
+    await this._store.getHttpAdapter().post(reg.endpoint, reg);
+
+    // we check here again, as with asynchronous commands the array could have been altered in the meantime
+    const index = this._dequeueRegistrations.indexOf(reg);
+    if (index !== -1)
+      this._dequeueRegistrations.splice(index, 1);
+
+    return reg;
+  }
 }

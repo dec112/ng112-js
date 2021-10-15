@@ -211,6 +211,16 @@ export interface DelegateObject {
    * Called for every new message: Incoming, outgoing or system generated messages
    */
   onNewMessage: (callback: (evt: NewMessageEvent) => void) => void,
+
+  /**
+   * @experimental
+   * 
+   * Please be aware this interface is experimental and might change even within a major version!
+   * Therefore it's not mandatory to implement this interface.
+   * 
+   * Called for every incoming subscription
+   */
+  onSubscribe?: (callback: (from: string, event: string) => void) => void,
 }
 
 export const getUserAgentString = (sipLibName: string, sipLibVersion: string) => {

@@ -4,9 +4,7 @@ import {
   ConversationState,
   DEC112Specifics,
   EmergencyMessageType,
-  Gender,
   LocationMethod,
-  LogLevel,
   Origin,
   VCard,
 } from 'ng112-js/dist/browser';
@@ -115,7 +113,7 @@ const disable = (element, value) => {
   const iframe = el('iframe');
   const message = el('txtMessage');
   const send = el('btnSend');
-  
+
   const remoteSipUri = el('txtRemoteSipUri');
   const remoteDisplayName = el('txtRemoteDisplayName');
 
