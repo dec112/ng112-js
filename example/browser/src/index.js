@@ -77,7 +77,7 @@ const disable = (element, value) => {
   const user = el('txtUser', config.user);
   const password = el('txtPassword', config.password);
   const from = el('txtFrom', config.from);
-  const displayName = el('txtDisplayName');
+  const displayName = el('txtDisplayName', config.displayName);
 
   const registration = el('txtRegistration', config.registrationId);
   const registrationApiVersionName = 'reg-api-version';
