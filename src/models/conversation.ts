@@ -131,13 +131,13 @@ export class Conversation {
    */
   public get remoteDisplayName() { return this._remoteDisplayName }
   private _remoteDisplayName?: string;
-  
+
   /**
    * Date and time of the first sent/received message
    */
   public get created() { return this._created }
   private _created?: Date;
-  
+
   public readonly isTest: boolean;
 
   /**
@@ -454,19 +454,22 @@ export class Conversation {
       messageId,
     } = sendMessageObj;
 
-    // both a client and a server's first message has to be START message
-    // except if one wants to STOP, TRANSFER, REDIRECT a conversation
-    // or if the conversation is inactive
-    // TODO: check if this is according to standard
-    if (!this._hasBeenStarted && !EmergencyMessageType.isInterrupted(type)) {
-      // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
-      // However, DEC112 does not specify this
+    // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
+    // However, DEC112 does not specify this
 
-      // TODO: somehow prevent not multiple START messages are sent
-      // this is currently possible, e.g. if the PSAP takes very long to respond and a user fires another message
-      if (!this.mapper.supportsPsapStartMessage())
-        type = EmergencyMessageType.START;
-    }
+    // TODO: somehow prevent not multiple START messages are sent
+    // this is currently possible, e.g. if the PSAP takes very long to respond and a user fires another message
+
+    // this is just a convenience function that API consumers don't have to explicitly START the conversation
+    // e.g. if they just send an IN_CHAT message it is converted to a START message
+    // only applies to PSAPs and only if they support the PSAP start message!
+    // Clients still have to start the conversation explicitly with a message of type START
+    if (
+      !this._hasBeenStarted &&
+      this._endpointType === ConversationEndpointType.PSAP &&
+      EmergencyMessageType.isStarted(type)
+    )
+      type = EmergencyMessageType.START;
 
     const message = createLocalMessage(
       this,
