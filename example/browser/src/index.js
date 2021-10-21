@@ -154,6 +154,10 @@ const disable = (element, value) => {
   }
 
   const handleNewMessage = (msg) => {
+    if (msg.event && msg.event.accept)
+      // e.g. SIP.js requires you to explicitly accept an incoming message
+      msg.event.accept();
+
     lastMessageDate = new Date();
     if (EmergencyMessageType.isHeartbeat(msg.type))
       return;
