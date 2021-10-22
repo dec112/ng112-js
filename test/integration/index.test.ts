@@ -44,7 +44,7 @@ describe('ng112-js', () => {
     expect(msg.conversation).toBe(conversation);
     expect(msg.id).toBe(1);
     expect(msg.origin).toBe(Origin.LOCAL);
-    expect(msg.text).not.toBeUndefined();
+    expect(msg.text).toBeUndefined();
     expect(msg.type).toBe(EmergencyMessageType.START);
 
     expect(conversation.state.value).toBe(ConversationState.UNKNOWN);
@@ -63,7 +63,10 @@ describe('ng112-js', () => {
       expect(msg.text).toContain('Testing');
     })
 
-    await conversation.stop().promise;
+    const endMsg = conversation.stop();
+    expect(endMsg.text).toBeUndefined();
+
+    await endMsg.promise;
 
     expect(conversation.state.value).toBe(ConversationState.STOPPED);
     expect(conversation.state.origin).toBe(Origin.LOCAL);

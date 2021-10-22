@@ -415,12 +415,10 @@ export class Conversation {
    * Starts the conversation
    * 
    * This is basically a convenience function on top of `sendMessage` \
-   * It automatically sets the correct message type "START" \
-   * and defaults to text message "Start emergency call"
+   * It automatically sets the correct message type "START"
    */
   start = (sendMessageObj?: SendMessageObject): Message => {
     sendMessageObj = {
-      text: 'Start emergency call',
       type: EmergencyMessageType.START,
       ...sendMessageObj,
     }
@@ -432,12 +430,10 @@ export class Conversation {
    * Ends the conversation
    * 
    * This is basically a convenience function on top of `sendMessage` \
-   * It automatically sets the correct message type "STOP" \
-   * and defaults to text message "Stop emergency call"
+   * It automatically sets the correct message type "STOP"
    */
   stop = (sendMessageObj?: SendMessageObject): Message => {
     sendMessageObj = {
-      text: 'Stop emergency call',
       type: EmergencyMessageType.STOP,
       ...sendMessageObj,
     }
