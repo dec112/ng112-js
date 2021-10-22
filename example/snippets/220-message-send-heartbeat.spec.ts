@@ -1,4 +1,3 @@
-import { EmergencyMessageType } from 'ng112-js/dist/node';
 import { createAgent, endExample } from './util';
 
 it('Shows how to send heartbeats manually', async () => {
@@ -7,11 +6,9 @@ it('Shows how to send heartbeats manually', async () => {
 
   // should be awaited!
   conversation.start();
-  
+
   // should be awaited!
-  conversation.sendMessage({
-    type: EmergencyMessageType.HEARTBEAT,
-  });
+  conversation.sendHeartbeat();
 
   endExample();
 });

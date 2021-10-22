@@ -442,6 +442,21 @@ export class Conversation {
   }
 
   /**
+   * Sends a heartbeat message
+   * 
+   * This is basically a convenience function on top of `sendMessage` \
+   * It automatically sets the correct message type "HEARTBEAT"
+   */
+  sendHeartbeat = (sendMessageObj?: SendMessageObject): Message => {
+    sendMessageObj = {
+      type: EmergencyMessageType.HEARTBEAT,
+      ...sendMessageObj,
+    }
+
+    return this.sendMessage(sendMessageObj);
+  }
+
+  /**
    * Sends a text message
    */
   sendMessage = (sendMessageObj: SendMessageObject): Message => {
