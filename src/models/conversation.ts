@@ -1,5 +1,5 @@
 import { getHeaderString, getRandomString, Header, parseNameAddrHeaderValue } from '../utils';
-import type { PidfLo } from 'pidf-lo';
+import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { Mapper } from '../namespaces/interfaces';
@@ -33,6 +33,14 @@ export interface SendMessageObject {
    * Text message to be sent
    */
   text?: string,
+  /**
+   * A location to be sent with the message
+   */
+  location?: PidfLo | SimpleLocation,
+  /**
+   * A VCard to be sent with the message
+   */
+  vcard?: VCard,
   /**
    * URIs to send along with the message (e.g. for deep linking something)
    */
@@ -197,7 +205,8 @@ export class Conversation {
     // update the message with latest information
     if (this._endpointType === ConversationEndpointType.CLIENT) {
 
-      const currentLocation = this._store.getLocation();
+      // message location takes precedence over location that's inside the store
+      const currentLocation = message.location ?? this._store.getLocation();
       if (currentLocation) {
         if (
           !this._lastSentLocation ||
@@ -208,7 +217,8 @@ export class Conversation {
 
       // TODO: obviously we have very similar handling of VCard and DIDs here
       // Find a way to abstract this to not have duplicate code
-      const currentVCard = this._store.getVCard();
+      // message vcard takes precedence over location that's inside the store
+      const currentVCard = message.vcard ?? this._store.getVCard();
       if (currentVCard) {
         if (!this._lastSentVCard || !this._lastSentVCard.equals(currentVCard))
           this._lastSentVCard = message.vcard = currentVCard;
@@ -487,6 +497,7 @@ export class Conversation {
       // if no message id is specified, use the internal sequence
       messageId ?? this._messageId++,
       type,
+      this._store.originSipUri,
       sendMessageObj,
     );
 

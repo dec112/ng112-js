@@ -10,7 +10,7 @@ import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
-import { timedoutPromise } from '../utils';
+import { getPidfLo, timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
 import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
 import { HttpAdapter } from './http-adapter';
@@ -375,17 +375,7 @@ export class Agent {
    * @param location New location object (may be `undefined`)
    */
   updateLocation = (location?: PidfLo | SimpleLocation): void => {
-    let pidflo: PidfLo | undefined = undefined;
-
-    if (location) {
-      if (!(location instanceof PidfLo)) {
-        pidflo = PidfLo.fromSimpleLocation(location, this._store.originSipUri);
-      }
-      else
-        pidflo = location;
-    }
-
-    this._store.updateLocation(pidflo);
+    this._store.updateLocation(getPidfLo(this._store.originSipUri, location));
   }
 
   /**

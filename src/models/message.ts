@@ -1,5 +1,5 @@
 import type { PidfLo } from 'pidf-lo';
-import { Header, isValidUri } from '../utils';
+import { getPidfLo, Header, isValidUri } from '../utils';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
@@ -138,8 +138,11 @@ export const createLocalMessage = (
    * Emergency message type
    */
   type: number,
+  originSipUri: string,
   {
     text,
+    location,
+    vcard,
     uris,
     binaries,
     extraParts,
@@ -165,6 +168,8 @@ export const createLocalMessage = (
     type,
     state: MessageState.PENDING,
     text,
+    location: getPidfLo(originSipUri, location),
+    vcard,
     uris,
     binaries,
     extraParts,

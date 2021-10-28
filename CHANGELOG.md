@@ -24,6 +24,7 @@ Object has different properties!
 - Conversations can be set from the agent. This allows PSAP environments to easily restore conversations that have not ended yet.
 ### Added
 - Agent mode that can be used to indicate an app is running in the background.
+- Support for sending `Message` specific VCards and locations instead of being tied to the global `Agent`'s VCard and location.
 - Support for DIDs.
 - Support for binaries.
 - Support for parsing extra multiparts.
