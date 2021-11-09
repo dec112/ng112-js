@@ -10,7 +10,7 @@ import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
-import { getPidfLo, timedoutPromise } from '../utils';
+import { getPackageInfo, getPidfLo, timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
 import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
 import { HttpAdapter } from './http-adapter';
@@ -80,6 +80,12 @@ export interface AgentConfiguration {
    * Object for customizing SIP headers
    */
   customSipHeaders?: CustomSipHeaders,
+  /**
+   * User agent string that will be appended to ng112-js' default user agent string
+   * 
+   * @example your-application/1.2.3 some-framework/2.5.3
+   */
+  userAgent?: string
 }
 
 export enum AgentState {
@@ -131,6 +137,7 @@ export class Agent {
       namespaceSpecifics,
       customSipHeaders,
       debug,
+      userAgent,
     } = config;
 
     const originSipUri = customSipHeaders?.from ?
@@ -145,10 +152,16 @@ export class Agent {
       customSipHeaders,
     );
 
+    const packageInfo = getPackageInfo();
+    let _userAgent = `${packageInfo.name}/${packageInfo.version}`;
+    if (userAgent)
+      _userAgent += ` ${userAgent}`;
+
     this._agent = config.sipAdapterFactory({
       ...config,
       originSipUri,
       logger: Logger.getFromConfig(debug?.sipAdapter),
+      userAgent: _userAgent,
     });
 
     const hasDEC112Specifics = namespaceSpecifics instanceof DEC112Specifics;

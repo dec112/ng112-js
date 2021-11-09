@@ -259,7 +259,8 @@ const disable = (element, value) => {
           // TODO: distinguish between levels
           console.log(...values);
         })
-      }
+      },
+      userAgent: 'ng112-js-example-browser',
     });
 
     agent.addConversationListener((newConversation) => {

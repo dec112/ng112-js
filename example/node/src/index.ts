@@ -78,6 +78,7 @@ const rl = readline.createInterface({
       from,
       replyTo,
     },
+    userAgent: 'ng112-js-example-psap',
   });
 
   let currentConversation: Conversation | undefined = undefined;

@@ -5,8 +5,6 @@ export {
   NewMessageEvent,
   SendMessageOptions,
   SipUri,
-
-  getUserAgentString,
 } from './sip-adapter';
 
 export {

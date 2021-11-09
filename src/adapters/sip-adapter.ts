@@ -1,6 +1,5 @@
 import { AgentConfiguration } from "../models/agent";
 import { Origin } from "../models/message";
-import { getPackageInfo } from "../utils/package-utils";
 import { Logger } from "../models/logger";
 import { OmitStrict } from "../utils/ts-utils";
 
@@ -24,6 +23,11 @@ export type SipAdapterConfig = OmitStrict<AgentConfiguration, 'debug' | 'namespa
    * Logging instance to integrate with ng112-js logging
    */
   logger: Logger;
+  /**
+   * The user agent the adapter MUST use
+   * Also the sip adapter MUST specify an own user agent IN ADDITION to this user agent
+   */
+  userAgent: string;
 };
 
 export interface SipResponseOptions {
@@ -221,9 +225,4 @@ export interface DelegateObject {
    * Called for every incoming subscription
    */
   onSubscribe?: (callback: (from: string, event: string) => void) => void,
-}
-
-export const getUserAgentString = (sipLibName: string, sipLibVersion: string) => {
-  const packageInfo = getPackageInfo();
-  return `${packageInfo.name} ${packageInfo.version}, ${sipLibName} ${sipLibVersion}`;
 }
