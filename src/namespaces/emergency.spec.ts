@@ -71,6 +71,17 @@ describe('Generating Call-Info headers', () => {
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:service:uid:msgtype:259:dec112.at>; purpose=EmergencyCallData.MsgType" });
   });
 
+  it('does not create History-Info header for URN targets', () => {
+    const mapper = new EmergencyMapper(logger);
+    const params: MessagePartsParams = {
+      ...defaultParams,
+      targetUri: 'urn:service:sos.test',
+    }
+    const parts = mapper.createMessageParts(params);
+
+    expect(parts.headers.filter(x => x.key === 'History-Info').length).toBe(0);
+  });
+
   it('can use a different domain', () => {
     const mapper = new EmergencyMapper(logger, new EmergencySpecifics({
       domain: 'another.sub.domain',

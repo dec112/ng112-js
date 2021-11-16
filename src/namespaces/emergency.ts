@@ -97,11 +97,16 @@ export class EmergencyMapper implements Mapper {
     vcard?: VCard,
   ): MessageParts => {
 
-    let headers: Header[] = [
+    let headers: Header[] = [];
+
+    // only add History-Info header if we have a real SIP-URI
+    // we may not add it if it is a URN
+    if (targetUri.indexOf('sip') === 0) {
       // enables tracing back the origin and routing history of the call
       // according to ETSI TS 103 698 -> 6.1.2.6
-      { key: HISTORY_INFO, value: `<${targetUri}>;index=1` }
-    ];
+      headers.push({ key: HISTORY_INFO, value: `<${targetUri}>;index=1` })
+    }
+
     const multipart = new Multipart();
 
     if (extraParts) {
