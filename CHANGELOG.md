@@ -74,8 +74,7 @@ This allows for the use of `extraParts`, `uris` and other properties for `start`
 - **BREAKING**: The agent's `conversation` property contains only calls that are not in state `STOPPED`. \
 Once calls are stopped they are removed from this list. \
 This should limit memory consumption if ng112-js is used in long running applications with heavy load.
-- The agent's `conversation` property only contains open calls. Stopped calls are removed from this list. \
-`debug` will now also accept a callback function that is called for all log messages. \
+- `debug` will now also accept a callback function that is called for all log messages. \
 This allows for the connection of any other logging facility.
 ### Added
 - Property `uniqueId` in messages that is unique across all messages and conversations within ng112-js
