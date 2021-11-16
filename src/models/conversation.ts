@@ -91,6 +91,7 @@ export class Conversation {
   private _messageId: number;
   private _heartbeatInterval?: Timeout;
   private _endpointType: ConversationEndpointType;
+  private _displayName?: string;
 
   private _queue: QueueItem[];
   private _messageListeners: ((message: Message) => void)[] = [];
@@ -171,6 +172,7 @@ export class Conversation {
     config?: ConversationConfiguration,
   ) {
     this._messageId = config?.messageId ?? 1;
+    this._displayName = config?.displayName;
     this._queue = [];
 
     this.id = config?.id ?? getRandomString(30);
@@ -275,6 +277,7 @@ export class Conversation {
       await this._agent.message(this._targetUri, multiObj.body, {
         contentType: multiObj.contentType,
         extraHeaders: extraHeaders.map(h => getHeaderString(h)),
+        displayName: this._displayName,
       });
 
       resolve();

@@ -38,7 +38,8 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - Support for customizing domains in SIP headers via `EmergencySpecifics`.
 - Ability to remove message listeners.
 - Ability to specify endpoint type for each conversation.
-- Ability to specify custom user agent headers
+- Ability to specify custom user agent headers.
+- Ability to override agent's default display name at `Conversation` level.
 - Interfaces for easily fetching SIP information like TO, FROM and ROUTE headers.
 ### Fixed
 - Conversation state only changes if the state value itself changes. If origin is different but state is the same, it won't trigger a state change.

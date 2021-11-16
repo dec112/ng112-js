@@ -12,6 +12,10 @@ export interface SendMessageOptions {
    * Extra headers to be forwarded to the SIP stack
    */
   extraHeaders?: string[];
+  /**
+   * Display name for SIP From header that MUST take precedence over the agent's default display name
+   */
+  displayName?: string;
 }
 
 export type SipAdapterConfig = OmitStrict<AgentConfiguration, 'debug' | 'namespaceSpecifics' | 'customSipHeaders'> & {

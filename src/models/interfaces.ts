@@ -26,6 +26,16 @@ export interface ConversationConfiguration {
    * to continue with the last + 1 message id that was sent
    */
   messageId?: number,
+  /**
+   * The user's well known identity. \
+   * This property will override the agent's default display name. \
+   * \
+   * Examples:
+   *   * the user's name (Alice)
+   *   * the user's telephone number (+43664123456789)
+   *   * an arbitrary identification of the user (Anonymous)
+   */
+  displayName?: string,
 }
 
 export interface DequeueRegistration {
