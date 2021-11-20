@@ -14,6 +14,20 @@ import { getPackageInfo, getPidfLo, timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
 import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
 import { HttpAdapter } from './http-adapter';
+import { SendMessageObject } from '..';
+
+export type DisposeObject = {
+  /**
+   * Timeout for all actions done before disposing the agent in milliseconds. \
+   * If there are still open calls, this grace period applies to each call closure. \
+   * Grace period also applies to unregistering and disconnecting the agent.
+   */
+  gracePeriod?: number,
+  /**
+   * Message options for the last message that's sent for conversations that are still open
+   */
+  sendMessageObject?: SendMessageObject,
+}
 
 export interface DebugConfig {
   /**
@@ -272,23 +286,26 @@ export class Agent {
    * Unregisteres from the ESRP and disposes the SIP agent. \
    * Closes open calls, if there are any. \
    * This function has to be called before exiting the application.
-   * 
-   * @param gracePeriod Timeout for all actions done before disposing the agent in milliseconds. \
-   * If there are still open calls, this grace period applies to each call closure. \
-   * Grace period also applies to unregistering and disconnecting the agent.
    */
-  dispose = async (gracePeriod: number = 10000): Promise<void> => {
+  dispose = async (disposeObject?: DisposeObject): Promise<void> => {
+    const {
+      gracePeriod = 10000,
+      sendMessageObject,
+    } = disposeObject ?? {};
+
     const openConversations = this.conversations.filter(x =>
       x.state.value !== ConversationState.STOPPED &&
       x.state.value !== ConversationState.ERROR
     );
 
-    if (openConversations.length > 0)
+    if (openConversations.length > 0) {
       this._logger.log(`Closing ${openConversations.length} open call(s) on agent dispose.`)
+      this._logger.log(`Using object for closing calls: ${JSON.stringify(sendMessageObject)}`);
+    }
 
     for (const c of openConversations) {
       try {
-        await timedoutPromise(c.stop().promise, gracePeriod);
+        await timedoutPromise(c.stop(sendMessageObject).promise, gracePeriod);
       } catch {
         this._logger.error(`Could not close conversation ${c.id}. Timeout after ${gracePeriod}ms.`);
       }

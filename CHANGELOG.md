@@ -18,6 +18,7 @@ Object has different properties!
 - **BREAKING**: Updating `Agent`'s heartbeat interval with invalid values will not result in an exception, but will rather log an error message.
 - **BREAKING**: `Agent`'s `debug` is now an object. This way, separate log-levels and handlers for in-library log messages and log messages created by the SIP adapter can be specified.
 - **BREAKING**: `NamespacedConversation` has been renamed to `Mapper`. Instance method `getName` has been renamed to `getNamespace` and now returns `enum` `Namespace` instead of a `string`. This in combination with the agent's new function `getMapper` lets you identify the used mapper of a conversation and opens the ability to resume conversations (e.g. after a PSAP breakdown) with the correct mapper.
+- **BREAKING**: Agent disposal can be configured by disposal object instead of grace period alone.
 - Improved build process, enabling better tree shaking for dependency `pidf-lo`.
 - Conversations in DEC112 environments are only started after an initial message sent by the PSAP.
 - A second parameter is passed to conversation listeners that contains the raw SIP event.
