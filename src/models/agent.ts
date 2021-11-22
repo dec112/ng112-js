@@ -300,7 +300,9 @@ export class Agent {
 
     if (openConversations.length > 0) {
       this._logger.log(`Closing ${openConversations.length} open call(s) on agent dispose.`)
-      this._logger.log(`Using object for closing calls: ${JSON.stringify(sendMessageObject)}`);
+
+      if (disposeObject)
+        this._logger.log(`Using object for closing calls: ${JSON.stringify(sendMessageObject)}`);
     }
 
     for (const c of openConversations) {
