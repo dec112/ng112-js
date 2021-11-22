@@ -16,6 +16,7 @@ import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { VCard } from './vcard';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
+import { IncomingMessageEvent, OutgoingMessageEvent } from 'jssip/lib/UA';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -446,7 +447,7 @@ export class Conversation {
   /**
    * This function is only used internally and should not be called from outside the library
    */
-  handleMessageEvent = (evt: JsSIP.UserAgentNewMessageEvent): void => {
+  handleMessageEvent = (evt: IncomingMessageEvent | OutgoingMessageEvent): void => {
     // TODO: Reshape this method, it's ugly
     const now = new Date();
     if (!this._created)
@@ -454,7 +455,9 @@ export class Conversation {
 
     const { originator, request } = evt;
     const { from, to, body } = request;
-    const origin = originator as Origin;
+    // jssip and ng112-js types are in fact identical
+    // thus don't need to be converted in any way
+    const origin = originator as unknown as Origin;
 
     const contentType = evt.request.getHeader(CONTENT_TYPE);
     let parsedText: string | undefined = undefined;
@@ -630,7 +633,7 @@ export class Conversation {
     ua: UA,
     store: Store,
     mapper: NamespacedConversation,
-    event: JsSIP.UserAgentNewMessageEvent,
+    event: IncomingMessageEvent,
   ) => {
     const { request } = event;
 

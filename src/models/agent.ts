@@ -14,6 +14,7 @@ import { CustomSipHeader } from './custom-sip-header';
 import { USER_AGENT } from '../constants';
 import { Logger, LogLevel } from './logger';
 import { timedoutPromise } from '../utils';
+import { IncomingMessageEvent, OutgoingMessageEvent } from 'jssip/lib/UA';
 
 export interface AgentConfiguration {
   /**
@@ -153,7 +154,7 @@ export class Agent {
       jssipDebug[debug ? 'enable' : 'disable']('JsSIP:*');
   }
 
-  private _handleMessageEvent = (evt: JsSIP.UserAgentNewMessageEvent) => {
+  private _handleMessageEvent = (evt: IncomingMessageEvent | OutgoingMessageEvent) => {
     const { request } = evt;
 
     const callInfoHeaders = request.getHeaders(CALL_INFO);
@@ -292,7 +293,7 @@ export class Agent {
    * @param mapper The mapper to use for this conversation
    */
   createConversation(
-    event: JsSIP.UserAgentNewMessageEvent,
+    event: IncomingMessageEvent | OutgoingMessageEvent,
     configuration?: ConversationConfiguration,
     mapper?: NamespacedConversation,
   ): Conversation;
@@ -317,7 +318,7 @@ export class Agent {
         this._agent,
         this._store,
         mapper,
-        value as JsSIP.UserAgentNewMessageEvent,
+        value as IncomingMessageEvent,
       );
     }
 

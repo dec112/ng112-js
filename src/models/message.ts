@@ -1,4 +1,5 @@
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
+import { IncomingMessageEvent, OutgoingMessageEvent } from 'jssip/lib/UA';
 import type { PidfLo } from 'pidf-lo';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
@@ -86,7 +87,7 @@ export interface Message {
    * The corresponding raw message from the SIP stack `JsSIP`\
    * For outgoing messages this will only be resolved after property `promise` is resolved
    */
-  jssipMessage?: JsSIP.UserAgentNewMessageEvent
+  jssipMessage?: IncomingMessageEvent | OutgoingMessageEvent
 }
 
 export const nextUniqueId = (() => {
