@@ -1,11 +1,4 @@
-export {
-  SipAdapter,
-  SipAdapterConfig,
-  DelegateObject,
-  NewMessageEvent,
-  SendMessageOptions,
-  SipUri,
-} from './sip-adapter';
+export * from './sip-adapter';
 
 export {
   Origin,
