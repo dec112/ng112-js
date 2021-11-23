@@ -173,6 +173,7 @@ export class Conversation {
   ) {
     this._messageId = config?.messageId ?? 1;
     this._displayName = config?.displayName;
+    this._logger = this._store.logger;
     this._queue = [];
 
     this.id = config?.id ?? getRandomString(30);
@@ -195,7 +196,6 @@ export class Conversation {
     this.isTest = config?.isTest ?? false;
     this._endpointType = config?.endpointType ?? ConversationEndpointType.CLIENT;
 
-    this._logger = this._store.logger;
 
     // manageHeartbeat is necessary here as someone could have already set the conversation's
     // state to `STARTED` which means also heartbeat has to be started
