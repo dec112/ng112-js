@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.4.0] - 2021-11-23
+### Fixed
+- Restore of conversations. A proper restore now also contains the previously used message id.
+- Better example snippet for converation restore.
+
 ## [1.3.0] - 2021-11-22
 ### Fixed
 - Removed @types/jssip and fixed JsSIP type errors.

@@ -144,17 +144,26 @@ export class Conversation {
      */
     config?: ConversationConfiguration,
   ) {
-    this._messageId = 1;
+    this._messageId = config?.messageId ?? 1;
+    this._logger = this._store.logger;
     this._queue = [];
 
     this.id = config?.id ?? getRandomString(30);
-    this._state = config?.state ?? {
+    this._state = {
       value: ConversationState.UNKNOWN,
       origin: Origin.SYSTEM,
     };
+
+    if (config?.state) {
+      const { value, origin } = config.state;
+      // we set it here...as _setState takes care of more (e.g. heartbeat)
+      // note that we don't call the state callback on purpose
+      // because it does not make sense to inform our listeners state has changed while we are still in the constructor
+      this._setState(value, origin);
+    }
+
     this.isTest = config?.isTest ?? false;
 
-    this._logger = this._store.logger;
 
     // manageHeartbeat is necessary here as someone could have already set the conversation's
     // state to `STARTED` which means also heartbeat has to be started
