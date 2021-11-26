@@ -1,22 +1,8 @@
 import { getAgents } from '..';
-import { Agent, ConversationState, Conversation, EmergencyMessageType, Message, Origin, Namespace } from '../../dist/node';
+import { Agent, ConversationState, EmergencyMessageType, Message, Origin, Namespace } from '../../dist/node';
+import { createOneTimeListener, initializeTests } from './utils';
 
-jest.setTimeout(60000);
-
-const createOneTimeListener = (conversation: Conversation): (callback: (message: Message) => void) => Promise<void> => {
-  return (callback) => new Promise<void>(resolve => {
-    const cb = (message: Message) => {
-      conversation.removeMessageListener(cb);
-
-      expect(message.origin === Origin.REMOTE);
-      callback(message);
-
-      resolve();
-    }
-
-    conversation.addMessageListener(cb);
-  });
-}
+initializeTests();
 
 describe('ng112-js', () => {
   it.each<Agent>(getAgents())('succesfully registers at the proxy', async (agent: Agent) => {
