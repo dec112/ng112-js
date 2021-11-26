@@ -1,44 +1,25 @@
-import { getAgent, server } from '..';
-import { Agent, ConversationState, EmergencyMessageType, Origin } from '../../dist/node';
+import { getAgents } from '..';
+import { Agent, ConversationState, EmergencyMessageType, Message, Origin } from '../../dist/node';
+import { createOneTimeListener, initializeTests } from './utils';
 
-// jest.setTimeout(10000);
-
-server.initialize();
-
-const getAgentInitialized = async () => {
-  const agent = getAgent();
-
-  const init = agent.initialize();
-  await server.expect.message();
-
-  server.send('sip-register_valid');
-  await init;
-
-  return agent;
-}
-
-const disposeAgent = async (agent: Agent) => {
-  const disposal = agent.dispose();
-  await server.expect.message();
-  server.send('sip-unregister_ok');
-
-  await disposal;
-}
+initializeTests();
 
 describe('ng112-js', () => {
-  it('succesfully registers at the proxy', async () => {
-    const agent = await getAgentInitialized();
+  it.each<Agent>(getAgents())('succesfully registers at the proxy', async (agent: Agent) => {
+    await agent.initialize();
 
     expect(agent.conversations).toHaveLength(0);
 
-    await disposeAgent(agent);
+    await agent.dispose();
   });
 
-  it('can have a dialogue', async () => {
-    const target = 'sip:1234@dec112.at';
-    const agent = await getAgentInitialized();
+  it.each<Agent>(getAgents())('can have a dialogue', async (agent: Agent) => {
+    const target = 'sip:default@service.dec112.home';
+    await agent.initialize();
 
     const conversation = agent.createConversation(target);
+    const once = createOneTimeListener(conversation);
+
     expect(agent.conversations).toHaveLength(1);
     expect(conversation.id).toHaveLength(30);
     expect(conversation.mapper.getName()).toBe('ETSI');
@@ -54,25 +35,28 @@ describe('ng112-js', () => {
 
     expect(conversation.state.value).toBe(ConversationState.UNKNOWN);
 
-    const outgoingMessage = await server.expect.message();
-    expect(outgoingMessage).toContain('From: "Alice"');
-    
-    const promise = new Promise<void>(resolve => {
-      conversation.addMessageListener((message) => {
-        expect(message.text).toBe('hello dec112!');
-        expect(conversation.state.value).toBe(ConversationState.STARTED);
-        expect(conversation.state.origin).toBe(Origin.REMOTE);
-
-        resolve();
-      });
+    await once((msg) => {
+      expect(msg.text).toContain('How can we help you?');
+      expect(conversation.state.value).toBe(ConversationState.STARTED);
+      expect(conversation.state.origin).toBe(Origin.REMOTE);
     });
 
-    server.send('sip-trying');
-    server.send('sip-message_ok');
-    server.send('sip-message_start_text-plain');
+    await conversation.sendMessage({
+      text: 'Testing',
+    });
 
-    await promise;
+    await once((msg: Message) => {
+      expect(msg.text).toContain('Testing');
+    })
 
-    await disposeAgent(agent);
+    const endMsg = conversation.stop();
+    expect(endMsg.text).not.toBeUndefined();
+
+    await endMsg.promise;
+
+    expect(conversation.state.value).toBe(ConversationState.STOPPED);
+    expect(conversation.state.origin).toBe(Origin.LOCAL);
+
+    await agent.dispose();
   });
 });

@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.5.0] - 2021-11-26
+### Added
+- BACKPORT [2.0.0]: Support for removal of message listeners.
+- BACKPORT [2.0.0]: Support for integration tests.
+### Fixed
+- BACKPORT [2.0.0]: State handling for conversations.
+
 ## [1.4.1] - 2021-11-26
 ### Fixed
 - Handling of conversations that are in error state

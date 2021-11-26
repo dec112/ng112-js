@@ -1,0 +1,22 @@
+# This is a template for a possible docker configuration for running integration tests
+# It requires a Kamailio SIP-Proxy and a NG112 compatible PSAP where the SDK can connect to
+
+version: "3"
+services:
+  kamailio:
+    image: <INSERT Kamailio docker image HERE>
+    container_name: sip-proxy
+    networks:
+      - dec112-net
+    volumes:
+      - ./kamailio.cfg:/etc/kamailio/kamailio.cfg
+    ports:
+      - "8088:80"
+  ng112-psap:
+    image: dec112/ng112-js-psap:latest
+    container_name: ng112-psap
+    networks:
+      - dec112-net
+
+networks:
+  dec112-net:
