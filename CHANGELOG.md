@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.4.1] - 2021-11-26
+### Fixed
+- Handling of conversations that are in error state
+
 ## [1.4.0] - 2021-11-23
 ### Fixed
 - Restore of conversations. A proper restore now also contains the previously used message id.
