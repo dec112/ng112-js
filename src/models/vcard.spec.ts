@@ -29,7 +29,7 @@ describe('VCard functionality', () => {
     expect(vcard.country).toBe('Austria');
     expect(vcard.telephone).toBe('+4366412345678');
     expect(vcard.email).toBe('alice.smith@dec112.at');
-    expect(vcard.birthday).toEqual(new Date(1990, 5, 11));
+    expect(vcard.birthday).toEqual(new Date(Date.UTC(1990, 5, 11)));
     expect(vcard.note).toBe('{"some":"additional","data":"to","be":"sent"}');
   });
 
@@ -46,7 +46,7 @@ describe('VCard functionality', () => {
       .addLastname('Smith')
       .addNamePrefix('Dr.')
       .addNameSuffix('MSc.')
-      .addBirthday(new Date(1990, 2, 3))
+      .addBirthday(new Date(Date.UTC(1990, 2, 3)))
       .addGender(Gender.OTHER)
       .addTelephone('+436641234567')
       .addEmail('info@dec112.at')
