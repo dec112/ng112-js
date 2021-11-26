@@ -6,7 +6,7 @@ import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { NamespacedConversation } from '../namespaces/interfaces';
 import { Store } from './store';
-import { Message, Origin, MessageState, nextUniqueId } from './message';
+import { Message, Origin, MessageState, nextUniqueId, nextUniqueRandomId } from './message';
 import { CALL_INFO, CONTENT_TYPE, REPLY_TO } from '../constants/headers';
 import { CALL_SUB, MULTIPART_MIXED, PIDF_LO, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';
 import { Multipart, MultipartPart, CRLF } from './multipart';
@@ -584,8 +584,14 @@ export class Conversation {
 
       this._notifyQueue();
 
+      let id = this.mapper.getMessageIdFromHeaders(callInfoHeaders);
+      if (!id) {
+        this._logger.warn('Could not find message id. Will use our internally created unique id instead.');
+        id = nextUniqueRandomId();
+      }
+
       this._addNewMessage({
-        id: this.mapper.getMessageIdFromHeaders(callInfoHeaders) as string,
+        id,
         uniqueId: nextUniqueId(),
         origin,
         conversation: this,

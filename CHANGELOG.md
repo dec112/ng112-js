@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.5.1] - 2021-11
+### Fixed
+- BACKPORT [2.0.0] - Handling of missing remote message ids.
+
 ## [1.5.0] - 2021-11-26
 ### Added
 - BACKPORT [2.0.0]: Support for removal of message listeners.

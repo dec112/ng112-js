@@ -1,6 +1,7 @@
 import { OutgoingEvent } from 'jssip/lib/RTCSession';
 import { IncomingMessageEvent, OutgoingMessageEvent } from 'jssip/lib/UA';
 import type { PidfLo } from 'pidf-lo';
+import { getRandomString } from '../utils';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
@@ -90,7 +91,16 @@ export interface Message {
   jssipMessage?: IncomingMessageEvent | OutgoingMessageEvent
 }
 
+/**
+ * Generates a unique id that's unique across all ng112-js processes
+ */
 export const nextUniqueId = (() => {
   let _uniqueSequence = 0;
   return () => _uniqueSequence++;
 })();
+
+/**
+ * Generates a unique id that's unique across all ng112-js processes
+ * and includes a 20 character random part in addition
+ */
+export const nextUniqueRandomId = () => `${getRandomString(20)}_${nextUniqueId()}`;
