@@ -21,11 +21,11 @@ export enum ConversationEndpointType {
 }
 
 export enum ConversationState {
-  UNKNOWN,
-  STARTED,
-  INTERRUPTED,
-  STOPPED,
-  ERROR,
+  UNKNOWN = 'unknown',
+  STARTED = 'started',
+  INTERRUPTED = 'interrupted',
+  STOPPED = 'stopped',
+  ERROR = 'error',
 }
 
 export interface SendMessageObject {
