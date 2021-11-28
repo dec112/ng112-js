@@ -1,5 +1,5 @@
 import type { PidfLo } from 'pidf-lo';
-import { getPidfLo, Header, isValidUri } from '../utils';
+import { getPidfLo, getRandomString, Header, isValidUri } from '../utils';
 import { Conversation } from './conversation';
 import { MultipartPart } from './multipart';
 import { VCard } from './vcard';
@@ -126,10 +126,19 @@ export interface MessageError {
   code: number,
 }
 
+/**
+ * Generates a unique id that's unique across all ng112-js processes
+ */
 export const nextUniqueId = (() => {
   let _uniqueSequence = 0;
   return () => _uniqueSequence++;
 })();
+
+/**
+ * Generates a unique id that's unique across all ng112-js processes
+ * and includes a 20 character random part in addition
+ */
+export const nextUniqueRandomId = () => `${getRandomString(20)}_${nextUniqueId()}`;
 
 export const createLocalMessage = (
   conversation: Conversation,

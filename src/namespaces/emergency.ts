@@ -7,7 +7,7 @@ import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
 import { MessageParts, MessagePartsParams, Namespace, Mapper } from './interfaces'
 import { NewMessageEvent } from '../adapters';
-import { Message, MessageState, nextUniqueId } from '../models/message';
+import { Message, MessageState, nextUniqueId, nextUniqueRandomId } from '../models/message';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { OmitStrict } from '../utils/ts-utils';
 import { Logger } from '../models/logger';
@@ -269,17 +269,16 @@ export class EmergencyMapper implements Mapper {
       type = EmergencyMessageType.IN_CHAT;
     }
 
-    const uniqueId = nextUniqueId();
     let id = this.getMessageIdFromHeaders(callInfoHeaders);
     if (!id) {
       this._logger.warn('Could not find message id. Will use our internally created unique id instead.');
-      id = uniqueId.toString();
+      id = nextUniqueRandomId();
     }
 
     return {
       ...message,
       id,
-      uniqueId,
+      uniqueId: nextUniqueId(),
       origin,
       dateTime: new Date(),
       type,
