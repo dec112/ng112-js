@@ -20,6 +20,7 @@ Object has different properties!
 - **BREAKING**: `NamespacedConversation` has been renamed to `Mapper`. Instance method `getName` has been renamed to `getNamespace` and now returns `enum` `Namespace` instead of a `string`. This in combination with the agent's new function `getMapper` lets you identify the used mapper of a conversation and opens the ability to resume conversations (e.g. after a PSAP breakdown) with the correct mapper.
 - **BREAKING**: Agent disposal can be configured by disposal object instead of grace period alone.
 - **BREAKING**: `ConversationState` (`enum` value) now uses `string` instead of `integer` values. If you've already used the `enum` values for distinguishing states you don't need to change your implementation. Only if you've used `integer` values e.g. for comparison, you'll have to change your implementation.
+- Internal states are now handled by state machine `@xstate/fsm` which is now a dependency of ng112-js. This gives us more reliable and testable state management.
 - Improved build process, enabling better tree shaking for dependency `pidf-lo`.
 - Conversations in DEC112 environments are only started after an initial message sent by the PSAP.
 - A second parameter is passed to conversation listeners that contains the raw SIP event.

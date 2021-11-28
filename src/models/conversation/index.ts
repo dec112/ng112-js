@@ -1,19 +1,20 @@
-import { getHeaderString, getRandomString, Header, parseNameAddrHeaderValue } from '../utils';
+import { getHeaderString, getRandomString, Header, parseNameAddrHeaderValue } from '../../utils';
 import type { PidfLo, SimpleLocation } from 'pidf-lo';
-import { QueueItem } from './queue-item';
-import { EmergencyMessageType } from '../constants/message-types/emergency';
-import { Mapper } from '../namespaces/interfaces';
-import { Store, AgentMode } from './store';
-import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from './message';
-import { CALL_INFO, REPLY_TO, ROUTE } from '../constants/headers';
-import { MultipartPart } from './multipart';
-import { ConversationConfiguration } from './interfaces';
-import { clearInterval, setInterval, Timeout } from '../utils';
-import { VCard } from './vcard';
-import { CustomSipHeader } from './custom-sip-header';
-import { Logger } from './logger';
-import { NewMessageEvent, SipAdapter } from '../adapters';
-import { NewMessageRequest } from '../adapters/sip-adapter';
+import { QueueItem } from '../queue-item';
+import { EmergencyMessageType } from '../../constants/message-types/emergency';
+import { Mapper } from '../../namespaces/interfaces';
+import { Store, AgentMode } from '../store';
+import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from '../message';
+import { CALL_INFO, REPLY_TO, ROUTE } from '../../constants/headers';
+import { MultipartPart } from '../multipart';
+import { ConversationConfiguration } from '../interfaces';
+import { clearInterval, setInterval, Timeout } from '../../utils';
+import { VCard } from '../vcard';
+import { CustomSipHeader } from '../custom-sip-header';
+import { Logger } from '../logger';
+import { NewMessageEvent, SipAdapter } from '../../adapters';
+import { NewMessageRequest } from '../../adapters/sip-adapter';
+import { ConversationStateMachine, createConversationState, EventObject, Transition } from './state';
 
 export enum ConversationEndpointType {
   CLIENT,
@@ -90,7 +91,6 @@ export class Conversation {
 
   private _messageId: number;
   private _heartbeatInterval?: Timeout;
-  private _endpointType: ConversationEndpointType;
   private _displayName?: string;
 
   private _queue: QueueItem[];
@@ -102,19 +102,28 @@ export class Conversation {
   private _lastSentVCard?: VCard = undefined;
   private _lastSentDID?: string = undefined;
 
-  private _hasBeenStarted: boolean = false;
+  private _state: ConversationStateMachine;
+  public get hasBeenStarted(): boolean { return this._state.state.context.hasBeenStarted; }
+  public get state(): StateObject {
+    const { state } = this._state;
+
+    return {
+      origin: state.context.origin,
+      value: state.value,
+    }
+  }
+
+  /**
+   * Type of endpoint
+   */
+  public get endpointType() { return this._endpointType }
+  private _endpointType: ConversationEndpointType;
 
   /**
    * All messages that were sent or received
    */
   public get messages() { return this._messages }
   private _messages: Message[] = [];
-
-  /**
-   * Current conversation's state
-   */
-  public get state() { return this._state }
-  private _state: StateObject;
 
   /**
    * This is the uri that was requested by the other communicating party
@@ -178,24 +187,19 @@ export class Conversation {
 
     this.id = config?.id ?? getRandomString(30);
 
-    // why do we set the state twice?
-    // well, here we please typescript so it does not complain about a non-defined instance property
-    this._state = {
-      value: ConversationState.UNKNOWN,
-      origin: Origin.SYSTEM,
-    };
-    // and if another state was set externally
-    if (config?.state) {
-      const { value, origin } = config.state;
-      // we set it here...as _setState takes care of more (e.g. heartbeat)
-      // note that we don't call the state callback on purpose
-      // because it does not make sense to inform our listeners state has changed while we are still in the constructor
-      this._setState(value, origin);
-    }
-
     this.isTest = config?.isTest ?? false;
     this._endpointType = config?.endpointType ?? ConversationEndpointType.CLIENT;
 
+    this._state = createConversationState(this, config?.state);
+    this._state.subscribe((state) => {
+      if (state.value === ConversationState.STARTED)
+        this._store.addHeartbeatIntervalListener(this._onUpdateHeartbeatInterval);
+      else
+        this._store.removeHeartbeatIntervalListener(this._onUpdateHeartbeatInterval);
+
+      this._manageHeartbeat();
+    });
+    this._state.start();
 
     // manageHeartbeat is necessary here as someone could have already set the conversation's
     // state to `STARTED` which means also heartbeat has to be started
@@ -297,7 +301,10 @@ export class Conversation {
 
       // TODO: Setup local Kamailio for testing
       if (ex.origin === Origin.REMOTE)
-        this._setState(ConversationState.ERROR, ex.origin)();
+        this._setState({
+          type: Transition.ERROR,
+          origin: ex.origin,
+        })();
 
       this._logger.error('Could not send SIP message.', message, ex);
 
@@ -322,7 +329,7 @@ export class Conversation {
     // define at which states message can be sent
     // this might differ between PSAP and CLIENT
     // also consider conversation state while PSAP is handing over to another PSAP
-    let queue = this._hasBeenStarted && this.state.value !== ConversationState.STOPPED ?
+    let queue = this.hasBeenStarted && this.state.value !== ConversationState.STOPPED ?
       [...this._queue] :
       // START messages can always be sent
       [...this._queue.filter(x => x.message.type === EmergencyMessageType.START)];
@@ -339,7 +346,7 @@ export class Conversation {
   // Heartbeat is only allowed for clients. PSAPs must not send hearbeat messages
   // Also, if `heartbeatInterval` is set to `0` it means heartbeat is disabled
   private _isHeartbeatAllowed = () =>
-    this._state.value === ConversationState.STARTED &&
+    this.state.value === ConversationState.STARTED &&
     this._endpointType === ConversationEndpointType.CLIENT &&
     this._store.getHeartbeatInterval() > 0;
 
@@ -383,7 +390,6 @@ export class Conversation {
     this._manageHeartbeat();
   }
 
-
   // TODO: setState should be available publicly, as an app should also be able to set the conversation's state
   // e.g. if conversation is in ERROR state and app wants to resume operation
   /**
@@ -394,32 +400,14 @@ export class Conversation {
    * 
    * @returns function to notify all listeners
    */
-  private _setState = (state: ConversationState, origin: Origin = Origin.SYSTEM): () => void => {
-    // it only matters what state the conversation currently has
-    // it does not matter which communicating party changed the state
-    // that's why we don't check `origin` here
-    if (state === this._state.value)
-      return () => undefined;
-
-    this._state = {
-      value: state,
-      origin,
-    }
-
-    if (state === ConversationState.STARTED) {
-      this._hasBeenStarted = true;
-      this._store.addHeartbeatIntervalListener(this._onUpdateHeartbeatInterval);
-    }
-    else
-      this._store.removeHeartbeatIntervalListener(this._onUpdateHeartbeatInterval);
-
-    this._manageHeartbeat();
+  private _setState = (eventObject: EventObject): () => void => {
+    this._state.send(eventObject);
 
     return () => {
       // Creating a copy of stateListeners as listeners might unsubscribe during execution
       // ...and altering an array while iterating it is not nice :-)
       for (const listener of this._stateListeners.slice(0)) {
-        listener(this._state);
+        listener(this.state);
       }
     };
   }
@@ -489,7 +477,7 @@ export class Conversation {
     // only applies to PSAPs and only if they support the PSAP start message!
     // Clients still have to start the conversation explicitly with a message of type START
     if (
-      !this._hasBeenStarted &&
+      !this.hasBeenStarted &&
       this._endpointType === ConversationEndpointType.PSAP &&
       EmergencyMessageType.isStarted(type)
     )
@@ -543,45 +531,23 @@ export class Conversation {
     const { type: messageType } = message;
 
     let stateCallback: (() => void) | undefined = undefined;
-    // accoring to standard, if we are a client, we have to wait for the server-side sent "START" message
-    // it's not safe to assume that a client can "START" a conversation on its own.
-    // the conversation could be declined for example
-    // therefore, we don't change the state for client-side fired START messages
-    // does not apply for DEC112 environments
-    if (!this._hasBeenStarted) {
-      // TODO: wow, this if is ugly! Simplify this!
-      if (
-        // client conversation is only allowed to be started by PSAP
-        (
-          this._endpointType === ConversationEndpointType.CLIENT &&
-          this.mapper.supportsPsapStartMessage() &&
-          messageType === EmergencyMessageType.START &&
-          origin === Origin.REMOTE
-        ) ||
-        // DEC112 environments
-        (
-          this._endpointType === ConversationEndpointType.CLIENT &&
-          !this.mapper.supportsPsapStartMessage() &&
-          EmergencyMessageType.isStarted(messageType) &&
-          origin === Origin.REMOTE
-        ) ||
-        // psap conversation is only allowed to be started by PSAP
-        (
-          this._endpointType === ConversationEndpointType.PSAP &&
-          messageType === EmergencyMessageType.START &&
-          origin === Origin.LOCAL
-        )
-      )
-        stateCallback = this._setState(ConversationState.STARTED, origin);
-    }
-    else {
-      if (EmergencyMessageType.isStopped(messageType))
-        stateCallback = this._setState(ConversationState.STOPPED, origin);
-      else if (EmergencyMessageType.isStarted(messageType))
-        stateCallback = this._setState(ConversationState.STARTED, origin);
-      else
-        stateCallback = this._setState(ConversationState.INTERRUPTED, origin);
-    }
+
+    if (EmergencyMessageType.isStopped(messageType))
+      stateCallback = this._setState({
+        type: Transition.STOP,
+        origin,
+      });
+    else if (EmergencyMessageType.isStarted(messageType))
+      stateCallback = this._setState({
+        type: Transition.START,
+        origin,
+        messageType,
+      });
+    else
+      stateCallback = this._setState({
+        type: Transition.INTERRUPT,
+        origin,
+      });
 
     if (origin === Origin.REMOTE) {
       if (req.hasHeader(REPLY_TO))
@@ -703,7 +669,10 @@ export class Conversation {
       // rejecting the first message means the consumer can not process this call
       const sipReject = event.reject;
       event.reject = (options) => {
-        conversation._setState(ConversationState.STOPPED, Origin.LOCAL);
+        conversation._setState({
+          type: Transition.STOP,
+          origin: Origin.LOCAL,
+        });
         return sipReject(options);
       }
     }
