@@ -17,6 +17,11 @@ import { HttpAdapter } from './http-adapter';
 import { SendMessageObject } from '..';
 import { MessageErrorReason } from './message';
 
+// TODO: We need a callback that is called for every change in a conversation
+// if recovery-related data has changed
+// maybe we can even provide a small object with all data 
+// that is needed for restoring a converstion
+
 export type DisposeObject = {
   /**
    * Timeout for all actions done before disposing the agent in milliseconds. \
