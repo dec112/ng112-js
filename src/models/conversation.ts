@@ -564,6 +564,8 @@ export class Conversation {
         )
       )
         stateCallback = this._setState(ConversationState.STARTED, origin);
+      else if (EmergencyMessageType.isStopped(emergencyMessageType))
+        stateCallback = this._setState(ConversationState.STOPPED, origin);
     }
     else {
       if (EmergencyMessageType.isStopped(emergencyMessageType))

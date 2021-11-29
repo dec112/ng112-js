@@ -6,9 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
-## [1.5.1] - 2021-11
+## [1.5.1] - 2021-11-29
 ### Fixed
-- BACKPORT [2.0.0] - Handling of missing remote message ids.
+- BACKPORT [2.0.0]: Handling of missing remote message ids.
+- BACKPORT [2.0.0]: Conversation state on immediate stop.
 
 ## [1.5.0] - 2021-11-26
 ### Added
