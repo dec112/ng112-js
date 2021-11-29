@@ -18,7 +18,7 @@
     "find-root": "^1.1.0",
     "jssip-node-websocket": "^3.0.0",
     "ng112-js": "file:../..",
-    "ng112-js-sip-adapter-jssip": "^0.4.1"
+    "ng112-js-sip-adapter-jssip": "^0.5.0"
   },
   "devDependencies": {
     "@types/find-root": "^1.1.2",
