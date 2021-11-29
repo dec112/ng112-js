@@ -23,14 +23,22 @@
 
 .message {
   white-space: pre-wrap;
+  border: 1px solid;
+  border-left-width: 1em;
+  padding: 0 1em;
 }
 
 .origin-remote {
-  text-align: left;
-  background-color: #f8bbd0;
+  border-color: #31708f;
+  margin-right: 25%;
 }
 
 .origin-local {
-  text-align: right;
-  background-color: #c5cae9;
+  border-color: #43a047;
+  margin-left: 25%;
+}
+
+.color-container {
+  border: 5px solid #a5fce0;
+  padding: 0.5em;
 }
