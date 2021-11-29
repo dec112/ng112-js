@@ -196,6 +196,10 @@ export class Conversation {
 
     this._state = createConversationState(this, config?.state);
     this._state.subscribe((state) => {
+      // we are not interested, if the same state is set
+      if (!state.changed)
+        return;
+
       if (state.value === ConversationState.STARTED)
         this._store.addHeartbeatIntervalListener(this._onUpdateHeartbeatInterval);
       else
