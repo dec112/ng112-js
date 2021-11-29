@@ -11,9 +11,6 @@
     "type": "git",
     "url": "git@github.com:dec112/ng112-js.git"
   },
-  "engines": {
-    "node": ">=10"
-  },
   "scripts": {
     "start": "ENV_TYPE=browser tsdx watch --format esm --name index",
     "build": "node ./scripts/build.js",
@@ -24,30 +21,17 @@
     "test": "sh ./scripts/test.sh",
     "test:tsdx": "tsdx test",
     "test:clear-cache": "./node_modules/jest/bin/jest.js --clearCache",
-    "lint": "tsdx lint",
-    "prepublishOnly": "npm run docs-deploy && npm run build",
-    "size": "size-limit",
-    "analyze": "size-limit --why"
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
+    "prepublishOnly": "npm run docs-deploy && npm run build"
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^4.7.0",
     "@types/jssip": "^3.3.1",
     "@types/xmldom": "^0.1.30",
     "find-root": "^1.1.0",
-    "husky": "^4.3.0",
     "jssip": "^3.7.5",
-    "mock-socket": "^9.0.3",
     "ng112-js-sip-adapter-jssip": "^0.4.1",
     "ng112-js-sip-adapter-sipjs": "^0.4.2",
     "rollup-plugin-modify": "^3.0.0",
     "sip.js": "^0.20.0",
-    "size-limit": "^4.7.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.3",
     "typedoc": "^0.19.2",
@@ -57,5 +41,13 @@
   "dependencies": {
     "@xstate/fsm": "^1.6.2",
     "pidf-lo": "^0.8.0"
-  }
+  },
+  "keywords": [
+    "emergency",
+    "911",
+    "112",
+    "ng911",
+    "ng112",
+    "dec112"
+  ]
 }
