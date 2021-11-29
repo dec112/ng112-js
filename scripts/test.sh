@@ -15,10 +15,6 @@ echo "docker-compose up"
 (cd test/env && docker-compose up -d)
 
 # wait some time for the docker environment to spin up
-echo "Waiting 15 seconds for docker containers to run..."
-sleep 5
-echo "Waiting 10 seconds for docker containers to run..."
-sleep 5
 echo "Waiting 5 seconds for docker containers to run..."
 sleep 5
 
