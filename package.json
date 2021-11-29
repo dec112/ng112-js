@@ -49,9 +49,9 @@
     "typescript": "^4.2.2"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.7.5",
     "jssip": "^3.8.2",
-    "pidf-lo": "^0.3.3",
-    "xmldom": "^0.4.0"
+    "pidf-lo": "^0.9.0"
   },
   "peerDependencies": {
     "jssip-node-websocket": "^3.0.0"
