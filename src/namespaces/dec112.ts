@@ -48,9 +48,8 @@ export class DEC112Mapper implements NamespacedConversation {
   ) { }
 
   getName = () => 'DEC112';
-  // DEC112 allows starting a conversation by the client
-  // ETSI standard only allows PSAP to finally start the conversation
-  isStartConversationByClientAllowed = (): boolean => true;
+  // DEC112 conversations can also be started with IN_CHAT messages by PSAP
+  supportsPsapStartMessage = (): boolean => false;
 
   createMessageParts = ({
     targetUri,

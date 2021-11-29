@@ -146,9 +146,9 @@ export class EmergencyMapper implements NamespacedConversation {
   }
 
   getName = () => 'ETSI';
-  // ETSI TS 103 698 does not allow a conversation to be started by client only
-  // also PSAP has to respond with a "START" message to finally start the conversation
-  isStartConversationByClientAllowed = (): boolean => false;
+  // ETSI TS 103 698 specifies that a conversation has to be started by PSAP only
+  // PSAP has to respond with a "START" message to finally start the conversation
+  supportsPsapStartMessage = (): boolean => true;
 
   createMessageParts = ({
     targetUri,

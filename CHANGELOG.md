@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - BACKPORT [2.0.0]: Handling of missing remote message ids.
 - BACKPORT [2.0.0]: Conversation state on immediate stop.
+- BACKPORT [2.0.0]: Conversation start handling in DEC112 environments.
 
 ## [1.5.0] - 2021-11-26
 ### Added

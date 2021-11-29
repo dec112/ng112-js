@@ -411,8 +411,7 @@ export class Conversation {
 
       // TODO: somehow prevent not multiple START messages are sent
       // this is currently possible, e.g. if the PSAP takes very long to respond and a user fires another message
-      if (!this.mapper.isStartConversationByClientAllowed())
-        type = EmergencyMessageType.START;
+      type = EmergencyMessageType.START;
     }
 
     const message: Message = {
@@ -546,21 +545,22 @@ export class Conversation {
         // client conversation is only allowed to be started by PSAP
         (
           this._endpointType === ConversationEndpointType.CLIENT &&
-          !this.mapper.isStartConversationByClientAllowed() &&
+          this.mapper.supportsPsapStartMessage() &&
           emergencyMessageType === EmergencyMessageType.START &&
+          origin === Origin.REMOTE
+        ) ||
+        // DEC112 environments
+        (
+          this._endpointType === ConversationEndpointType.CLIENT &&
+          !this.mapper.supportsPsapStartMessage() &&
+          EmergencyMessageType.isStarted(emergencyMessageType) &&
           origin === Origin.REMOTE
         ) ||
         // psap conversation is only allowed to be started by PSAP
         (
           this._endpointType === ConversationEndpointType.PSAP &&
-          !this.mapper.isStartConversationByClientAllowed() &&
           emergencyMessageType === EmergencyMessageType.START &&
           origin === Origin.LOCAL
-        ) ||
-        // DEC112 environments
-        (
-          this.mapper.isStartConversationByClientAllowed() &&
-          EmergencyMessageType.isStarted(emergencyMessageType)
         )
       )
         stateCallback = this._setState(ConversationState.STARTED, origin);

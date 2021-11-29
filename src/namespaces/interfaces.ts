@@ -34,7 +34,7 @@ export interface NamespacedConversation {
   tryParsePidfLo(value: string): PidfLo | undefined;
 
   getName(): string;
-  isStartConversationByClientAllowed(): boolean;
+  supportsPsapStartMessage(): boolean;
   isCompatible(headers: string[]): boolean;
 
   getCallIdFromHeaders(headers: string[]): string | undefined;
