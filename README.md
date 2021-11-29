@@ -32,7 +32,7 @@ npm install ng112-js-sip-adapter-jssip
 
 ### Special requirements for node.js
 
-As node.js does not come with native support for xml manipulation, you will have to install package `xmldom` which is a peer-dependency of `pidf-lo`.
+As node.js does not come with native support for xml manipulation, you will have to install package `@xmldom/xmldom` which is a peer-dependency of `pidf-lo`.
 
 Please also note the install requirements of the respective SIP adapters (README.md) \
 `ng112-js-sip-adapter-jssip` will need an additional package, if it is used in node.js environments!
