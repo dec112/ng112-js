@@ -100,9 +100,9 @@ export interface NewMessageRequest {
    */
   body: string | undefined;
   /**
-   * The raw message received by the SIP stack
+   * The raw message object received by the SIP stack
    */
-  sipStackMessage: any;
+  sipStackObject: NonNullable<any>;
 }
 
 export interface SipUri {
