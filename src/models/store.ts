@@ -36,7 +36,7 @@ export class Store {
 
   private _httpAdapter?: HttpAdapter;
 
-  private _heartbeatIntervalListeners: ((interval: number) => unknown)[] = [];
+  private _heartbeatIntervalListeners: Set<(interval: number) => unknown> = new Set();
 
   constructor(
     public readonly originSipUri: string,
@@ -57,7 +57,7 @@ export class Store {
   getHttpAdapter = (): HttpAdapter => {
     if (!this._httpAdapter)
       throw new Error('HttpAdapter was not set but is required.');
-    
+
     return this._httpAdapter;
   }
 
@@ -89,13 +89,10 @@ export class Store {
   setHttpAdapter = (adapter?: HttpAdapter) => this._httpAdapter = adapter;
 
   addHeartbeatIntervalListener = (callback: (interval: number) => unknown) => {
-    this._heartbeatIntervalListeners.push(callback);
+    this._heartbeatIntervalListeners.add(callback);
   }
 
   removeHeartbeatIntervalListener = (callback: (interval: number) => unknown) => {
-    const found = this._heartbeatIntervalListeners.indexOf(callback);
-
-    if (found !== -1)
-      this._heartbeatIntervalListeners.splice(found, 1);
+    this._heartbeatIntervalListeners.delete(callback);
   }
 }

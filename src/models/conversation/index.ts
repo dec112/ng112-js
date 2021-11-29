@@ -98,8 +98,8 @@ export class Conversation {
   private _displayName?: string;
 
   private _queue: QueueItem[];
-  private _messageListeners: ((message: Message) => void)[] = [];
-  private _stateListeners: ((state: StateObject) => void)[] = [];
+  private _messageListeners: Set<(message: Message) => void> = new Set();
+  private _stateListeners: Set<(state: StateObject) => void> = new Set();
 
   // TODO: Find a better solution for this lastSentXXX stuff
   private _lastSentLocation?: PidfLo = undefined;
@@ -420,8 +420,8 @@ export class Conversation {
       return () => {
         const state = this.state;
         // Creating a copy of stateListeners as listeners might unsubscribe during execution
-        // ...and altering an array while iterating it is not nice :-)
-        for (const listener of this._stateListeners.slice(0)) {
+        // ...and altering a set while iterating it is not nice :-)
+        for (const listener of new Set(this._stateListeners)) {
           listener(state);
         }
       };
@@ -619,7 +619,7 @@ export class Conversation {
    * @param callback Callback function that is called each time a new incoming or outgoing message is received/sent
    */
   addMessageListener = (callback: (message: Message) => unknown) => {
-    this._messageListeners.push(callback);
+    this._messageListeners.add(callback);
   }
 
   /**
@@ -628,9 +628,7 @@ export class Conversation {
    * @param callback Callback function that is called each time a new incoming or outgoing message is received/sent
    */
   removeMessageListener = (callback: (message: Message) => unknown) => {
-    const index = this._messageListeners.indexOf(callback);
-    if (index !== -1)
-      this._messageListeners.splice(index, 1);
+    this._messageListeners.delete(callback);
   }
 
   /**
@@ -639,7 +637,7 @@ export class Conversation {
    * @param callback Callback function that is called each time the conversation's state changes
    */
   addStateListener = (callback: (state: StateObject) => unknown) => {
-    this._stateListeners.push(callback);
+    this._stateListeners.add(callback);
   }
 
   /**
@@ -648,9 +646,7 @@ export class Conversation {
    * @param callback Callback function that is called each time the conversation's state changes
    */
   removeStateListener = (callback: (state: StateObject) => unknown) => {
-    const index = this._stateListeners.indexOf(callback);
-    if (index !== -1)
-      this._stateListeners.splice(index, 1);
+    this._stateListeners.delete(callback);
   }
 
   /**

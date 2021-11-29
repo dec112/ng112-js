@@ -38,7 +38,7 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - Support for tagging messages.
 - Support for starting a conversation with a custom message id.
 - Support for customizing domains in SIP headers via `EmergencySpecifics`.
-- Ability to remove message listeners.
+- Ability to remove listeners (conversation, state, message).
 - Ability to specify endpoint type for each conversation.
 - Ability to specify custom user agent headers.
 - Ability to override agent's default display name at `Conversation` level.

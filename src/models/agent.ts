@@ -126,7 +126,7 @@ const rejectIfDefined = async (evt: NewMessageEvent, options?: SipResponseOption
  */
 export class Agent {
   private _agent: SipAdapter;
-  private _stateListeners: ((state: AgentState) => void)[] = [];
+  private _stateListeners: Set<(state: AgentState) => void> = new Set();
 
   /**
    * Returns the agent's current state
@@ -144,7 +144,7 @@ export class Agent {
   private _store: Store;
   private _logger: Logger;
 
-  private _conversationListeners: ((conversation: Conversation, event?: NewMessageEvent) => void)[] = [];
+  private _conversationListeners: Set<(conversation: Conversation, event?: NewMessageEvent) => void> = new Set();
 
   /**
    * Creates a new instance of an agent for communication with an ETSI/DEC112 infrastructure
@@ -224,7 +224,7 @@ export class Agent {
       // we only want to start new conversations if there are active listeners.
       // otherwise it does not make sense.
       // e.g. this should prevent a mobile device from receiving incoming conversations.
-      if (!conversation && this._conversationListeners.length > 0)
+      if (!conversation && this._conversationListeners.size > 0)
         conversation = this.createConversation(evt, undefined, mapper);
 
       if (conversation)
@@ -443,20 +443,36 @@ export class Agent {
    * Adds a conversation listener. Callback will be notified about any new conversations.
    * 
    * @param callback Callback function that is called each time a new conversation is started.
-   * @param event Message event that triggered the creation of this conversation. \
+   * @param callback.conversation New conversation
+   * @param callback.event Message event that triggered the creation of this conversation. \
    * Property is only defined if conversation was started by a remote message (e.g. mostly in PSAP environments).
    */
   addConversationListener = (callback: (conversation: Conversation, event?: NewMessageEvent) => void): void => {
-    this._conversationListeners.push(callback);
+    this._conversationListeners.add(callback);
+  }
+  
+  /**
+   * Removes a previously registered listener.
+   */
+  removeConversationListener  = (callback: (conversation: Conversation, event?: NewMessageEvent) => void): void => {
+    this._conversationListeners.delete(callback);
   }
 
   /**
    * Registers a new listener for agent state changes
    * 
    * @param callback Callback function that is called each time the agent's state changes
+   * @param callback.state New state
    */
   addStateListener = (callback: (state: AgentState) => unknown) => {
-    this._stateListeners.push(callback);
+    this._stateListeners.add(callback);
+  }
+
+  /**
+   * Removes a previously registered listener.
+   */
+  removeStateListener = (callback: (state: AgentState) => unknown) => {
+    this._stateListeners.delete(callback);
   }
 
   private _notifyStateListeners = (state: AgentState): void => {

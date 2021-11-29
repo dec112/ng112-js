@@ -59,4 +59,50 @@ describe('ng112-js', () => {
 
     await agent.dispose();
   });
+
+  it.each<Agent>(getAgents())('does not notify listeners multiple times', async (agent: Agent) => {
+    const target = 'sip:default@service.dec112.home';
+    await agent.initialize();
+
+    const conversation = agent.createConversation(target);
+
+    const callback = jest.fn();
+
+    // intentionally registering this listener multiple times
+    // however the listener should only be called one time per message
+    conversation.addMessageListener(callback);
+    conversation.addMessageListener(callback);
+    conversation.addMessageListener(callback);
+
+    await conversation.start().promise;
+    await conversation.sendHeartbeat().promise;
+    await conversation.stop().promise;
+
+    // START message local
+    // START message remote
+    // HEARTBEAT message local
+    // STOP message local
+    // = 4 messages
+    expect(callback).toBeCalledTimes(4);
+
+    await agent.dispose();
+  });
+
+  it.each<Agent>(getAgents())('does not cause problems if callback is removed if it has was never been attached', async (agent: Agent) => {
+    const target = 'sip:default@service.dec112.home';
+    await agent.initialize();
+
+    const conversation = agent.createConversation(target);
+
+    const callback = jest.fn();
+
+    // never registered this listener before
+    conversation.removeMessageListener(callback);
+
+    await conversation.start().promise;
+    await conversation.sendHeartbeat().promise;
+    await conversation.stop().promise;
+
+    await agent.dispose();
+  });
 });
