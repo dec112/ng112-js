@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, Origin, MessageError, ConversationState, StateObject } from '../../dist/node';
+import { Agent, Origin, MessageError, ConversationState, StateObject, MessageErrorReason } from '../../dist/node';
 import { initializeTests } from './utils';
 
 initializeTests();
@@ -17,12 +17,10 @@ describe('ng112-js errors', () => {
       positiveMock();
     } catch (_ex) {
       const ex = _ex as MessageError;
-      const expectedError: MessageError = {
-        code: 404,
-        origin: Origin.REMOTE,
-      };
 
-      expect(ex).toEqual(expectedError);
+      expect(ex.statusCode).toBe(404);
+      expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toBe(MessageErrorReason.NOT_FOUND);
     }
 
     expect(positiveMock).not.toHaveBeenCalled();
@@ -36,35 +34,36 @@ describe('ng112-js errors', () => {
 
     const conversation = agent.createConversation(target);
     const positiveMock = jest.fn();
-    
+
     try {
       await conversation.start().promise;
       positiveMock();
     } catch (_ex) {
       const ex = _ex as MessageError;
-      
-      expect(ex.code).toBeGreaterThanOrEqual(400);
+
+      expect(ex.statusCode).toBeGreaterThanOrEqual(400);
       expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toContain('Unresolvable destination');
     }
-    
+
     expect(positiveMock).not.toHaveBeenCalled();
-    
+
     await agent.dispose();
   });
-  
+
   it.each<Agent>(getAgents())('resumes a conversation that has run into an error', async (agent: Agent) => {
     const target = 'sip:default@service.dec112.home';
     await agent.initialize();
-    
+
     const conversation = agent.createConversation(target);
-    
+
     await conversation.start().promise;
-    
+
     // this is a private property, therefore typescript complains
     // @ts-expect-error
     conversation._targetUri = 'sip:non-existent@service.dec112.home';
     const positiveMock = jest.fn();
-    
+
     try {
       await conversation.sendMessage({
         text: 'some text',
@@ -72,14 +71,12 @@ describe('ng112-js errors', () => {
       positiveMock();
     } catch (_ex) {
       const ex = _ex as MessageError;
-      const expectedError: MessageError = {
-        code: 404,
-        origin: Origin.REMOTE,
-      };
 
-      expect(ex).toEqual(expectedError);
+      expect(ex.statusCode).toBe(404);
+      expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toBe(MessageErrorReason.NOT_FOUND);
     }
-    
+
     expect(positiveMock).not.toHaveBeenCalled();
 
     const errorState: StateObject = {
@@ -96,7 +93,7 @@ describe('ng112-js errors', () => {
     await conversation.sendMessage({
       text: 'some text',
     }).promise;
-    
+
     const okState: StateObject = {
       origin: Origin.LOCAL,
       value: ConversationState.STARTED,

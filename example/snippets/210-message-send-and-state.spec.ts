@@ -15,7 +15,7 @@ it('Shows how to send heartbeats manually', async () => {
 
   msg.promise
     .then(() => console.log('Message sent successfully!'))
-    .catch((err: MessageError) => console.error(`An error happened. SIP Error Code: ${err.code}`))
+    .catch((err: MessageError) => console.error(`An error happened. SIP Error Code: ${err.statusCode}`))
 
   // message state can also be queried manually
   switch (msg.state) {
