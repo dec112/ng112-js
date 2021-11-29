@@ -43,7 +43,7 @@
     "husky": "^4.3.0",
     "jssip": "^3.7.5",
     "mock-socket": "^9.0.3",
-    "ng112-js-sip-adapter-jssip": "^0.3.1",
+    "ng112-js-sip-adapter-jssip": "^0.4.1",
     "ng112-js-sip-adapter-sipjs": "^0.4.2",
     "rollup-plugin-modify": "^3.0.0",
     "sip.js": "^0.20.0",
