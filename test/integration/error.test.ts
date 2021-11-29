@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, Origin, MessageError, ConversationState, StateObject, MessageErrorReason } from '../../dist/node';
+import { Agent, Origin, MessageError, ConversationState, StateObject } from '../../dist/node';
 import { initializeTests } from './utils';
 
 initializeTests();
@@ -20,7 +20,7 @@ describe('ng112-js errors', () => {
 
       expect(ex.statusCode).toBe(404);
       expect(ex.origin).toBe(Origin.REMOTE);
-      expect(ex.reason).toBe(MessageErrorReason.NOT_FOUND);
+      expect(ex.reason).toBe('Not Found');
     }
 
     expect(positiveMock).not.toHaveBeenCalled();
@@ -74,7 +74,7 @@ describe('ng112-js errors', () => {
 
       expect(ex.statusCode).toBe(404);
       expect(ex.origin).toBe(Origin.REMOTE);
-      expect(ex.reason).toBe(MessageErrorReason.NOT_FOUND);
+      expect(ex.reason).toBe('Not Found');
     }
 
     expect(positiveMock).not.toHaveBeenCalled();

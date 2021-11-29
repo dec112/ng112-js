@@ -12,7 +12,6 @@ export {
   Binary,
   Message,
   MessageError,
-  MessageErrorReason,
   MessageState,
   Origin,
 } from './models/message';
