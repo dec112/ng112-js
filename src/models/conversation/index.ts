@@ -47,6 +47,10 @@ export interface SendMessageObject {
    */
   uris?: string[],
   /**
+   * @experimental
+   * 
+   * Please be aware this interface is experimental and might change even within a major version!
+   * 
    * A list of binaries (files)
    */
   binaries?: Binary[],
