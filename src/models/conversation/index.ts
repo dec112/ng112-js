@@ -401,15 +401,22 @@ export class Conversation {
    * @returns function to notify all listeners
    */
   private _setState = (eventObject: EventObject): () => void => {
+    const prev = this.state;
     this._state.send(eventObject);
+    const curr = this.state;
 
-    return () => {
-      // Creating a copy of stateListeners as listeners might unsubscribe during execution
-      // ...and altering an array while iterating it is not nice :-)
-      for (const listener of this._stateListeners.slice(0)) {
-        listener(this.state);
-      }
-    };
+    if (prev.value === curr.value)
+      // do not notify listeners if value has not changed
+      return () => undefined;
+    else
+      return () => {
+        const state = this.state;
+        // Creating a copy of stateListeners as listeners might unsubscribe during execution
+        // ...and altering an array while iterating it is not nice :-)
+        for (const listener of this._stateListeners.slice(0)) {
+          listener(state);
+        }
+      };
   }
 
   /**
