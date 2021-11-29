@@ -114,16 +114,49 @@ export interface Message {
   event?: NewMessageEvent,
 }
 
+export enum MessageErrorReason {
+  // this can be used as default
+  UNKNOWN = 'Unknown',
+
+  CONNECTION_ERROR = 'Connection Error',
+  REQUEST_TIMEOUT = 'Request Timeout',
+  SIP_FAILURE_CODE = 'SIP Failure Code',
+  INTERNAL_ERROR = 'Internal Error',
+  BUSY = 'Busy',
+  REJECTED = 'Rejected',
+  REDIRECTED = 'Redirected',
+  UNAVAILABLE = 'Unavailable',
+  NOT_FOUND = 'Not Found',
+  BAD_REQUEST = 'Bad Request',
+}
+
 export interface MessageError {
   /**
    * Origin, who produced this error
    */
   origin: Origin,
   /**
-   * SIP error code
-   * @example 404 Not Found
+   * Reason why error happened
+   * 
+   * Preferably one of the internal `MessageErrorCause`,
+   * however, can also be an arbitrary string
+   * 
+   * As defined SIP "Reason Phrase" might not be available (in case of networking issues)
+   * internally created reasons take precedence over SIP "Reason Phrase"
+   * 
+   * @example "Not Found"
+   * @example "Custom Error"
    */
-  code: number,
+  reason: MessageErrorReason | string,
+  /**
+   * SIP error code, if available
+   * @example 404 (Not Found)
+   */
+  statusCode?: number,
+  /**
+   * The raw sip stack object representing the error
+   */
+  sipStackObject: NonNullable<any>,
 }
 
 /**

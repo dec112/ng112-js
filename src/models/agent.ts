@@ -15,6 +15,7 @@ import { SipResponseOptions } from '../adapters/sip-adapter';
 import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
 import { HttpAdapter } from './http-adapter';
 import { SendMessageObject } from '..';
+import { MessageErrorReason } from './message';
 
 export type DisposeObject = {
   /**
@@ -204,7 +205,7 @@ export class Agent {
     else {
       this._logger.warn('Incoming message is not compatible to DEC112 or ETSI standards and will therefore be rejected.');
       rejectIfDefined(evt, {
-        reasonPhrase: 'Bad request: Message incompatible',
+        reasonPhrase: `${MessageErrorReason.BAD_REQUEST}: Message incompatible`,
         statusCode: BAD_REQUEST,
       });
 
@@ -227,7 +228,7 @@ export class Agent {
       else {
         this._logger.warn('Rejected incoming message. No corresponding conversation found and no active conversation listeners listening. Is something wrong with the setup?', evt);
         rejectIfDefined(evt, {
-          reasonPhrase: 'Not found: Conversation not found',
+          reasonPhrase: `${MessageErrorReason.NOT_FOUND}: Conversation not found`,
           statusCode: NOT_FOUND,
         });
       }
@@ -235,7 +236,7 @@ export class Agent {
     else {
       this._logger.warn('Can not process message due to missing conversation id.');
       rejectIfDefined(evt, {
-        reasonPhrase: 'Bad request: CallId not present',
+        reasonPhrase: `${MessageErrorReason.BAD_REQUEST}: CallId not present`,
         statusCode: BAD_REQUEST,
       });
     }
