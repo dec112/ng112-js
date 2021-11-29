@@ -6,6 +6,7 @@ import {
   EmergencyMessageType,
   LocationMethod,
   Origin,
+  Utils,
   VCard,
 } from 'ng112-js/dist/browser';
 import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip/dist';
@@ -113,6 +114,9 @@ const disable = (element, value) => {
   const iframe = el('iframe');
   const message = el('txtMessage');
   const send = el('btnSend');
+  
+  const headerConfig = config.headers;
+  const headers = el('txtHeaders', headerConfig ? headerConfig.join('\\n') : undefined);
 
   const remoteSipUri = el('txtRemoteSipUri');
   const remoteDisplayName = el('txtRemoteDisplayName');
@@ -362,10 +366,22 @@ const disable = (element, value) => {
       }];
     }
 
+    const headersString = headers.value;
+    const extraHeaders = [];
+    if (headersString) {
+      for (const line of headersString.split('\n')) {
+        const h = Utils.parseHeader(line);
+
+        if (h)
+          extraHeaders.push(h);
+      }
+    }
+
     conversation.sendMessage({
       text: popMessageText(),
       binaries,
       uris,
+      extraHeaders,
     });
   });
   disable(send, true);
