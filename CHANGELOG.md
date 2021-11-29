@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.5.2] - 2021-11-29
+### Changed
+- Updated dependencies (pidf-lo, typedoc ...)
+- Package `xmldom` was outdated. Changed it to `@xmldom/xmldom`.
+
 ## [1.5.1] - 2021-11-29
 ### Fixed
 - BACKPORT [2.0.0]: Handling of missing remote message ids.
