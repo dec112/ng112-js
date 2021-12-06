@@ -1,6 +1,6 @@
 {
   "name": "ng112-js",
-  "version": "2.0.0-dev.30",
+  "version": "2.0.0-dev.31",
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
   "types": "dist/types/index.d.ts",

@@ -102,10 +102,8 @@ describe('ng112-js errors', () => {
 
     await agent.dispose();
 
-    const stopState: StateObject = {
-      origin: Origin.LOCAL,
-      value: ConversationState.STOPPED,
-    };
-    expect(conversation.state).toEqual(stopState);
+    // should not automatically stop conversation
+    // if not explicitly specified in `dispose`
+    expect(conversation.state).toEqual(okState);
   });
 });

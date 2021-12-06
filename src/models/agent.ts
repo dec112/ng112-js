@@ -24,12 +24,19 @@ import { SendMessageObject } from '..';
 export type DisposeObject = {
   /**
    * Timeout for all actions done before disposing the agent in milliseconds. \
-   * If there are still open calls, this grace period applies to each call closure. \
    * Grace period also applies to unregistering and disconnecting the agent.
+   * 
+   * If there are still open calls and `closeOpenCalls` was set to `true` \
+   * this grace period applies to each call closure.
    */
   gracePeriod?: number,
   /**
-   * Message options for the last message that's sent for conversations that are still open
+   * Whether open conversations should be automatically stopped or not.
+   */
+  stopOpenConversations?: boolean,
+  /**
+   * Message options for the last message that's sent for conversations that are still open. \
+   * Only works in conjunction with `stopOpenConversations`.
    */
   sendMessageObject?: SendMessageObject,
 }
@@ -296,25 +303,28 @@ export class Agent {
     const {
       gracePeriod = 10000,
       sendMessageObject,
+      stopOpenConversations = false,
     } = disposeObject ?? {};
 
-    const openConversations = this.conversations.filter(x =>
-      x.state.value !== ConversationState.STOPPED &&
-      x.state.value !== ConversationState.ERROR
-    );
+    if (stopOpenConversations) {
+      const openConversations = this.conversations.filter(x =>
+        x.state.value !== ConversationState.STOPPED &&
+        x.state.value !== ConversationState.ERROR
+      );
 
-    if (openConversations.length > 0) {
-      this._logger.log(`Closing ${openConversations.length} open call(s) on agent dispose.`)
+      if (openConversations.length > 0) {
+        this._logger.log(`Stopping ${openConversations.length} open call(s) on agent dispose.`)
 
-      if (disposeObject)
-        this._logger.log(`Using object for closing calls: ${JSON.stringify(sendMessageObject)}`);
-    }
+        if (sendMessageObject)
+          this._logger.log(`Using object for stopping calls: ${JSON.stringify(sendMessageObject)}`);
+      }
 
-    for (const c of openConversations) {
-      try {
-        await timedoutPromise(c.stop(sendMessageObject).promise, gracePeriod);
-      } catch {
-        this._logger.error(`Could not close conversation ${c.id}. Timeout after ${gracePeriod}ms.`);
+      for (const c of openConversations) {
+        try {
+          await timedoutPromise(c.stop(sendMessageObject).promise, gracePeriod);
+        } catch {
+          this._logger.error(`Could not close conversation ${c.id}. Timeout after ${gracePeriod}ms.`);
+        }
       }
     }
 
@@ -450,11 +460,11 @@ export class Agent {
   addConversationListener = (callback: (conversation: Conversation, event?: NewMessageEvent) => void): void => {
     this._conversationListeners.add(callback);
   }
-  
+
   /**
    * Removes a previously registered listener.
    */
-  removeConversationListener  = (callback: (conversation: Conversation, event?: NewMessageEvent) => void): void => {
+  removeConversationListener = (callback: (conversation: Conversation, event?: NewMessageEvent) => void): void => {
     this._conversationListeners.delete(callback);
   }
 

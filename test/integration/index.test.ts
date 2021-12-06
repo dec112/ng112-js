@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, ConversationState, EmergencyMessageType, Message, Origin, Namespace } from '../../dist/node';
+import { Agent, ConversationState, EmergencyMessageType, Message, Origin, Namespace, StateObject } from '../../dist/node';
 import { createOneTimeListener, initializeTests } from './utils';
 
 initializeTests();
@@ -103,6 +103,15 @@ describe('ng112-js', () => {
     await conversation.sendHeartbeat().promise;
     await conversation.stop().promise;
 
-    await agent.dispose();
+    await agent.dispose({
+      stopOpenConversations: true,
+    });
+
+    // should automatically stop conversations
+    const stopState: StateObject = {
+      origin: Origin.LOCAL,
+      value: ConversationState.STOPPED,
+    };
+    expect(conversation.state).toEqual(stopState);
   });
 });
