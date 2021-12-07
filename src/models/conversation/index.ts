@@ -162,17 +162,15 @@ export class Conversation {
 
   public readonly isTest: boolean;
 
-  /**
-   * This is the target device we are communicating with -> the other communicating party
-   * e.g. if ng112-js is used as PSAP, this would be the SIP address of a mobile device
-   */
-  public get targetUri() { return this._targetUri }
-
   public constructor(
     private _agent: SipAdapter,
     private _store: Store,
 
-    private _targetUri: string,
+    /**
+     * This is the target device we are communicating with -> the other communicating party
+     * e.g. if ng112-js is used as PSAP, this would be the SIP address of a mobile device
+     */
+    public targetUri: string,
 
     /**
      * The mapper for this environment for compatibility
@@ -274,7 +272,7 @@ export class Conversation {
     try {
       const { headers, multipart } = this.mapper.createMessageParts({
         ...message,
-        targetUri: this._targetUri,
+        targetUri: this.targetUri,
         conversationId: this.id,
         isTest: this.isTest,
         replyToSipUri,
@@ -286,7 +284,7 @@ export class Conversation {
         extraHeaders = extraHeaders.concat(message.extraHeaders);
 
       const multiObj = multipart.create();
-      await this._agent.message(this._targetUri, multiObj.body, {
+      await this._agent.message(this.targetUri, multiObj.body, {
         contentType: multiObj.contentType,
         extraHeaders: extraHeaders.map(h => getHeaderString(h)),
         displayName: this._displayName,
@@ -567,7 +565,7 @@ export class Conversation {
     if (origin === Origin.REMOTE) {
       if (req.hasHeader(REPLY_TO))
         // this is type safe as we've already checked whether this header exists or not
-        this._targetUri = req.getHeader(REPLY_TO) as string;
+        this.targetUri = req.getHeader(REPLY_TO) as string;
 
       this._setPropsFromIncomingMessage(req);
 

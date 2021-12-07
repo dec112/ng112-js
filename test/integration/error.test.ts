@@ -59,9 +59,7 @@ describe('ng112-js errors', () => {
 
     await conversation.start().promise;
 
-    // this is a private property, therefore typescript complains
-    // @ts-expect-error
-    conversation._targetUri = 'sip:non-existent@service.dec112.home';
+    conversation.targetUri = 'sip:non-existent@service.dec112.home';
     const positiveMock = jest.fn();
 
     try {
@@ -85,9 +83,7 @@ describe('ng112-js errors', () => {
     };
     expect(conversation.state).toEqual(errorState);
 
-    // this is a private property, therefore typescript complains
-    // @ts-expect-error
-    conversation._targetUri = target;
+    conversation.targetUri = target;
 
     // now we should be able to resume the conversation again
     await conversation.sendMessage({
