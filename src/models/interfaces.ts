@@ -1,5 +1,9 @@
-import { ConversationEndpointType, StateObject } from "./conversation";
+import { StateObject } from "./conversation";
 
+export enum EndpointType {
+  CLIENT = 'client',
+  PSAP = 'psap',
+}
 export interface ConversationConfiguration {
   /**
    * Defines the conversation as a test call\
@@ -19,7 +23,7 @@ export interface ConversationConfiguration {
   /**
    * Specifies the endpoint type for this conversation
    */
-  endpointType?: ConversationEndpointType,
+  endpointType?: EndpointType,
   /**
    * Specifies the first message id that should be used in this conversation
    * Can be used to restore a conversation from storage, if client or PSAP was suspended

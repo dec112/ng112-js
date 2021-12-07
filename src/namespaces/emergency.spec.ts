@@ -1,5 +1,5 @@
+import { EndpointType } from '..';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
-import { ConversationEndpointType } from '../models/conversation';
 import { Logger, LogLevel } from '../models/logger';
 import { Header } from '../utils';
 import { EmergencyMapper, EmergencySpecifics } from './emergency';
@@ -51,7 +51,7 @@ describe('Checking call info headers', () => {
 describe('Generating Call-Info headers', () => {
   const defaultParams: MessagePartsParams = {
     conversationId: 'cid-1',
-    endpointType: ConversationEndpointType.CLIENT,
+    endpointType: EndpointType.CLIENT,
     id: 67,
     isTest: false,
     replyToSipUri: 'sip:reply-to@dec112.at',
@@ -107,7 +107,7 @@ describe('Messaging functionality', () => {
     const parts = mapper.createMessageParts({
       targetUri: 'sip:some.emergency@call.at',
       conversationId: '1234',
-      endpointType: ConversationEndpointType.CLIENT,
+      endpointType: EndpointType.CLIENT,
       isTest: false,
       id: 1,
       type: EmergencyMessageType.HEARTBEAT,

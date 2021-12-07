@@ -2,7 +2,6 @@ import { getRandomString, Header, } from '../utils';
 import { PidfLo, XMLCompat } from 'pidf-lo/dist/node';
 import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST, MULTIPART_MIXED } from '../constants/content-types';
 import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, HISTORY_INFO, REPLY_TO } from '../constants/headers';
-import { ConversationEndpointType } from '../models/conversation';
 import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
 import { MessageParts, MessagePartsParams, Namespace, Mapper } from './interfaces'
@@ -12,6 +11,7 @@ import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { OmitStrict } from '../utils/ts-utils';
 import { Logger } from '../models/logger';
 import { NamespaceSpecifics } from '.';
+import { EndpointType } from '../models/interfaces';
 
 // we are quite generous when it comes to spaces
 // so if there is a header incoming with more than one space, we still accept it
@@ -88,7 +88,7 @@ export class EmergencyMapper implements Mapper {
 
   protected createCommonParts = (
     targetUri: string,
-    endpointType: ConversationEndpointType,
+    endpointType: EndpointType,
     replyToSipUri: string,
     text?: string,
     uris?: string[],
@@ -113,7 +113,7 @@ export class EmergencyMapper implements Mapper {
       multipart.addAll(extraParts);
     }
 
-    if (endpointType === ConversationEndpointType.PSAP) {
+    if (endpointType === EndpointType.PSAP) {
       headers.push({ key: REPLY_TO, value: replyToSipUri })
     }
 
@@ -333,7 +333,7 @@ export class EmergencyMapper implements Mapper {
     // TODO: Implement sending binaries
 
     if (
-      endpointType === ConversationEndpointType.CLIENT &&
+      endpointType === EndpointType.CLIENT &&
       isTest
     ) {
       // TODO: if target is a URN, append ".test" here

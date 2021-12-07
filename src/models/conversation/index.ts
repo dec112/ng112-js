@@ -7,7 +7,7 @@ import { Store, AgentMode } from '../store';
 import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from '../message';
 import { CALL_INFO, REPLY_TO, ROUTE } from '../../constants/headers';
 import { MultipartPart } from '../multipart';
-import { ConversationConfiguration } from '../interfaces';
+import { ConversationConfiguration, EndpointType } from '../interfaces';
 import { clearInterval, setInterval, Timeout } from '../../utils';
 import { VCard } from '../vcard';
 import { CustomSipHeader } from '../custom-sip-header';
@@ -15,11 +15,6 @@ import { Logger } from '../logger';
 import { NewMessageEvent, SipAdapter } from '../../adapters';
 import { NewMessageRequest } from '../../adapters/sip-adapter';
 import { ConversationStateMachine, createConversationState, EventObject, Transition } from './state';
-
-export enum ConversationEndpointType {
-  CLIENT,
-  PSAP,
-}
 
 export enum ConversationState {
   UNKNOWN = 'unknown',
@@ -121,7 +116,7 @@ export class Conversation {
    * Type of endpoint
    */
   public get endpointType() { return this._endpointType }
-  private _endpointType: ConversationEndpointType;
+  private _endpointType: EndpointType;
 
   /**
    * All messages that were sent or received
@@ -190,7 +185,7 @@ export class Conversation {
     this.id = config?.id ?? getRandomString(30);
 
     this.isTest = config?.isTest ?? false;
-    this._endpointType = config?.endpointType ?? ConversationEndpointType.CLIENT;
+    this._endpointType = config?.endpointType ?? EndpointType.CLIENT;
 
     this._state = createConversationState(this, config?.state);
     this._state.subscribe((state) => {
@@ -215,7 +210,7 @@ export class Conversation {
   private _updateMessagePropsIfIsClient = (message: Message) => {
     // only clients can send location and vcard
     // update the message with latest information
-    if (this._endpointType === ConversationEndpointType.CLIENT) {
+    if (this._endpointType === EndpointType.CLIENT) {
 
       // message location takes precedence over location that's inside the store
       const currentLocation = message.location ?? this._store.getLocation();
@@ -353,7 +348,7 @@ export class Conversation {
   // Also, if `heartbeatInterval` is set to `0` it means heartbeat is disabled
   private _isHeartbeatAllowed = () =>
     this.state.value === ConversationState.STARTED &&
-    this._endpointType === ConversationEndpointType.CLIENT &&
+    this._endpointType === EndpointType.CLIENT &&
     this._store.getHeartbeatInterval() > 0;
 
   private _startHeartbeat = () => {
@@ -491,7 +486,7 @@ export class Conversation {
     // Clients still have to start the conversation explicitly with a message of type START
     if (
       !this.hasBeenStarted &&
-      this._endpointType === ConversationEndpointType.PSAP &&
+      this._endpointType === EndpointType.PSAP &&
       EmergencyMessageType.isStarted(type)
     )
       type = EmergencyMessageType.START;
@@ -655,8 +650,28 @@ export class Conversation {
     store: Store,
     mapper: Mapper,
     event: NewMessageEvent,
+    endpointType: EndpointType = EndpointType.PSAP,
   ) => {
     const request = event.request;
+
+    // if conversation is created from incoming SIP message AND
+    // endpoint type is CLIENT AND
+    // conversation already seems to be started
+    // we already set its state to started.
+    // This is used if PSAP transfers already running conversation
+    // from one device to another (in case of fallbacks).
+    // In this case it does not start the conversation anew
+    // but rather continues sending messages.
+    let state: StateObject | undefined = undefined;
+    if (endpointType === EndpointType.CLIENT)
+      try {
+        const message = mapper.parseMessageFromEvent(event);
+        if (EmergencyMessageType.isStarted(message.type))
+          state = {
+            origin: Origin.REMOTE,
+            value: ConversationState.STARTED,
+          };
+      } catch { }
 
     const conversation = new Conversation(
       ua,
@@ -666,11 +681,12 @@ export class Conversation {
       {
         id: mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO)),
         isTest: mapper.getIsTestFromEvent(event),
+        endpointType: endpointType,
+        state,
       },
     );
 
     conversation._setPropsFromIncomingMessage(event.request);
-    conversation._endpointType = ConversationEndpointType.PSAP;
 
     if (event.reject) {
       // if reject is possible, we monkey-patch it here

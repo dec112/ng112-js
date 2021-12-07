@@ -1,7 +1,8 @@
 import { createMachine, interpret, assign } from '@xstate/fsm';
-import { Conversation, ConversationEndpointType, ConversationState, StateObject } from '.';
+import { Conversation, ConversationState, StateObject } from '.';
 import { Origin } from '../message';
 import { EmergencyMessageType } from '../../constants/message-types/emergency';
+import { EndpointType } from '../interfaces';
 
 interface ContextObject {
   hasBeenStarted: boolean;
@@ -44,7 +45,7 @@ const startCondition = (context: ContextObject, event: EventObject): boolean => 
       throw new Error('messageType needs to be defined for START transition!');
 
     if (
-      conversation.endpointType === ConversationEndpointType.CLIENT &&
+      conversation.endpointType === EndpointType.CLIENT &&
       origin === Origin.REMOTE
     )
 
@@ -62,7 +63,7 @@ const startCondition = (context: ContextObject, event: EventObject): boolean => 
         return false;
 
     else if (
-      conversation.endpointType === ConversationEndpointType.PSAP &&
+      conversation.endpointType === EndpointType.PSAP &&
       messageType === EmergencyMessageType.START &&
       origin === Origin.LOCAL
     )

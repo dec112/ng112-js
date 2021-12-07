@@ -1,6 +1,6 @@
 import { DEC112Specifics } from '.';
+import { EndpointType } from '..';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
-import { ConversationEndpointType } from '../models/conversation';
 import { Logger, LogLevel } from '../models/logger';
 import { Header } from '../utils';
 import { DEC112Mapper } from './dec112';
@@ -11,7 +11,7 @@ const logger = new Logger(LogLevel.NONE);
 describe('Generating headers', () => {
   const defaultParams: MessagePartsParams = {
     conversationId: 'cid-1',
-    endpointType: ConversationEndpointType.CLIENT,
+    endpointType: EndpointType.CLIENT,
     id: 67,
     isTest: false,
     replyToSipUri: 'sip:reply-to@dec112.at',

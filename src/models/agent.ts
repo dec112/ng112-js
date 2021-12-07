@@ -14,7 +14,7 @@ import { getPackageInfo, getPidfLo, timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
 import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
 import { HttpAdapter } from './http-adapter';
-import { SendMessageObject } from '..';
+import { EndpointType, SendMessageObject } from '..';
 
 // TODO: We need a callback that is called for every change in a conversation
 // if recovery-related data has changed
@@ -111,7 +111,11 @@ export interface AgentConfiguration {
    * 
    * @example your-application/1.2.3 some-framework/2.5.3
    */
-  userAgent?: string
+  userAgent?: string,
+  /**
+   * Specifies what kind of endpoint the agent should represent
+   */
+  endpointType?: EndpointType,
 }
 
 export enum AgentState {
@@ -154,6 +158,11 @@ export class Agent {
   private _conversationListeners: Set<(conversation: Conversation, event?: NewMessageEvent) => void> = new Set();
 
   /**
+   * Specifies what kind of endpoint the agent should represent
+   */
+  public endpointType?: EndpointType;
+
+  /**
    * Creates a new instance of an agent for communication with an ETSI/DEC112 infrastructure
    */
   constructor(config: AgentConfiguration) {
@@ -164,7 +173,10 @@ export class Agent {
       customSipHeaders,
       debug,
       userAgent,
+      endpointType,
     } = config;
+
+    this.endpointType = endpointType;
 
     const originSipUri = customSipHeaders?.from ?
       CustomSipHeader.resolve(customSipHeaders.from) :
@@ -387,6 +399,7 @@ export class Agent {
         this._store,
         mapper,
         event,
+        this.endpointType,
       );
     }
 

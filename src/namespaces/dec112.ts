@@ -1,7 +1,6 @@
 import { CALL_INFO, CONTENT_TRANSFER_ENCODING, CONTENT_TYPE } from '../constants/headers';
 import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
-import { ConversationEndpointType } from '../models/conversation';
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, Namespace, NamespaceSpecifics } from './interfaces';
 import { NewMessageEvent } from '../adapters';
@@ -9,6 +8,7 @@ import { Base64 } from '../utils/base64';
 import { OmitStrict } from '../utils/ts-utils';
 import { Message } from '../models/message';
 import { Logger } from '../models/logger';
+import { EndpointType } from '../models/interfaces';
 
 const UID = 'uid';
 
@@ -114,7 +114,7 @@ export class DEC112Mapper extends EmergencyMapper {
       { key: CALL_INFO, value: getMessageTypeHeaderValue(dec112MessageType.toString(), domain) },
     ];
 
-    if (endpointType === ConversationEndpointType.CLIENT) {
+    if (endpointType === EndpointType.CLIENT) {
       const spec = this._dec112Specifics.config;
 
       if (spec.deviceId)

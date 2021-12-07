@@ -1,9 +1,9 @@
-import { ConversationEndpointType } from '../models/conversation';
 import { Message } from '../models/message';
 import { NewMessageEvent } from '../adapters';
 import { Multipart } from '../models/multipart';
 import { Header } from '../utils';
 import { OmitStrict } from '../utils/ts-utils';
+import { EndpointType } from '../models/interfaces';
 
 export interface NamespaceSpecifics {
   getDomain(): string;
@@ -24,7 +24,7 @@ export type MessagePartsParams = OmitStrict<Message,
 > & {
   targetUri: string,
   conversationId: string,
-  endpointType: ConversationEndpointType,
+  endpointType: EndpointType,
   isTest: boolean,
   replyToSipUri: string,
 }
