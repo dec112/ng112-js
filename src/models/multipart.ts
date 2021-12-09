@@ -71,6 +71,8 @@ export class Multipart {
       res.push(`--${boundary}--`);
 
     return {
+      // TODO: property headers is currently unused
+      // decide to either remove or use it :-)
       headers,
       contentType: `${MULTIPART_MIXED}; boundary=${boundary}`,
       // https://tools.ietf.org/html/rfc5322#section-2.1.1

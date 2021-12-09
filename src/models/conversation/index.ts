@@ -5,7 +5,8 @@ import { EmergencyMessageType } from '../../constants/message-types/emergency';
 import { Mapper } from '../../namespaces/interfaces';
 import { Store, AgentMode } from '../store';
 import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from '../message';
-import { CALL_INFO, REPLY_TO, ROUTE } from '../../constants/headers';
+import { CALL_INFO, REPLY_TO, ROUTE, CONTENT_TYPE } from '../../constants/headers';
+import { TEXT_PLAIN } from '../../constants/content-types';
 import { MultipartPart } from '../multipart';
 import { ConversationConfiguration, EndpointType } from '../interfaces';
 import { clearInterval, setInterval, Timeout } from '../../utils';
@@ -278,9 +279,25 @@ export class Conversation {
       if (message.extraHeaders)
         extraHeaders = extraHeaders.concat(message.extraHeaders);
 
-      const multiObj = multipart.create();
-      await this._agent.message(this.targetUri, multiObj.body, {
-        contentType: multiObj.contentType,
+      let contentType: string;
+      let body: string;
+
+      // if multipart only contains one item
+      // just use this item for setting the content type and body
+      // no need to send the whole multipart object
+      if (multipart.parts[0]) {
+        const part = multipart.parts[0];
+        contentType = part.headers.find(x => x.key === CONTENT_TYPE)?.value ?? TEXT_PLAIN;
+        body = part.body;
+      // otherwise we send the whole object
+      } else {
+        const multiObj = multipart.create();
+        contentType = multiObj.contentType;
+        body = multiObj.body;
+      }
+
+      await this._agent.message(this.targetUri, body, {
+        contentType,
         extraHeaders: extraHeaders.map(h => getHeaderString(h)),
         displayName: this._displayName,
       });
