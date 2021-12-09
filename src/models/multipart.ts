@@ -93,7 +93,7 @@ export class Multipart {
   };
 
   static parse = (input: string, multipartHeader: string): Multipart => {
-    const multipartRegex = new RegExp(`${MULTIPART_MIXED}; boundary=(.+)`).exec(multipartHeader);
+    const multipartRegex = new RegExp(`${MULTIPART_MIXED};\\s*boundary=[-]*([^-]+)`).exec(multipartHeader);
 
     if (!multipartRegex || multipartRegex.length < 2)
       throw new Error('Multipart header malformed.');
@@ -135,10 +135,12 @@ export class Multipart {
         }
       }
 
-      multi.add({
-        body,
-        headers,
-      });
+      // only consider multiparts with some body in it
+      if (body !== '')
+        multi.add({
+          body,
+          headers,
+        });
     }
 
     return multi;
