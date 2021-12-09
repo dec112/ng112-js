@@ -85,7 +85,15 @@ export class Multipart {
     const res: MultipartPart[] = [];
 
     while (true) {
-      const index = this._parts.findIndex(x => x.headers.findIndex((y) => y.key === CONTENT_TYPE && y.value === contentType) !== -1);
+      const index = this._parts.findIndex(x =>
+        x.headers.findIndex((y) =>
+          y.key === CONTENT_TYPE &&
+          // don't use equality here
+          // content types can also contain charsets or other things we might not want to consider
+          y.value.indexOf(contentType) !== -1
+        )
+        !== -1
+      );
 
       if (index !== -1)
         res.push(this._parts.splice(index, 1)[0]);

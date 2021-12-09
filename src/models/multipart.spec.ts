@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { Multipart, MultipartPart } from '..';
 import { CRLF } from './multipart';
+import { TEXT_PLAIN } from '../constants/content-types';
 
 const invalidDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'multipart-invalid.txt'), { encoding: 'utf-8' });
 
@@ -14,19 +15,23 @@ describe('Multipart parsing', () => {
 
     expect(parsed.parts).toHaveLength(4);
 
+    const textPart1 = {
+      body: `Some text${CRLF}${CRLF}${CRLF}`,
+      headers: [
+        { key: 'Content-Type', value: 'text/plain;charset=UTF-8' }
+      ]
+    };
+
+    const textPart2 = {
+      body: `--dangerous`,
+      headers: [
+        { key: 'Content-Type', value: 'text/plain' }
+      ]
+    };
+
     const expectedPars: MultipartPart[] = [
-      {
-        body: `Some text${CRLF}${CRLF}${CRLF}`,
-        headers: [
-          { key: 'Content-Type', value: 'text/plain;charset=UTF-8' }
-        ]
-      },
-      {
-        body: `--dangerous`,
-        headers: [
-          { key: 'Content-Type', value: 'text/plain' }
-        ]
-      },
+      textPart1,
+      textPart2,
       {
         body: '<invalidXML>',
         headers: [
@@ -45,5 +50,12 @@ describe('Multipart parsing', () => {
     for (const expected of expectedPars) {
       expect(parsed.parts).toContainEqual(expected);
     }
+
+    // test, whether popPartsByContentType considers charset that's specified
+    // it should not!
+    expect(parsed.popPartsByContentType(TEXT_PLAIN)).toEqual([
+      textPart1,
+      textPart2,
+    ]);
   });
 });
