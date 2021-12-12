@@ -6,10 +6,10 @@ import { Multipart, MultipartPart } from '..';
 import { CRLF } from './multipart';
 import { TEXT_PLAIN } from '../constants/content-types';
 
-const invalidDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'multipart-invalid.txt'), { encoding: 'utf-8' });
 
 describe('Multipart parsing', () => {
   it('should parse strangely built multiparts', () => {
+    const invalidDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'multipart-invalid.txt'), { encoding: 'utf-8' });
     // look, this boundary is quite weird
     const parsed = Multipart.parse(invalidDoc, 'Content-Type: multipart/mixed;boundary=----------UxCETVhBhhfxiD5G');
 
@@ -57,5 +57,16 @@ describe('Multipart parsing', () => {
       textPart1,
       textPart2,
     ]);
+  });
+
+  it('should not parse complete garbage', () => {
+    const invalidDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'multipart-garbage.txt'), { encoding: 'utf-8' });
+    // look, this boundary is quite weird
+    const parsed = Multipart.parse(invalidDoc, 'Content-Type: multipart/mixed;boundary=UxCETVhBhhfxiD5G');
+
+    expect(parsed.parts).toHaveLength(1);
+    
+    const textParts = parsed.popPartsByContentType(TEXT_PLAIN);
+    expect(textParts).toHaveLength(0);
   });
 });
