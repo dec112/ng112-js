@@ -285,11 +285,11 @@ export class Conversation {
       // if multipart only contains one item
       // just use this item for setting the content type and body
       // no need to send the whole multipart object
-      if (multipart.parts[0]) {
+      if (multipart.parts.length === 1) {
         const part = multipart.parts[0];
         contentType = part.headers.find(x => x.key === CONTENT_TYPE)?.value ?? TEXT_PLAIN;
         body = part.body;
-      // otherwise we send the whole object
+        // otherwise we send the whole object
       } else {
         const multiObj = multipart.create();
         contentType = multiObj.contentType;
