@@ -1,5 +1,6 @@
 export * from './base64';
 export * from './core-utils';
+export * from './message-utils';
 export * from './package-utils';
 export * from './sip-utils';
 export * from './ts-utils';

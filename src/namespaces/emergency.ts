@@ -1,6 +1,6 @@
-import { getRandomString, Header, } from '../utils';
+import { getRandomString, Header, parseMessage, } from '../utils';
 import { PidfLo, XMLCompat } from 'pidf-lo/dist/node';
-import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST, MULTIPART_MIXED } from '../constants/content-types';
+import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST } from '../constants/content-types';
 import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, HISTORY_INFO, REPLY_TO } from '../constants/headers';
 import { CRLF, Multipart, MultipartPart } from '../models/multipart';
 import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
@@ -188,78 +188,11 @@ export class EmergencyMapper implements Mapper {
     };
   }
 
-  private parseMultipartParts = (multipart: Multipart): Partial<Message> => {
-    // TODO: Find a way to parse binaries
-    // or decide that this will be covered by "extraParts"
-
-    const message: Partial<Message> = {};
-
-    const textParts = multipart.popPartsByContentType(TEXT_PLAIN);
-    if (textParts.length > 0) {
-      // we just concatenate all plain parts with line breaks
-      // this might not be the best solution, but it's for sure the easiest one ;-)
-      message.text = textParts.map(x => x.body).join('\n');
-    }
-
-    const locationParts = multipart.popPartsByContentType(PIDF_LO);
-    if (locationParts.length > 0) {
-      for (const locPart of locationParts) {
-        const loc = this.tryParsePidfLo(locPart.body);
-
-        if (loc && message.location) {
-          // if there are multiple pidfLo parts present, we just combine it to one object
-          message.location.locationTypes = [
-            ...message.location.locationTypes,
-            ...loc?.locationTypes,
-          ]
-        }
-        else if (loc)
-          message.location = loc;
-      }
-    }
-
-    const vcardParts = multipart.popPartsByContentType(CALL_SUB);
-    if (vcardParts.length > 0) {
-      const vcard = VCard.fromXML(vcardParts[0].body);
-
-      if (message.vcard)
-        vcard.combine(message.vcard);
-
-      message.vcard = vcard;
-    }
-
-    const uriParts = multipart.popPartsByContentType(TEXT_URI_LIST);
-    if (uriParts.length > 0) {
-      message.uris = uriParts.map(u => u.body).reduce((prev, curr) => {
-        const allUris = curr.split(CRLF);
-        // uris with a leading # are commented and should be ignored
-        return prev.concat(allUris.filter(x => x.indexOf('#') !== 0))
-      }, [] as string[]);
-    }
-
-    // This always has to be the last call!
-    // We take care of all leftover parts!
-    message.extraParts = multipart.parts.length > 0 ? multipart.parts : undefined;
-
-    return message;
-  }
-
   protected parseCommonMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => {
     const req = evt.request;
     const { body, origin } = req;
-    let message: Partial<Message> = {};
-
     const contentType = req.getHeader(CONTENT_TYPE);
-    if (contentType && contentType.indexOf(MULTIPART_MIXED) !== -1 && body) {
-      message = {
-        ...message,
-        // Attention: parseMultipartParts is not a pure function!
-        // it alters the multipart object!
-        ...this.parseMultipartParts(Multipart.parse(body, contentType)),
-      }
-    }
-    else if (body)
-      message.text = body;
+    let message: Partial<Message> = parseMessage({}, body, contentType);
 
     const callInfoHeaders = req.getHeaders(CALL_INFO);
 
@@ -345,7 +278,6 @@ export class EmergencyMapper implements Mapper {
 
   parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => this.parseCommonMessageFromEvent(evt);
 
-  tryParsePidfLo = (value: string): PidfLo | undefined => PidfLo.fromXML(value);
   getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
   getDIDFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, new RegExp(allowSpacesInRegexString(getDIDHeaderValue('(.*)'))));
 
