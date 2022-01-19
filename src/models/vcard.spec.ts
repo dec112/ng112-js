@@ -23,6 +23,7 @@ describe('VCard functionality', () => {
     expect(vcard.firstname).toBe('Alice');
     expect(vcard.lastname).toBe('Smith');
     expect(vcard.gender).toBe(Gender.FEMALE);
+    expect(vcard.genderIdentity).toBe('girl');
     expect(vcard.street).toBe('Example Street 3');
     expect(vcard.code).toBe('4786');
     expect(vcard.locality).toBe('Humble Village');
@@ -48,6 +49,10 @@ describe('VCard functionality', () => {
       .addNameSuffix('MSc.')
       .addBirthday(new Date(Date.UTC(1990, 2, 3)))
       .addGender(Gender.OTHER)
+      // TODO: We should also include some tests for invalid VCard data
+      // e.g. specifying a gender identity does not make sense (and is not compliant to standards)
+      // if genderSex is not specified
+      .addGenderIdentity('inter')
       .addTelephone('+436641234567')
       .addEmail('info@dec112.at')
       .addStreet('Example Street 3')
@@ -66,6 +71,7 @@ describe('VCard functionality', () => {
     expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:suffix>MSc\.<\/asdf:suffix>.*<\/asdf:n>/s);
     expect(vcardXmlString).toMatch(/<asdf:bday>1990-03-03T00:00:00.000Z<\/asdf:bday>/s);
     expect(vcardXmlString).toMatch(/<asdf:gender>.*<asdf:sex>O<\/asdf:sex>.*<\/asdf:gender>/s);
+    expect(vcardXmlString).toMatch(/<asdf:gender>.*<asdf:identity>inter<\/asdf:identity>.*<\/asdf:gender>/s);
     expect(vcardXmlString).toMatch(/<asdf:tel>.*<asdf:text>\+436641234567<\/asdf:text>.*<\/asdf:tel>/s);
     expect(vcardXmlString).toMatch(/<asdf:email>.*<asdf:text>info@dec112.at<\/asdf:text>.*<\/asdf:email>/s);
     expect(vcardXmlString).toMatch(/<asdf:adr>.*<asdf:street>Example Street 3<\/asdf:street>.*<\/asdf:adr>/s);

@@ -22,6 +22,7 @@
   </xc:email>
   <xc:gender>
     <xc:sex>F</xc:sex>
+    <xc:identity>girl</xc:identity>
   </xc:gender>
   <xc:bday>1990-06-11T00:00:00.000Z</xc:bday>
   <xc:note>

@@ -39,6 +39,7 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - Support for tagging messages.
 - Support for starting a conversation with a custom message id.
 - Support for customizing domains in SIP headers via `EmergencySpecifics`.
+- Support for gender identity in VCards.
 - Ability to remove listeners (conversation, state, message).
 - Ability to specify endpoint type for agent and each individual conversation.
 - Ability to specify custom user agent headers.

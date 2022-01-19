@@ -9,7 +9,8 @@ export enum KeyId {
   NAME_PREFIX = 'prefix',
   NAME_SUFFIX = 'suffix',
   BIRTHDAY = 'bday',
-  GENDER = 'gender',
+  GENDER_SEX = 'sex',
+  GENDER_IDENTITY = 'identity',
   ADDRESS_STREET = 'street',
   ADDRESS_LOCALITY = 'locality',
   ADDRESS_REGION = 'region',
@@ -108,11 +109,20 @@ export class VCard {
    */
   addBirthday = (value: Date) => this.add(KeyId.BIRTHDAY, value);
   /**
-   * The VCard's `gender` object
+   * The VCard's `gender/sex` object
    * 
    * @returns VCard for chaining function calls
    */
-  addGender = (value: Gender) => this.add(KeyId.GENDER, value);
+  addGender = (value: Gender) => this.add(KeyId.GENDER_SEX, value);
+  // TODO: provide link to standards documents for all properties
+  /**
+   * The VCard's `gender/identity` object
+   * @link https://datatracker.ietf.org/doc/html/rfc6350#section-6.2.7
+   * @link https://datatracker.ietf.org/doc/html/rfc6351
+   * 
+   * @returns VCard for chaining function calls
+   */
+  addGenderIdentity = (value: string) => this.add(KeyId.GENDER_IDENTITY, value);
   /**
    * The VCard's `tel` object
    * 
@@ -178,7 +188,8 @@ export class VCard {
   get namePrefix(): string | undefined { return this.get(KeyId.NAME_PREFIX); }
   get nameSuffix(): string | undefined { return this.get(KeyId.NAME_SUFFIX); }
   get birthday(): Date | undefined { return this.get(KeyId.BIRTHDAY); }
-  get gender(): Gender | undefined { return this.get(KeyId.GENDER); }
+  get gender(): Gender | undefined { return this.get(KeyId.GENDER_SEX); }
+  get genderIdentity(): string | undefined { return this.get(KeyId.GENDER_IDENTITY); }
   get telephone(): string | undefined { return this.get(KeyId.TELEPHONE); }
   get email(): string | undefined { return this.get(KeyId.EMAIL); }
 
@@ -398,14 +409,16 @@ const vcardNodes: XMLNode[] = [
     ]
   },
   {
-    nodeName: KeyId.GENDER,
+    nodeName: 'gender',
     leafs: [
       {
-        nodeName: 'sex',
-        keyId: KeyId.GENDER,
+        nodeName: KeyId.GENDER_SEX,
         parser: (value) => value as Gender,
         writer: (value: Gender) => value,
-      }
+      },
+      {
+        nodeName: KeyId.GENDER_IDENTITY,
+      },
     ]
   },
   {
