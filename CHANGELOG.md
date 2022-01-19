@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.6.0] - 2022-01-19
+### Added
+- BACKPORT [2.0.0]: Support for gender identity element in VCards
+
 ## [1.5.2] - 2021-11-29
 ### Changed
 - Updated dependencies (pidf-lo, typedoc ...)
