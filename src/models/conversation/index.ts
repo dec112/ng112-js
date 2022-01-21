@@ -2,7 +2,7 @@ import { getHeaderString, getRandomString, Header, parseNameAddrHeaderValue } fr
 import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import { QueueItem } from '../queue-item';
 import { EmergencyMessageType } from '../../constants/message-types/emergency';
-import { Mapper } from '../../namespaces/interfaces';
+import { Mapper, Namespace } from '../../namespaces/interfaces';
 import { Store, AgentMode } from '../store';
 import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from '../message';
 import { CALL_INFO, REPLY_TO, ROUTE, CONTENT_TYPE } from '../../constants/headers';
@@ -282,10 +282,17 @@ export class Conversation {
       let contentType: string;
       let body: string;
 
-      // if multipart only contains one item
-      // just use this item for setting the content type and body
-      // no need to send the whole multipart object
-      if (multipart.parts.length === 1) {
+      if (
+        // if multipart only contains one item
+        // just use this item for setting the content type and body
+        // no need to send the whole multipart object
+        multipart.parts.length === 1 &&
+        // yeah, this is not ideal
+        // however, not sticking to multipart types can lead to problems in DEC112 environments
+        // as not every PSAP will support handling mime types different than multiparts
+        // therefore, as a safety precaution, we always send multipart mime bodies
+        this.mapper.getNamespace() !== Namespace.DEC112
+      ) {
         const part = multipart.parts[0];
         contentType = part.headers.find(x => x.key === CONTENT_TYPE)?.value ?? TEXT_PLAIN;
         body = part.body;
