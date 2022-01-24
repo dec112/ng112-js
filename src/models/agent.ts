@@ -266,9 +266,12 @@ export class Agent {
   }
 
   /**
-   * Initializes the agent's internals sends a `REGISTER` to the ESRP
+   * Initializes the agent's internals sends a `REGISTER` to the SIP-Proxy
    * This has to be called before any other interaction with the library
    * If registration fails, promise will be rejected
+   * 
+   * Note: ng112-js handles network issues on its own \
+   * so there is no need to re-initialize ng112-js
    */
   initialize = async (): Promise<Agent> => {
     const newState = (newState: AgentState) => {
