@@ -334,7 +334,7 @@ const disable = (element, value) => {
 
     conversation.stop({
       text: popMessageText(),
-    }).promise;
+    });
   });
   disable(end, true);
 

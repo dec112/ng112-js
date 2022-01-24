@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, ConversationState, EmergencyMessageType, Message, Origin, Namespace, StateObject } from '../../dist/node';
+import { Agent, ConversationState, EmergencyMessageType, Message, Origin, Namespace, StateObject, MessageError } from '../../dist/node';
 import { createOneTimeListener, initializeTests } from './utils';
 
 initializeTests();
@@ -41,7 +41,7 @@ describe('ng112-js', () => {
       expect(conversation.state.origin).toBe(Origin.REMOTE);
     });
 
-    await conversation.sendMessage({
+    conversation.sendMessage({
       text: 'Testing',
     });
 
@@ -56,6 +56,20 @@ describe('ng112-js', () => {
 
     expect(conversation.state.value).toBe(ConversationState.STOPPED);
     expect(conversation.state.origin).toBe(Origin.LOCAL);
+
+    // messages that are sent after conversation close should be rejected immediately
+    try {
+      await conversation.sendMessage({
+        text: 'test',
+      }).promise;
+
+      throw new Error('Message was not rejected although conversation has already been stopped');
+    } catch (e) {
+      expect(e).toEqual<MessageError>({
+        origin: Origin.SYSTEM,
+        reason: 'Can not send message in stopped conversation',
+      });
+    }
 
     await agent.dispose();
   });

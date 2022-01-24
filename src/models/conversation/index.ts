@@ -346,15 +346,29 @@ export class Conversation {
   }
 
   private _notifyQueue = async () => {
-    // stopping messages can happen, if the PSAP is transferring to another PSAP
-    // or if call is stopped entirely (captain obvious ;-))
-    // if this is the case, we are only allowed to send START messages
+    if (this.state.value === ConversationState.STOPPED) {
+      // if conversation has been stopped there is no way of reincarnating it
+      // stopped means stopped
+      // therefore we reject all queued messages here
+      // as there is no way for them to leave the SDK anymore
+      for (const item of this._queue) {
+        item.reject({
+          origin: Origin.SYSTEM,
+          reason: 'Can not send message in stopped conversation',
+        });
+      }
+
+      this._queue = [];
+
+      // stop execution here
+      return;
+    }
 
     // TODO: this state handling is currently NOT correct!
     // define at which states message can be sent
     // this might differ between PSAP and CLIENT
     // also consider conversation state while PSAP is handing over to another PSAP
-    let queue = this.hasBeenStarted && this.state.value !== ConversationState.STOPPED ?
+    let queue = this.hasBeenStarted ?
       [...this._queue] :
       // START messages can always be sent
       [...this._queue.filter(x => x.message.type === EmergencyMessageType.START)];
