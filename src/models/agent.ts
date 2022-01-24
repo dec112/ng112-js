@@ -14,7 +14,7 @@ import { CustomSipHeader } from './custom-sip-header';
 import { USER_AGENT } from '../constants';
 import { Logger, LogLevel } from './logger';
 import { timedoutPromise } from '../utils';
-import { IncomingMessageEvent, OutgoingMessageEvent } from 'jssip/lib/UA';
+import { IncomingMessageEvent, OutgoingMessageEvent, UAConfiguration } from 'jssip/lib/UA';
 
 export interface AgentConfiguration {
   /**
@@ -58,6 +58,10 @@ export interface AgentConfiguration {
    * Object for customizing SIP headers
    */
   customSipHeaders?: CustomSipHeaders,
+  /**
+   * Additional parameters to pass to the JsSIP user agent
+   */
+  userAgentConfig?: Partial<UAConfiguration>,
 }
 
 export enum AgentState {
@@ -99,6 +103,7 @@ export class Agent {
     debug = LogLevel.NONE,
     namespaceSpecifics,
     customSipHeaders,
+    userAgentConfig = {},
   }: AgentConfiguration) {
     const originSipUri = customSipHeaders?.from ?
       CustomSipHeader.resolve(customSipHeaders.from) :
@@ -114,6 +119,10 @@ export class Agent {
       password,
       display_name: displayName,
       register: true,
+      
+      ...userAgentConfig,
+      
+      // user agent must not be overwritten
       user_agent: USER_AGENT,
     });
 
