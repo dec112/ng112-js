@@ -313,6 +313,7 @@ export class Conversation {
     } catch (e) {
       const ex: MessageError = e as MessageError ?? {
         origin: Origin.SYSTEM,
+        reason: 'Unknown error',
       };
 
       // TODO: What do we do when we get a 404?

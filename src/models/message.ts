@@ -35,6 +35,9 @@ export interface Binary {
 
 // TODO: Create a separate class for messages so we can also have getters and setters
 export interface Message {
+  // TODO: Message should have function to resend it (with new message id)
+  // "retry" or something
+
   /**
    * If message is outgoing (LOCAL): An incremental, unique id (parseable as number)\
    * If message is incoming (REMOTE): A unique id\
@@ -136,7 +139,7 @@ export interface MessageError {
   /**
    * The raw sip stack object representing the error
    */
-  sipStackObject: NonNullable<any>,
+  sipStackObject?: any,
 }
 
 /**
