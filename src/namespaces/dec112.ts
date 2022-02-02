@@ -1,14 +1,15 @@
 import { CALL_INFO, CONTENT_TRANSFER_ENCODING, CONTENT_TYPE } from '../constants/headers';
-import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/dec112';
+import { X_DEC112_TEST, X_DEC112_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, Namespace, NamespaceSpecifics } from './interfaces';
 import { NewMessageEvent } from '../adapters';
 import { Base64 } from '../utils/base64';
 import { OmitStrict } from '../utils/ts-utils';
-import { Message } from '../models/message';
+import { MessageConfig } from '../models/message';
 import { Logger } from '../models/logger';
 import { EndpointType } from '../models/interfaces';
+import { Multipart } from '..';
 
 const UID = 'uid';
 
@@ -72,45 +73,33 @@ export class DEC112Mapper extends EmergencyMapper {
     headers.some(h => getRegEx(getAnyHeaderValue).test(h));
 
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
-  getIsTestFromEvent = (evt: NewMessageEvent): boolean => evt.request.getHeader(X_DEC112_TEST) === X_DEC112_TEST_VALUE_TRUE;
+  getIsTestFromEvent = (evt: NewMessageEvent): boolean => evt.request.getHeader(X_DEC112_TEST) === X_DEC112_VALUE_TRUE;
 
-  createMessageParts = ({
+  createSipParts = ({
+    message,
     targetUri,
-    conversationId,
     isTest,
-    id,
-    type,
     endpointType,
-    text,
-    uris,
-    binaries,
-    extraParts,
     replyToSipUri,
-    location,
-    vcard,
   }: MessagePartsParams): MessageParts => {
     const common = this.createCommonParts(
+      message,
       targetUri,
       endpointType,
       replyToSipUri,
-      text,
-      uris,
-      extraParts,
-      location,
-      vcard,
     );
 
-    const dec112MessageType = fromEmergencyMessageType(type, {
-      hasVCard: !!vcard,
-      hasLocation: !!location,
-      hasTextMessage: !!text,
+    const dec112MessageType = fromEmergencyMessageType(message.type, {
+      hasVCard: !!message.vcard,
+      hasLocation: !!message.location,
+      hasTextMessage: !!message.text,
     });
 
     const domain = this._dec112Specifics.getDomain();
     const headers = common.headers = [
       ...common.headers,
-      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, domain) },
-      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), domain) },
+      { key: CALL_INFO, value: getCallIdHeaderValue(message.conversation.id, domain) },
+      { key: CALL_INFO, value: getMessageIdHeaderValue(message.id.toString(), domain) },
       { key: CALL_INFO, value: getMessageTypeHeaderValue(dec112MessageType.toString(), domain) },
     ];
 
@@ -133,11 +122,11 @@ export class DEC112Mapper extends EmergencyMapper {
     if (isTest)
       headers.push({
         key: X_DEC112_TEST,
-        value: X_DEC112_TEST_VALUE_TRUE,
+        value: X_DEC112_VALUE_TRUE,
       });
 
-    if (binaries) {
-      for (const bin of binaries) {
+    if (message.binaries) {
+      for (const bin of message.binaries) {
         const body = Base64.encode(String.fromCharCode.apply(null, new Uint8Array(bin.value) as unknown as number[]));
 
         common.multipart.add({
@@ -154,15 +143,15 @@ export class DEC112Mapper extends EmergencyMapper {
     return common;
   }
 
-  parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => this.parseCommonMessageFromEvent(evt);
+  parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<MessageConfig, 'conversation'> => this.parseCommonMessageFromEvent(evt);
 
   // DEC112 overrides
   getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
-  getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
+  getMessageTypeFromHeaders = (headers: string[], multipart?: Multipart): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));
 
     if (msgType)
-      return toEmergencyMessageType(parseInt(msgType), messageText);
+      return toEmergencyMessageType(parseInt(msgType), multipart);
 
     return;
   }

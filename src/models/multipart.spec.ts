@@ -53,7 +53,7 @@ describe('Multipart parsing', () => {
 
     // test, whether popPartsByContentType considers charset that's specified
     // it should not!
-    expect(parsed.popPartsByContentType(TEXT_PLAIN)).toEqual([
+    expect(parsed.getPartsByContentTypes([TEXT_PLAIN])).toEqual([
       textPart1,
       textPart2,
     ]);
@@ -66,7 +66,7 @@ describe('Multipart parsing', () => {
 
     expect(parsed.parts).toHaveLength(1);
     
-    const textParts = parsed.popPartsByContentType(TEXT_PLAIN);
+    const textParts = parsed.getPartsByContentTypes([TEXT_PLAIN]);
     expect(textParts).toHaveLength(0);
   });
 });

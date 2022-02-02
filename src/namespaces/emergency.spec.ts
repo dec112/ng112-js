@@ -1,4 +1,4 @@
-import { EndpointType } from '..';
+import { EndpointType, Message, MessageState, Origin } from '..';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { Logger, LogLevel } from '../models/logger';
 import { Header } from '../utils';
@@ -50,19 +50,28 @@ describe('Checking call info headers', () => {
 
 describe('Generating Call-Info headers', () => {
   const defaultParams: MessagePartsParams = {
-    conversationId: 'cid-1',
+    message: new Message({
+      id: 67,
+      // @ts-expect-error fake conversation in order to avoid a lot of work :-)
+      conversation: {
+        id: 'cid-1',
+      },
+      origin: Origin.LOCAL,
+      promise: Promise.resolve(),
+      state: MessageState.PENDING,
+      type: EmergencyMessageType.IN_CHAT,
+      did: 'did:example:123456789abcdefghi',
+    }),
+
     endpointType: EndpointType.CLIENT,
-    id: 67,
     isTest: false,
     replyToSipUri: 'sip:reply-to@dec112.at',
     targetUri: 'sip:target@dec112.at',
-    did: 'did:example:123456789abcdefghi',
-    type: EmergencyMessageType.IN_CHAT,
   };
 
   it('contains all necessary headers', () => {
     const mapper = new EmergencyMapper(logger);
-    const parts = mapper.createMessageParts(defaultParams);
+    const parts = mapper.createSipParts(defaultParams);
 
     expect(parts.headers.length).toBe(5);
 
@@ -72,26 +81,26 @@ describe('Generating Call-Info headers', () => {
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:service:uid:msgtype:259:dec112.at>; purpose=EmergencyCallData.MsgType" });
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<did:example:123456789abcdefghi>; purpose=EmergencyCallData.DID" });
   });
-  
+
   it('does not create History-Info header for URN targets', () => {
     const mapper = new EmergencyMapper(logger);
     const params: MessagePartsParams = {
       ...defaultParams,
       targetUri: 'urn:service:sos.test',
     }
-    const parts = mapper.createMessageParts(params);
-    
+    const parts = mapper.createSipParts(params);
+
     expect(parts.headers.filter(x => x.key === 'History-Info').length).toBe(0);
   });
-  
+
   it('can use a different domain', () => {
     const mapper = new EmergencyMapper(logger, new EmergencySpecifics({
       domain: 'another.sub.domain',
     }));
-    const parts = mapper.createMessageParts(defaultParams);
-    
+    const parts = mapper.createSipParts(defaultParams);
+
     expect(parts.headers.length).toBe(5);
-    
+
     expect(parts.headers).toContainEqual<Header>({ key: "History-Info", value: "<sip:target@dec112.at>;index=1" });
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:uid:callid:cid-1:another.sub.domain>; purpose=EmergencyCallData.CallId" });
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:emergency:service:uid:msgid:67:another.sub.domain>; purpose=EmergencyCallData.MsgId" });
@@ -104,14 +113,23 @@ describe('Messaging functionality', () => {
   const mapper = new EmergencyMapper(logger);
 
   it('creates an empty message correctly', () => {
-    const parts = mapper.createMessageParts({
+    const parts = mapper.createSipParts({
       targetUri: 'sip:some.emergency@call.at',
-      conversationId: '1234',
       endpointType: EndpointType.CLIENT,
       isTest: false,
-      id: 1,
-      type: EmergencyMessageType.HEARTBEAT,
       replyToSipUri: 'sip:test@domain.com',
+
+      message: new Message({
+        id: 1,
+        // @ts-expect-error fake conversation in order to avoid a lot of work :-)
+        conversation: {
+          id: '1234',
+        },
+        origin: Origin.LOCAL,
+        promise: Promise.resolve(),
+        state: MessageState.PENDING,
+        type: EmergencyMessageType.HEARTBEAT,
+      }),
     });
 
     const body = parts.multipart.create().body;

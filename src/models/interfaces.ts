@@ -6,8 +6,9 @@ export enum EndpointType {
 }
 export interface ConversationConfiguration {
   /**
-   * Defines the conversation as a test call\
-   * PSAPs *MUST* consider this hint and act accordingly
+   * Defines the conversation as a test call \
+   * PSAPs *MUST* consider this hint and act accordingly \
+   * Currently only supported in DEC112 environments
    */
   isTest?: boolean,
   /**

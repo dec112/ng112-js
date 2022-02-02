@@ -1,17 +1,19 @@
-import { getRandomString, Header, parseMessage, } from '../utils';
-import { PidfLo, XMLCompat } from 'pidf-lo/dist/node';
-import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST } from '../constants/content-types';
+import { getRandomString, Header } from '../utils';
+import { XMLCompat } from 'pidf-lo/dist/node';
+import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST, TEXT_HTML } from '../constants/content-types';
 import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, HISTORY_INFO, REPLY_TO } from '../constants/headers';
-import { CRLF, Multipart, MultipartPart } from '../models/multipart';
-import { VCard, VCARD_XML_NAMESPACE } from '../models/vcard';
+import { CRLF } from '../models/multipart';
+import { VCARD_XML_NAMESPACE } from '../models/vcard';
 import { MessageParts, MessagePartsParams, Namespace, Mapper } from './interfaces'
 import { NewMessageEvent } from '../adapters';
-import { Message, MessageState, nextUniqueId, nextUniqueRandomId } from '../models/message';
+import { Message, MessageConfig, MessageState, nextUniqueRandomId } from '../models/message';
+import { Multipart } from '../models/multipart';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { OmitStrict } from '../utils/ts-utils';
 import { Logger } from '../models/logger';
 import { NamespaceSpecifics } from '.';
 import { EndpointType } from '../models/interfaces';
+import { parseMessage } from '../utils/message-utils';
 
 // we are quite generous when it comes to spaces
 // so if there is a header incoming with more than one space, we still accept it
@@ -87,14 +89,10 @@ export class EmergencyMapper implements Mapper {
   getIsTestFromEvent = (evt: NewMessageEvent): boolean => false; // TODO: reference ETSI TS 103 698, 6.1.2.10 "Test Call"
 
   protected createCommonParts = (
+    message: Message,
     targetUri: string,
     endpointType: EndpointType,
     replyToSipUri: string,
-    text?: string,
-    uris?: string[],
-    extraParts?: MultipartPart[],
-    location?: PidfLo,
-    vcard?: VCard,
   ): MessageParts => {
 
     let headers: Header[] = [];
@@ -107,24 +105,20 @@ export class EmergencyMapper implements Mapper {
       headers.push({ key: HISTORY_INFO, value: `<${targetUri}>;index=1` })
     }
 
-    const multipart = new Multipart();
-
-    if (extraParts) {
-      multipart.addAll(extraParts);
-    }
+    const multipart = message.multipart;
 
     if (endpointType === EndpointType.PSAP) {
       headers.push({ key: REPLY_TO, value: replyToSipUri })
     }
 
-    if (uris) {
+    if (message.uris) {
       multipart.add({
         headers: [{ key: CONTENT_TYPE, value: TEXT_URI_LIST }],
-        body: uris.join(CRLF),
+        body: message.uris.join(CRLF),
       })
     }
 
-    if (location) {
+    if (message.location) {
       const locationContentId = `${getRandomString(12)}@${this._specifics.getDomain()}`;
 
       headers = headers.concat([
@@ -137,11 +131,11 @@ export class EmergencyMapper implements Mapper {
           { key: CONTENT_TYPE, value: PIDF_LO },
           { key: CONTENT_ID, value: `<${locationContentId}>` },
         ],
-        body: XMLCompat.toXMLString(location.toXML()),
+        body: message.location.toXMLString(),
       });
     }
 
-    if (vcard) {
+    if (message.vcard) {
       const doc = XMLCompat.createDocument();
 
       const infoPrefix = 'sub';
@@ -154,7 +148,7 @@ export class EmergencyMapper implements Mapper {
       const data = doc.createElement(`${infoPrefix}:SubscriberData`);
       const vcards = doc.createElement(`${vcardPrefix}:vcards`);
 
-      const vcardNode = vcard.toXML(vcardPrefix).firstChild;
+      const vcardNode = message.vcard.toXML(vcardPrefix).firstChild;
 
       if (vcardNode) {
         vcards.appendChild(vcardNode);
@@ -171,10 +165,17 @@ export class EmergencyMapper implements Mapper {
       }
     }
 
-    if (text) {
+    if (message.text) {
       multipart.add({
         headers: [{ key: CONTENT_TYPE, value: TEXT_PLAIN }],
-        body: text,
+        body: message.text,
+      });
+    }
+
+    if (message.html) {
+      multipart.add({
+        headers: [{ key: CONTENT_TYPE, value: TEXT_HTML }],
+        body: message.html,
       });
     }
 
@@ -188,15 +189,15 @@ export class EmergencyMapper implements Mapper {
     };
   }
 
-  protected parseCommonMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => {
+  protected parseCommonMessageFromEvent = (evt: NewMessageEvent): OmitStrict<MessageConfig, 'conversation'> => {
     const req = evt.request;
     const { body, origin } = req;
     const contentType = req.getHeader(CONTENT_TYPE);
-    let message: Partial<Message> = parseMessage({}, body, contentType);
+    let message: Partial<MessageConfig> = parseMessage({}, body, contentType);
 
     const callInfoHeaders = req.getHeaders(CALL_INFO);
 
-    let type = this.getMessageTypeFromHeaders(callInfoHeaders, message.text);
+    let type = this.getMessageTypeFromHeaders(callInfoHeaders, message.multipart);
     if (!type) {
       this._logger.warn('Could not find message type. Will treat it as IN_CHAT message.');
       type = EmergencyMessageType.IN_CHAT;
@@ -211,7 +212,6 @@ export class EmergencyMapper implements Mapper {
     return {
       ...message,
       id,
-      uniqueId: nextUniqueId(),
       origin,
       dateTime: new Date(),
       type,
@@ -223,44 +223,32 @@ export class EmergencyMapper implements Mapper {
     };
   }
 
-  createMessageParts = ({
+  createSipParts = ({
+    message,
     targetUri,
-    conversationId,
     isTest,
-    id,
-    type,
     endpointType,
-    text,
-    uris,
-    extraParts,
     replyToSipUri,
-    location,
-    vcard,
-    did,
   }: MessagePartsParams): MessageParts => {
     const parts = this.createCommonParts(
+      message,
       targetUri,
       endpointType,
       replyToSipUri,
-      text,
-      uris,
-      extraParts,
-      location,
-      vcard,
     );
 
     const domain = this._specifics.getDomain();
     const headers = parts.headers = [
       ...parts.headers,
-      { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, domain) },
-      { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), domain) },
-      { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), domain) },
+      { key: CALL_INFO, value: getCallIdHeaderValue(message.conversation.id, domain) },
+      { key: CALL_INFO, value: getMessageIdHeaderValue(message.id.toString(), domain) },
+      { key: CALL_INFO, value: getMessageTypeHeaderValue(message.type.toString(), domain) },
     ];
 
-    if (did)
+    if (message.did)
       headers.push({
         key: CALL_INFO,
-        value: getDIDHeaderValue(did),
+        value: getDIDHeaderValue(message.did),
       });
 
     // TODO: Implement sending binaries
@@ -276,15 +264,14 @@ export class EmergencyMapper implements Mapper {
     return parts;
   }
 
-  parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<Message, 'conversation'> => this.parseCommonMessageFromEvent(evt);
+  parseMessageFromEvent = (evt: NewMessageEvent): OmitStrict<MessageConfig, 'conversation'> => this.parseCommonMessageFromEvent(evt);
 
   getMessageIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getMessageIdHeaderValue));
   getDIDFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, new RegExp(allowSpacesInRegexString(getDIDHeaderValue('(.*)'))));
 
   // we have to specify this additional (in this case unnecessary) parameter
   // as DEC112 mapper needs it
-  // @ts-expect-error
-  getMessageTypeFromHeaders = (headers: string[], messageText?: string): number | undefined => {
+  getMessageTypeFromHeaders = (headers: string[], _?: Multipart): number | undefined => {
     const msgType = regexHeaders(headers, getRegEx(getMessageTypeHeaderValue));
 
     if (msgType)

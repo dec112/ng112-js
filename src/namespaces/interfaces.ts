@@ -1,4 +1,4 @@
-import { Message } from '../models/message';
+import { Message, MessageConfig } from '../models/message';
 import { NewMessageEvent } from '../adapters';
 import { Multipart } from '../models/multipart';
 import { Header } from '../utils';
@@ -14,16 +14,9 @@ export interface MessageParts {
   multipart: Multipart,
 }
 
-export type MessagePartsParams = OmitStrict<Message,
-  'origin' |
-  'state' |
-  'promise' |
-  'dateTime' |
-  'conversation' |
-  'uniqueId'
-> & {
+export interface MessagePartsParams {
+  message: Message,
   targetUri: string,
-  conversationId: string,
   endpointType: EndpointType,
   isTest: boolean,
   replyToSipUri: string,
@@ -35,8 +28,8 @@ export enum Namespace {
 }
 
 export interface Mapper {
-  createMessageParts(params: MessagePartsParams): MessageParts;
-  parseMessageFromEvent(evt: NewMessageEvent): OmitStrict<Message, 'conversation'>;
+  createSipParts(params: MessagePartsParams): MessageParts;
+  parseMessageFromEvent(evt: NewMessageEvent): OmitStrict<MessageConfig, 'conversation'>;
 
   getNamespace(): Namespace;
   supportsPsapStartMessage(): boolean;

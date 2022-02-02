@@ -1,5 +1,5 @@
 import { DEC112Specifics } from '.';
-import { EndpointType } from '..';
+import { EndpointType, Message, MessageState, Origin } from '..';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
 import { Logger, LogLevel } from '../models/logger';
 import { Header } from '../utils';
@@ -10,18 +10,27 @@ const logger = new Logger(LogLevel.NONE);
 
 describe('Generating headers', () => {
   const defaultParams: MessagePartsParams = {
-    conversationId: 'cid-1',
     endpointType: EndpointType.CLIENT,
-    id: 67,
     isTest: false,
     replyToSipUri: 'sip:reply-to@dec112.at',
     targetUri: 'sip:target@dec112.at',
-    type: EmergencyMessageType.IN_CHAT,
+
+    message: new Message({
+      id: 67,
+      // @ts-expect-error fake conversation in order to avoid a lot of work :-)
+      conversation: {
+        id: 'cid-1',
+      },
+      origin: Origin.LOCAL,
+      promise: Promise.resolve(),
+      state: MessageState.PENDING,
+      type: EmergencyMessageType.IN_CHAT,
+    })
   };
 
   it('contains all necessary headers with defaults', () => {
     const mapper = new DEC112Mapper(logger);
-    const parts = mapper.createMessageParts(defaultParams);
+    const parts = mapper.createSipParts(defaultParams);
 
     expect(parts.headers.length).toBe(4);
 
@@ -38,7 +47,7 @@ describe('Generating headers', () => {
       registrationId: '098-765-432-21',
       deviceId: '123-456-789',
     }));
-    const parts = mapper.createMessageParts(defaultParams);
+    const parts = mapper.createSipParts(defaultParams);
 
     expect(parts.headers.length).toBe(8);
 

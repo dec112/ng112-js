@@ -81,26 +81,27 @@ export class Multipart {
     };
   }
 
-  popPartsByContentType = (contentType: string): MultipartPart[] => {
-    const res: MultipartPart[] = [];
+  getPartsByContentTypes = (contentTypes: string[]): MultipartPart[] => {
+    return this._parts.filter(x => {
+      const ct = x.headers.find(h => h.key === CONTENT_TYPE)
 
-    while (true) {
-      const index = this._parts.findIndex(x =>
-        x.headers.findIndex((y) =>
-          y.key === CONTENT_TYPE &&
-          // don't use equality here
-          // content types can also contain charsets or other things we might not want to consider
-          y.value.indexOf(contentType) !== -1
-        )
-        !== -1
-      );
-
-      if (index !== -1)
-        res.push(this._parts.splice(index, 1)[0]);
+      if (ct)
+        // don't use equality here
+        // content types can also contain charsets or other things we might not want to consider
+        return contentTypes.find(type => ct.value.indexOf(type) !== -1) !== undefined;
       else
-        return res;
-    }
-  };
+        return false;
+    });
+  }
+
+  removeByContentType = (contentType: string): void => {
+    this._parts = this._parts.filter(p =>
+      p.headers.findIndex(x =>
+        x.key === CONTENT_TYPE &&
+        x.value === contentType
+      ) === -1
+    );
+  }
 
   static parse = (input: string, multipartHeader: string): Multipart => {
     const multipartRegex = new RegExp(`${MULTIPART_MIXED};\\s*boundary=[-]*([^-]+)`).exec(multipartHeader);

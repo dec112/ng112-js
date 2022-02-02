@@ -36,14 +36,16 @@ describe('ng112-js', () => {
     expect(conversation.state.value).toBe(ConversationState.UNKNOWN);
 
     await once((msg) => {
+      expect(msg).toBeInstanceOf(Message);
       expect(msg.text).toContain('How can we help you?');
       expect(conversation.state.value).toBe(ConversationState.STARTED);
       expect(conversation.state.origin).toBe(Origin.REMOTE);
     });
 
-    conversation.sendMessage({
+    const localMsg = conversation.sendMessage({
       text: 'Testing',
     });
+    expect(localMsg).toBeInstanceOf(Message);
 
     await once((msg: Message) => {
       expect(msg.text).toContain('Testing');

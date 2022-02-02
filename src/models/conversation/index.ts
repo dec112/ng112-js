@@ -1,10 +1,10 @@
-import { getHeaderString, getRandomString, Header, parseNameAddrHeaderValue } from '../../utils';
+import { getHeaderString, getPidfLo, getRandomString, Header, parseNameAddrHeaderValue } from '../../utils';
 import type { PidfLo, SimpleLocation } from 'pidf-lo';
 import { QueueItem } from '../queue-item';
 import { EmergencyMessageType } from '../../constants/message-types/emergency';
 import { Mapper, Namespace } from '../../namespaces/interfaces';
 import { Store, AgentMode } from '../store';
-import { Message, Origin, MessageState, MessageError, Binary, createLocalMessage } from '../message';
+import { Message, Origin, MessageState, MessageError, Binary } from '../message';
 import { CALL_INFO, REPLY_TO, ROUTE, CONTENT_TYPE } from '../../constants/headers';
 import { TEXT_PLAIN } from '../../constants/content-types';
 import { MultipartPart } from '../multipart';
@@ -30,6 +30,10 @@ export interface SendMessageObject {
    * Text message to be sent
    */
   text?: string,
+  /**
+   * HTML message to be sent
+   */
+  html?: string,
   /**
    * A location to be sent with the message
    */
@@ -156,6 +160,10 @@ export class Conversation {
   public get created() { return this._created }
   private _created?: Date;
 
+  /**
+   * Defines, whether the call should be marked as test call
+   * Currently only supported in DEC112 environments
+   */
   public readonly isTest: boolean;
 
   public constructor(
@@ -266,10 +274,9 @@ export class Conversation {
     message.dateTime = new Date();
 
     try {
-      const { headers, multipart } = this.mapper.createMessageParts({
-        ...message,
+      const { headers, multipart } = this.mapper.createSipParts({
+        message,
         targetUri: this.targetUri,
-        conversationId: this.id,
         isTest: this.isTest,
         replyToSipUri,
         endpointType: this._endpointType,
@@ -510,7 +517,6 @@ export class Conversation {
   sendMessage = (sendMessageObj: SendMessageObject): Message => {
     let {
       type = EmergencyMessageType.IN_CHAT,
-      messageId,
     } = sendMessageObj;
 
     // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
@@ -530,14 +536,42 @@ export class Conversation {
     )
       type = EmergencyMessageType.START;
 
-    const message = createLocalMessage(
-      this,
+    const {
+      messageId,
+      binaries,
+      extraHeaders,
+      extraParts,
+      location,
+      tag,
+      text,
+      html,
+      uris,
+      vcard,
+    } = sendMessageObj;
+
+    const message = new Message({
+      conversation: this,
       // if no message id is specified, use the internal sequence
-      messageId ?? this._messageId++,
+      id: messageId ?? this._messageId++,
       type,
-      this._store.originSipUri,
-      sendMessageObj,
-    );
+      origin: Origin.LOCAL,
+      state: MessageState.PENDING,
+      // this is just to satisfy typescript
+      // promise will be set right below
+      promise: new Promise(() => { }),
+      location: getPidfLo(this._store.originSipUri, location),
+
+      extraHeaders,
+      tag,
+      text,
+      html,
+      uris,
+      vcard,
+      binaries,
+    });
+
+    if (extraParts)
+      message.multipart.addAll(extraParts);
 
     this._updateMessagePropsIfIsClient(message);
 
@@ -605,11 +639,10 @@ export class Conversation {
 
       this._notifyQueue();
 
-      this._addNewMessage({
+      this._addNewMessage(new Message({
         ...message,
         conversation: this,
-        event: evt,
-      });
+      }));
     }
 
     // this is called at the end of the function as we first want to notify listeners about the new message
