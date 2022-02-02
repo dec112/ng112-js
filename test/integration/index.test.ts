@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, ConversationState, EmergencyMessageType, Message, Origin, Namespace, StateObject, MessageError } from '../../dist/node';
+import { Agent, ConversationState, EmergencyMessageType, Message, MessageState, Origin, Namespace, StateObject, MessageError } from '../../dist/node';
 import { createOneTimeListener, initializeTests } from './utils';
 
 initializeTests();
@@ -38,6 +38,7 @@ describe('ng112-js', () => {
     await once((msg) => {
       expect(msg).toBeInstanceOf(Message);
       expect(msg.text).toContain('How can we help you?');
+      expect(msg.state).toBe(MessageState.SUCCESS);
       expect(conversation.state.value).toBe(ConversationState.STARTED);
       expect(conversation.state.origin).toBe(Origin.REMOTE);
     });
@@ -46,6 +47,11 @@ describe('ng112-js', () => {
       text: 'Testing',
     });
     expect(localMsg).toBeInstanceOf(Message);
+    
+    expect(localMsg.state).toBe(MessageState.PENDING);
+    localMsg.promise.then(() => {
+      expect(localMsg.state).toBe(MessageState.SUCCESS);
+    })
 
     await once((msg: Message) => {
       expect(msg.text).toContain('Testing');
@@ -59,12 +65,32 @@ describe('ng112-js', () => {
     expect(conversation.state.value).toBe(ConversationState.STOPPED);
     expect(conversation.state.origin).toBe(Origin.LOCAL);
 
-    // messages that are sent after conversation close should be rejected immediately
-    try {
-      await conversation.sendMessage({
-        text: 'test',
-      }).promise;
+    // sending message after call has already been closed
+    // this should fail
+    const uncoolMessage = conversation.sendMessage({
+      text: 'test',
+    });
 
+    try {
+      // messages that are sent after conversation close should be rejected immediately
+      await uncoolMessage.promise;
+      throw new Error('Message was not rejected although conversation has already been stopped');
+    } catch (e) {
+      expect(e).toEqual<MessageError>({
+        origin: Origin.SYSTEM,
+        reason: 'Can not send message in stopped conversation',
+      });
+      expect(uncoolMessage.state).toBe(MessageState.ERROR);
+    }
+
+    const resentMsg = uncoolMessage.resend();
+    // for resent messages, it is essential that their message id
+    // is different from the original message to avoid collisions
+    expect(resentMsg.id).not.toBe(uncoolMessage.id);
+
+    try {
+      // yeah, also retrying to send the message will not make it work
+      await resentMsg.promise;
       throw new Error('Message was not rejected although conversation has already been stopped');
     } catch (e) {
       expect(e).toEqual<MessageError>({

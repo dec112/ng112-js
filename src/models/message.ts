@@ -242,6 +242,43 @@ export class Message {
     this.binaries = binaries;
   }
 
+  /**
+   * Allows for resending local messages that have run into an error. \
+   * A new message is created (with new message id and unique id) and then sent via the original conversation.
+   * 
+   * **IMPORTANT:** Only local messages that are in state ERROR can be re-sent. \
+   * All other cases will result in an error.
+   * 
+   * To avoid running into message id collisions the original message is NOT reused!
+   * 
+   * @returns a new message
+   */
+  public resend = (): Message => {
+    if (this.origin !== Origin.LOCAL)
+      throw new Error('Can only resend local messages');
+
+    if (this.state !== MessageState.ERROR)
+      throw new Error('Can only resend messages that are in state ERROR');
+
+    const clone = this.conversation.createLocalMessage({
+      // messageId MUST NOT be set
+      // it MUST BE a new one to avoid collisions!
+      messageId: undefined,
+      binaries: this.binaries,
+      extraHeaders: this.extraHeaders,
+      extraParts: this.multipart.parts,
+      html: this.html,
+      location: this.location,
+      type: this.type,
+      tag: this.tag,
+      text: this.text,
+      uris: this.uris,
+      vcard: this.vcard,
+    });
+
+    return this.conversation.sendMessage(clone);
+  }
+
   private _preparePlainText = (...contentTypes: string[]) => {
     const parts = this._getMultipartParts(...contentTypes);
 

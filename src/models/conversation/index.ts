@@ -511,33 +511,12 @@ export class Conversation {
     return this.sendMessage(sendMessageObj);
   }
 
-  /**
-   * Sends a text message
-   */
-  sendMessage = (sendMessageObj: SendMessageObject): Message => {
-    let {
-      type = EmergencyMessageType.IN_CHAT,
-    } = sendMessageObj;
-
-    // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
-    // However, DEC112 does not specify this
-
-    // TODO: somehow prevent not multiple START messages are sent
-    // this is currently possible, e.g. if the PSAP takes very long to respond and a user fires another message
-
-    // this is just a convenience function that API consumers don't have to explicitly START the conversation
-    // e.g. if they just send an IN_CHAT message it is converted to a START message
-    // only applies to PSAPs and only if they support the PSAP start message!
-    // Clients still have to start the conversation explicitly with a message of type START
-    if (
-      !this.hasBeenStarted &&
-      this._endpointType === EndpointType.PSAP &&
-      EmergencyMessageType.isStarted(type)
-    )
-      type = EmergencyMessageType.START;
-
+  createLocalMessage = (
+    sendMessageObj: SendMessageObject & Required<Pick<SendMessageObject, 'type'>>,
+  ): Message => {
     const {
       messageId,
+      type,
       binaries,
       extraHeaders,
       extraParts,
@@ -573,6 +552,48 @@ export class Conversation {
     if (extraParts)
       message.multipart.addAll(extraParts);
 
+    return message;
+  }
+
+  /**
+   * Sends a text message
+   */
+  sendMessage(message: Message): Message;
+  /**
+   * Sends a text message
+   */
+  sendMessage(sendMessageObj: SendMessageObject): Message;
+  sendMessage(messageParam: any): Message {
+    let message: Message;
+
+    if (messageParam instanceof Message)
+      message = messageParam;
+    else {
+      let {
+        type = EmergencyMessageType.IN_CHAT,
+      } = messageParam;
+
+      // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
+      // However, DEC112 does not specify this
+
+      // TODO: somehow prevent not multiple START messages are sent
+      // this is currently possible, e.g. if the PSAP takes very long to respond and a user fires another message
+
+      // this is just a convenience function that API consumers don't have to explicitly START the conversation
+      // e.g. if they just send an IN_CHAT message it is converted to a START message
+      // only applies to PSAPs and only if they support the PSAP start message!
+      // Clients still have to start the conversation explicitly with a message of type START
+      if (
+        !this.hasBeenStarted &&
+        this._endpointType === EndpointType.PSAP &&
+        EmergencyMessageType.isStarted(type)
+      )
+        type = EmergencyMessageType.START;
+
+      messageParam.type = type;
+      message = this.createLocalMessage(messageParam);
+    }
+
     this._updateMessagePropsIfIsClient(message);
 
     const promise = new Promise<void>((resolve, reject) => {
@@ -588,8 +609,15 @@ export class Conversation {
     message.promise = promise;
 
     promise
-      .then(() => message.state = MessageState.SUCCESS)
-      .catch(() => message.state = MessageState.ERROR);
+      // don't use `catch` here!
+      // this leads to problems in order of execution in case of errors
+      // directly passing the error-handler to `then` works fine
+      .then(
+        // success
+        () => { message.state = MessageState.SUCCESS },
+        // error
+        () => { message.state = MessageState.ERROR },
+      );
 
     this._addNewMessage(message);
     this._notifyQueue();
