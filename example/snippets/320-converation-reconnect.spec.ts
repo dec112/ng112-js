@@ -37,7 +37,7 @@ it('Shows how to reconnect to an already existing conversation', async () => {
   conversation1.addMessageListener((msg) => {
     // save the last sent message id from locally sent messages
     if (msg.origin === Origin.LOCAL)
-      persistObject('message-id', msg.id);
+      persistObject('message-id', conversation1.messageId);
 
     // very important!
     // as target URI will most probably change during the conversation

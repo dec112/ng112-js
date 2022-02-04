@@ -93,7 +93,6 @@ export class Conversation {
    */
   public readonly id: string;
 
-  private _messageId: number;
   private _heartbeatInterval?: Timeout;
   private _displayName?: string;
 
@@ -116,6 +115,13 @@ export class Conversation {
       value: state.value,
     }
   }
+
+  /**
+   * Last used message id \
+   * Important for restoring conversations
+   */
+  public get messageId() { return this._messageId }
+  private _messageId: number;
 
   /**
    * Type of endpoint
