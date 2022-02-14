@@ -3,7 +3,6 @@ import { CALL_INFO } from '../constants/headers';
 import { X_DEC112_TEST, X_DEC112_TEST_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
 import { ConversationEndpointType } from '../models/conversation';
-import { Header } from '../utils';
 import type { PidfLo } from 'pidf-lo'
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, NamespacedConversation, NamespaceSpecifics } from './interfaces';
@@ -61,6 +60,7 @@ export class DEC112Mapper implements NamespacedConversation {
     text,
     uris,
     extraParts,
+    extraHeaders,
     replyToSipUri,
     location,
     vcard,
@@ -72,6 +72,7 @@ export class DEC112Mapper implements NamespacedConversation {
       text,
       uris,
       extraParts,
+      extraHeaders,
       location,
       vcard,
     );
@@ -82,7 +83,7 @@ export class DEC112Mapper implements NamespacedConversation {
       hasTextMessage: !!text,
     });
 
-    const extraHeaders: Header[] = [
+    extraHeaders = [
       ...common.headers,
       { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, dec112Domain) },
       { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), dec112Domain) },

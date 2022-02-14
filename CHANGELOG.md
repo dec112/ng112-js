@@ -6,13 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.8.0] - 2022-02-14
+### Added
+* Support for custom SIP headers
 ## [1.7.0] - 2022-01-24
 ### Added
 - Possibility to further configure JsSIP user agent
 ## [1.6.0] - 2022-01-19
 ### Added
 - BACKPORT [2.0.0]: Support for gender identity element in VCards
-
 ## [1.5.2] - 2021-11-29
 ### Changed
 - Updated dependencies (pidf-lo, typedoc ...)

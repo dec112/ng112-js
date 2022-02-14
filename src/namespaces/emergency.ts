@@ -49,11 +49,14 @@ export class EmergencyMapper implements NamespacedConversation {
     text?: string,
     uris?: string[],
     extraParts?: MultipartPart[],
+    extraHeaders: Header[] = [],
     location?: PidfLo,
     vcard?: VCard,
   ): MessageParts => {
 
-    let extraHeaders: Header[] = [
+    extraHeaders = [
+      // allow for user custom headers
+      ...extraHeaders,
       // enables tracing back the origin and routing history of the call
       // according to ETSI TS 103 698 -> 6.1.2.6
       { key: HISTORY_INFO, value: `<${targetUri}>;index=1` }
@@ -160,6 +163,7 @@ export class EmergencyMapper implements NamespacedConversation {
     text,
     uris,
     extraParts,
+    extraHeaders,
     replyToSipUri,
     location,
     vcard,
@@ -171,11 +175,12 @@ export class EmergencyMapper implements NamespacedConversation {
       text,
       uris,
       extraParts,
+      extraHeaders,
       location,
       vcard,
     );
 
-    const extraHeaders = [
+    extraHeaders = [
       { key: CALL_INFO, value: getCallIdHeaderValue(conversationId, 'dec112.at') },
       { key: CALL_INFO, value: getMessageIdHeaderValue(id.toString(), 'service.dec112.at') },
       { key: CALL_INFO, value: getMessageTypeHeaderValue(type.toString(), 'service.dec112.at') },

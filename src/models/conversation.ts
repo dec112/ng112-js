@@ -1,6 +1,6 @@
 import { UA, URI } from 'jssip';
 import { IncomingMessage } from 'jssip/lib/SIPMessage';
-import { getHeaderString, getRandomString } from '../utils';
+import { getHeaderString, getRandomString, Header } from '../utils';
 import type { PidfLo } from 'pidf-lo';
 import { QueueItem } from './queue-item';
 import { EmergencyMessageType } from '../constants/message-types/emergency';
@@ -44,6 +44,10 @@ export interface SendMessageObject {
    * Additional (custom) Multipart MIME parts to add to the message
    */
   extraParts?: MultipartPart[],
+  /**
+   * Additional SIP headers to be sent with the message
+   */
+  extraHeaders?: Header[],
   /**
    * Message type (bitmask) according to ETSI TS 103 698\
    * Defaults to `EmergencyMessageType.IN_CHAT`\
@@ -397,6 +401,7 @@ export class Conversation {
     text,
     uris,
     extraParts,
+    extraHeaders,
     type = EmergencyMessageType.IN_CHAT,
     messageId,
   }: SendMessageObject): Message => {
@@ -426,6 +431,7 @@ export class Conversation {
       text,
       uris,
       extraParts,
+      extraHeaders,
       // This is just a dummy value to satisfy TypeScript
       promise: new Promise(() => { }),
     };
