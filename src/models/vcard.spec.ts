@@ -2,7 +2,7 @@
 import findRoot from 'find-root';
 import path from 'path';
 import fs from 'fs';
-import { Gender, VCard } from './vcard';
+import { Gender, VCard, KeyId } from './vcard';
 
 const res = path.join(findRoot(), 'test', 'res', 'vcard');
 
@@ -13,6 +13,10 @@ const getValidVCardObject = () => {
 
 const getValidVCardSmallString = () => {
   return fs.readFileSync(path.join(res, 'valid-vcard_small.xml'), { encoding: 'utf-8' });
+}
+
+const getValidVCardSpecialChars = () => {
+  return fs.readFileSync(path.join(res, 'valid-vcard_special-chars.xml'), { encoding: 'utf-8' });
 }
 
 describe('VCard functionality', () => {
@@ -103,5 +107,13 @@ describe('VCard functionality', () => {
     vcard.addStreet('Example Street 3');
 
     expect(vcard.toXMLString()).toBe(getValidVCardSmallString());
+  });
+
+  it ('should escape special XML characters', () => {
+    const vcard = new VCard();
+
+    vcard.add(KeyId.FULL_NAME, '</text>Alice Smith');
+
+    expect(vcard.toXMLString()).toBe(getValidVCardSpecialChars());
   });
 });
