@@ -38,6 +38,10 @@ export {
 } from './models/interfaces';
 
 export {
+  Header,
+} from './utils';
+
+export {
   LogLevel,
 } from './models/logger';
 
