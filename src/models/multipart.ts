@@ -112,7 +112,9 @@ export class Multipart {
     const multi = new Multipart();
     const boundary = multipartRegex[1];
 
-    const parts = split(input, new RegExp(`-+${boundary}-*`));
+    // ^ -> boundary must be at the beginning of the line
+    // m -> multiline -> ensures ^ matches every new line
+    const parts = split(input, new RegExp(`^-+${boundary}-*\w*$`, 'm'));
 
     for (const part of parts) {
       const lines = split(part, CRLF);

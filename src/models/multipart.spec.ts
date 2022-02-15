@@ -51,7 +51,7 @@ describe('Multipart parsing', () => {
       expect(parsed.parts).toContainEqual(expected);
     }
 
-    // test, whether popPartsByContentType considers charset that's specified
+    // test, whether getPartsByContentTypes considers charset that's specified
     // it should not!
     expect(parsed.getPartsByContentTypes([TEXT_PLAIN])).toEqual([
       textPart1,
@@ -61,12 +61,21 @@ describe('Multipart parsing', () => {
 
   it('should not parse complete garbage', () => {
     const invalidDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'multipart-garbage.txt'), { encoding: 'utf-8' });
-    // look, this boundary is quite weird
     const parsed = Multipart.parse(invalidDoc, 'Content-Type: multipart/mixed;boundary=UxCETVhBhhfxiD5G');
 
     expect(parsed.parts).toHaveLength(1);
-    
+
     const textParts = parsed.getPartsByContentTypes([TEXT_PLAIN]);
     expect(textParts).toHaveLength(0);
+  });
+
+  it('should not split at boundaries that are not at the beginning of the line', () => {
+    const validDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'valid-multipart_1.txt'), { encoding: 'utf-8' });
+    const parsed = Multipart.parse(validDoc, 'Content-Type: multipart/mixed;boundary=bounds');
+
+    expect(parsed.parts).toHaveLength(1);
+
+    const text = parsed.getPartsByContentTypes([TEXT_PLAIN])[0].body;
+    expect(text).toBe(`hello${CRLF} --bounds   ${CRLF}Content-Type: text/plain${CRLF}${CRLF}there`);
   });
 });
