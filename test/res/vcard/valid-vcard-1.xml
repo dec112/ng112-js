@@ -10,6 +10,7 @@
   <xc:n>
     <xc:given>Smith</xc:given>
     <xc:surname>Alice</xc:surname>
+    <xc:suffix>MSc.</xc:suffix>
   </xc:n>
   <xc:fn>
     <xc:text>Alice Smith MSc.</xc:text>

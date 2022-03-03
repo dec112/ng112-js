@@ -242,7 +242,11 @@ export class VCard {
     }
 
     // now we parse VCard items that are unknown
-    for (const element of getPrefixedElements(docElement, 'text', namespacePrefix)) {
+    for (const element of getPrefixedElements(
+      docElement,
+      'text',
+      namespacePrefix
+    )) {
       const parent = element.parentNode;
 
       if (!parent)
@@ -309,9 +313,20 @@ const writeXmlElement = (
   return undefined;
 }
 
-const getPrefixedElements = (parentElement: Element, tagName: string, namespacePrefix?: string) => {
+const getPrefixedElements = (
+  parentElement: Element,
+  tagName: string,
+  namespacePrefix?: string,
+  requireDirectChild: boolean = false
+) => {
   const pref = namespacePrefix ? `${namespacePrefix}:` : '';
-  return Array.from(parentElement.getElementsByTagName(`${pref}${tagName}`));
+  const arr = Array.from(parentElement.getElementsByTagName(`${pref}${tagName}`));
+
+  // requireDirectChild requires children to be direct anchestors of the parent
+  if (requireDirectChild)
+    return arr.filter(x => x.parentNode === parentElement);
+  else
+    return arr;
 }
 
 const parseXmlElement = (
@@ -320,7 +335,12 @@ const parseXmlElement = (
   vcard: VCard,
   namespacePrefix?: string,
 ) => {
-  const foundElement = getPrefixedElements(parentElement, node.nodeName, namespacePrefix)[0];
+  const foundElement = getPrefixedElements(
+    parentElement,
+    node.nodeName,
+    namespacePrefix,
+    true
+  )[0];
 
   if (!foundElement)
     return;
