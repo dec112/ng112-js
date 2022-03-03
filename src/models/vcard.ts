@@ -1,6 +1,7 @@
 import { XMLCompat } from 'pidf-lo/dist/node';
 
 export const VCARD_XML_NAMESPACE = 'urn:ietf:params:xml:ns:vcard-4.0';
+const vcardRootNodeName = 'vcard';
 
 export enum KeyId {
   FULL_NAME = 'fn',
@@ -196,7 +197,7 @@ export class VCard {
     // This helps us finding unknown items so we can process them separately
     const clonedItems = Array.from(this._items);
 
-    const rootNode = createPrefixedElement(doc, 'vcard', namespacePrefix);
+    const rootNode = createPrefixedElement(doc, vcardRootNodeName, namespacePrefix);
 
     for (const node of vcardNodes) {
       const el = writeXmlElement(node, doc, clonedItems, namespacePrefix);
@@ -237,8 +238,20 @@ export class VCard {
     if (namespacePrefixResult && namespacePrefixResult.length > 1)
       namespacePrefix = namespacePrefixResult[1];
 
-    for (const node of vcardNodes) {
-      parseXmlElement(node, docElement, vcard, namespacePrefix);
+    // if docElement is already our desired vcard root node, we just take it
+    // if not, we have to search for it in descendants of docElement
+    const vcardRootNode = docElement.nodeName === getNodeName(vcardRootNodeName, namespacePrefix) ?
+      docElement :
+      getPrefixedElements(
+        docElement,
+        vcardRootNodeName,
+        namespacePrefix
+      )[0];
+
+    if (vcardRootNode) {
+      for (const node of vcardNodes) {
+        parseXmlElement(node, vcardRootNode, vcard, namespacePrefix);
+      }
     }
 
     // now we parse VCard items that are unknown
@@ -274,8 +287,9 @@ export class VCard {
 const stringParser = (value: string | undefined): string | undefined => value;
 const stringWriter = (value: string) => value;
 
+const getNodeName = (tagName: string, namespace?: string) => `${namespace ? `${namespace}:` : ''}${tagName}`;
 const createPrefixedElement = (document: Document, tagName: string, namespace?: string) => {
-  return document.createElement(`${namespace ? `${namespace}:` : ''}${tagName}`);
+  return document.createElement(getNodeName(tagName, namespace));
 }
 
 const writeXmlElement = (
@@ -319,8 +333,7 @@ const getPrefixedElements = (
   namespacePrefix?: string,
   requireDirectChild: boolean = false
 ) => {
-  const pref = namespacePrefix ? `${namespacePrefix}:` : '';
-  const arr = Array.from(parentElement.getElementsByTagName(`${pref}${tagName}`));
+  const arr = Array.from(parentElement.getElementsByTagName(getNodeName(tagName, namespacePrefix)));
 
   // requireDirectChild requires children to be direct anchestors of the parent
   if (requireDirectChild)
@@ -370,6 +383,7 @@ interface XMLNode {
   leafs?: XMLNode[];
 }
 
+// TODO: switch this implementation to something with XPath
 const vcardNodes: XMLNode[] = [
   {
     nodeName: 'adr',
