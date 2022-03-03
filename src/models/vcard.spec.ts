@@ -6,8 +6,8 @@ import { Gender, VCard, KeyId } from './vcard';
 
 const res = path.join(findRoot(), 'test', 'res', 'vcard');
 
-const getValidVCardObject = () => {
-  const xmlVcard = fs.readFileSync(path.join(res, 'valid-vcard.xml'), { encoding: 'utf-8' });
+const getValidVCardObject = (index: string) => {
+  const xmlVcard = fs.readFileSync(path.join(res, `valid-vcard-${index}.xml`), { encoding: 'utf-8' });
   return VCard.fromXML(xmlVcard);
 }
 
@@ -20,8 +20,11 @@ const getValidVCardSpecialChars = () => {
 }
 
 describe('VCard functionality', () => {
-  it('should parse known VCard entries', () => {
-    const vcard = getValidVCardObject();
+  it.each([
+    '1',
+    '2',
+  ])('should parse known VCard entries', (index: string) => {
+    const vcard = getValidVCardObject(index);
 
     expect(vcard.fullName).toBe('Alice Smith MSc.');
     expect(vcard.firstname).toBe('Alice');
@@ -38,8 +41,11 @@ describe('VCard functionality', () => {
     expect(vcard.note).toBe('{"some":"additional","data":"to","be":"sent"}');
   });
 
-  it('should parse unknown VCard entries', () => {
-    const vcard = getValidVCardObject();
+  it.each([
+    '1',
+    '2',
+  ])('should parse unknown VCard entries', (index: string) => {
+    const vcard = getValidVCardObject(index);
 
     expect(vcard.get('additionalItem')).toBe('Lorem Ipsum');
   });
@@ -109,7 +115,7 @@ describe('VCard functionality', () => {
     expect(vcard.toXMLString()).toBe(getValidVCardSmallString());
   });
 
-  it ('should escape special XML characters', () => {
+  it('should escape special XML characters', () => {
     const vcard = new VCard();
 
     vcard.add(KeyId.FULL_NAME, '</text>Alice Smith');
