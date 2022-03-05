@@ -66,8 +66,8 @@ describe('VCard functionality', () => {
     const vcardXmlString = vcard.toXMLString('asdf');
 
     expect(vcardXmlString).toMatch(/<asdf:fn>.*<asdf:text>Alice Smith<\/asdf:text>.*<\/asdf:fn>/s);
-    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:surname>Alice<\/asdf:surname>.*<\/asdf:n>/s);
-    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:given>Smith<\/asdf:given>.*<\/asdf:n>/s);
+    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:surname>Smith<\/asdf:surname>.*<\/asdf:n>/s);
+    expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:given>Alice<\/asdf:given>.*<\/asdf:n>/s);
     expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:prefix>Dr\.<\/asdf:prefix>.*<\/asdf:n>/s);
     expect(vcardXmlString).toMatch(/<asdf:n>.*<asdf:suffix>MSc\.<\/asdf:suffix>.*<\/asdf:n>/s);
     expect(vcardXmlString).toMatch(/<asdf:bday>1990-03-03T00:00:00.000Z<\/asdf:bday>/s);

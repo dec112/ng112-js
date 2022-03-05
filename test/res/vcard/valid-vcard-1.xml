@@ -8,8 +8,8 @@
     <xc:street>Example Street 3</xc:street>
   </xc:adr>
   <xc:n>
-    <xc:given>Smith</xc:given>
-    <xc:surname>Alice</xc:surname>
+    <xc:given>Alice</xc:given>
+    <xc:surname>Smith</xc:surname>
     <xc:suffix>MSc.</xc:suffix>
   </xc:n>
   <xc:fn>
