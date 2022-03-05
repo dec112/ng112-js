@@ -4,8 +4,8 @@ export const VCARD_XML_NAMESPACE = 'urn:ietf:params:xml:ns:vcard-4.0';
 
 enum KeyId {
   FULL_NAME = 'fn',
-  FIRST_NAME = 'surname',
-  LAST_NAME = 'given',
+  FIRST_NAME = 'given',
+  LAST_NAME = 'surname',
   NAME_PREFIX = 'prefix',
   NAME_SUFFIX = 'suffix',
   BIRTHDAY = 'bday',

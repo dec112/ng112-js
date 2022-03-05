@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.8.2] - 2022-03-05
+### Fixed
+- VCard firstname and lastname. They were switched without being noticed by anyone, oops :-)
+
 ## [1.8.1] - 2022-02-15
 ### Fixed
 - Missing export for `Header`
