@@ -12,6 +12,11 @@ export interface ConversationConfiguration {
    */
   isTest?: boolean,
   /**
+   * Defines the conversation as a silent emergency call \
+   * Currently only supported in DEC112 environments
+   */
+  isSilent?: boolean,
+  /**
    * A unique conversation id\
    * according to spec, 30 characters is the longest allowed string
    */

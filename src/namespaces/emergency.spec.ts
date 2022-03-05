@@ -65,6 +65,7 @@ describe('Generating Call-Info headers', () => {
 
     endpointType: EndpointType.CLIENT,
     isTest: false,
+    isSilent: false,
     replyToSipUri: 'sip:reply-to@dec112.at',
     targetUri: 'sip:target@dec112.at',
   };
@@ -117,6 +118,7 @@ describe('Messaging functionality', () => {
       targetUri: 'sip:some.emergency@call.at',
       endpointType: EndpointType.CLIENT,
       isTest: false,
+      isSilent: false,
       replyToSipUri: 'sip:test@domain.com',
 
       message: new Message({

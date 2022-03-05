@@ -19,6 +19,7 @@ export interface MessagePartsParams {
   targetUri: string,
   endpointType: EndpointType,
   isTest: boolean,
+  isSilent: boolean,
   replyToSipUri: string,
 }
 
@@ -37,4 +38,5 @@ export interface Mapper {
 
   getCallIdFromHeaders(headers: string[]): string | undefined;
   getIsTestFromEvent(evt: NewMessageEvent): boolean;
+  getIsSilentFromEvent(evt: NewMessageEvent): boolean;
 }

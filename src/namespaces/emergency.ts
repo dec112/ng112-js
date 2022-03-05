@@ -87,6 +87,8 @@ export class EmergencyMapper implements Mapper {
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
   // @ts-expect-error
   getIsTestFromEvent = (evt: NewMessageEvent): boolean => false; // TODO: reference ETSI TS 103 698, 6.1.2.10 "Test Call"
+  // @ts-expect-error this functionality is currently only defined for DEC112 environments
+  getIsSilentFromEvent = (evt: NewMessageEvent): boolean => false;
 
   protected createCommonParts = (
     message: Message,

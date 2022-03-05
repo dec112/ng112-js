@@ -12,6 +12,7 @@ describe('Generating headers', () => {
   const defaultParams: MessagePartsParams = {
     endpointType: EndpointType.CLIENT,
     isTest: false,
+    isSilent: false,
     replyToSipUri: 'sip:reply-to@dec112.at',
     targetUri: 'sip:target@dec112.at',
 
@@ -47,9 +48,13 @@ describe('Generating headers', () => {
       registrationId: '098-765-432-21',
       deviceId: '123-456-789',
     }));
-    const parts = mapper.createSipParts(defaultParams);
+    const parts = mapper.createSipParts({
+      ...defaultParams,
+      isTest: true,
+      isSilent: true,
+    });
 
-    expect(parts.headers.length).toBe(8);
+    expect(parts.headers.length).toBe(10);
 
     expect(parts.headers).toContainEqual<Header>({ key: "History-Info", value: "<sip:target@dec112.at>;index=1" });
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:dec112:uid:callid:cid-1:service.dec112.at>; purpose=dec112-CallId" });
@@ -59,5 +64,7 @@ describe('Generating headers', () => {
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:dec112:uid:regid:098-765-432-21:service.dec112.at>; purpose=dec112-RegId" });
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:dec112:uid:clientversion:1.2.3:service.dec112.at>; purpose=dec112-ClientVer" });
     expect(parts.headers).toContainEqual<Header>({ key: "Call-Info", value: "<urn:dec112:uid:language:de:service.dec112.at>; purpose=dec112-Lang" });
+    expect(parts.headers).toContainEqual<Header>({ key: "X-Dec112-Silent", value: "True" });
+    expect(parts.headers).toContainEqual<Header>({ key: "X-Dec112-Test", value: "True" });
   });
 });

@@ -1,5 +1,5 @@
 import { CALL_INFO, CONTENT_TRANSFER_ENCODING, CONTENT_TYPE } from '../constants/headers';
-import { X_DEC112_TEST, X_DEC112_VALUE_TRUE } from '../constants/headers/dec112';
+import { X_DEC112_SILENT, X_DEC112_TEST, X_DEC112_VALUE_TRUE } from '../constants/headers/dec112';
 import { fromEmergencyMessageType, toEmergencyMessageType } from '../constants/message-types/dec112';
 import { EmergencyMapper, getRegEx, regexHeaders } from './emergency';
 import { MessageParts, MessagePartsParams, Namespace, NamespaceSpecifics } from './interfaces';
@@ -73,12 +73,15 @@ export class DEC112Mapper extends EmergencyMapper {
     headers.some(h => getRegEx(getAnyHeaderValue).test(h));
 
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
+  
   getIsTestFromEvent = (evt: NewMessageEvent): boolean => evt.request.getHeader(X_DEC112_TEST) === X_DEC112_VALUE_TRUE;
+  getIsSilentFromEvent = (evt: NewMessageEvent): boolean => evt.request.getHeader(X_DEC112_SILENT) === X_DEC112_VALUE_TRUE;
 
   createSipParts = ({
     message,
     targetUri,
     isTest,
+    isSilent,
     endpointType,
     replyToSipUri,
   }: MessagePartsParams): MessageParts => {
@@ -122,6 +125,12 @@ export class DEC112Mapper extends EmergencyMapper {
     if (isTest)
       headers.push({
         key: X_DEC112_TEST,
+        value: X_DEC112_VALUE_TRUE,
+      });
+
+    if (isSilent)
+      headers.push({
+        key: X_DEC112_SILENT,
         value: X_DEC112_VALUE_TRUE,
       });
 

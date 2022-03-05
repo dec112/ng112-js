@@ -165,6 +165,11 @@ export class Conversation {
    * Currently only supported in DEC112 environments
    */
   public readonly isTest: boolean;
+  /**
+   * Defines, whether the call should be marked as "silent" emergency call
+   * Currently only supported in DEC112 environments
+   */
+  public readonly isSilent: boolean;
 
   public constructor(
     private _agent: SipAdapter,
@@ -194,6 +199,8 @@ export class Conversation {
     this.id = config?.id ?? getRandomString(30);
 
     this.isTest = config?.isTest ?? false;
+    this.isSilent = config?.isSilent ?? false;
+
     this._endpointType = config?.endpointType ?? EndpointType.CLIENT;
 
     this._state = createConversationState(this, config?.state);
@@ -278,6 +285,7 @@ export class Conversation {
         message,
         targetUri: this.targetUri,
         isTest: this.isTest,
+        isSilent: this.isSilent,
         replyToSipUri,
         endpointType: this._endpointType,
       });
@@ -781,6 +789,7 @@ export class Conversation {
       {
         id: mapper.getCallIdFromHeaders(request.getHeaders(CALL_INFO)),
         isTest: mapper.getIsTestFromEvent(event),
+        isSilent: mapper.getIsSilentFromEvent(event),
         endpointType: endpointType,
         state,
       },

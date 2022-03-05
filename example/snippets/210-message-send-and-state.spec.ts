@@ -1,10 +1,15 @@
 import { MessageError, MessageState } from 'ng112-js/dist/node';
 import { createAgent, endExample } from './util';
 
-it('Shows how to send heartbeats manually', async () => {
+it('Shows how to send messages', async () => {
   const agent = await createAgent();
 
-  const conversation = agent.createConversation('sip:144@dec112.eu');
+  const conversation = agent.createConversation('sip:144@dec112.eu', {
+    // specify, if conversation should be marked as test call
+    isTest: false,
+    // specify, if conversation should be marked as "silent" emergency call
+    isSilent: false,
+  });
 
   // should be awaited!
   conversation.start();
