@@ -57,6 +57,7 @@ Rejecting the initial message of a conversation leads to the conversation being 
 ### Fixed
 - Conversation state only changes if the state value itself changes. If origin is different but state is the same, it won't trigger a state change.
 - Message start logic in PSAP environments.
+- VCard firstname and lastname. They were switched without being noticed by anyone, oops :-)
 
 ---
 

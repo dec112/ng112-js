@@ -5,8 +5,8 @@ const vcardRootNodeName = 'vcard';
 
 export enum KeyId {
   FULL_NAME = 'fn',
-  FIRST_NAME = 'surname',
-  LAST_NAME = 'given',
+  FIRST_NAME = 'given',
+  LAST_NAME = 'surname',
   NAME_PREFIX = 'prefix',
   NAME_SUFFIX = 'suffix',
   BIRTHDAY = 'bday',

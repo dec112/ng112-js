@@ -8,8 +8,8 @@
           <xc:text>Alice Smith MSc.</xc:text>
         </xc:fn>
         <xc:n>
-          <xc:surname>Alice</xc:surname>
-          <xc:given>Smith</xc:given>
+          <xc:surname>Smith</xc:surname>
+          <xc:given>Alice</xc:given>
           <xc:prefix></xc:prefix>
           <xc:suffix>MSc.</xc:suffix>
         </xc:n>
