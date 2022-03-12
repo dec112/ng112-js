@@ -123,7 +123,7 @@ export class Agent {
       ...userAgentConfig,
 
       // user agent must not be overwritten directly
-      user_agent: userAgentConfig.user_agent ? `${userAgentConfig.user_agent}, ${USER_AGENT}` : USER_AGENT,
+      user_agent: USER_AGENT + (userAgentConfig.user_agent ? ` ${userAgentConfig.user_agent}` : ''),
     });
 
     let debugFunction: ((level: number, ...values: any[]) => unknown) | undefined = undefined;
