@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.9.0] - 2022-03-12
+### Added
+- Ability to customize SIP user agent
+
 ## [1.8.2] - 2022-03-05
 ### Fixed
 - VCard firstname and lastname. They were switched without being noticed by anyone, oops :-)

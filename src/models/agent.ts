@@ -119,11 +119,11 @@ export class Agent {
       password,
       display_name: displayName,
       register: true,
-      
+
       ...userAgentConfig,
-      
-      // user agent must not be overwritten
-      user_agent: USER_AGENT,
+
+      // user agent must not be overwritten directly
+      user_agent: userAgentConfig.user_agent ? `${userAgentConfig.user_agent}, ${USER_AGENT}` : USER_AGENT,
     });
 
     let debugFunction: ((level: number, ...values: any[]) => unknown) | undefined = undefined;
