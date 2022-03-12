@@ -44,7 +44,7 @@ describe('Generating headers', () => {
   it('can use custom values', () => {
     const mapper = new DEC112Mapper(logger, new DEC112Specifics({
       clientVersion: '1.2.3',
-      langauge: 'de',
+      language: 'de',
       registrationId: '098-765-432-21',
       deviceId: '123-456-789',
     }));

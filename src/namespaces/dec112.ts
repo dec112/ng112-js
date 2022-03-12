@@ -36,7 +36,7 @@ export interface DEC112Config {
   /**
    * User device language (ISO639-1 two letter language code)
    */
-  langauge?: string;
+  language?: string;
   /**
    * Client version as SEMVER version code (version of application, where ng112-js is used in; e.g. `1.0.4`)
    */
@@ -118,8 +118,8 @@ export class DEC112Mapper extends EmergencyMapper {
       if (spec.clientVersion)
         headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'clientversion'], spec.clientVersion, domain, 'ClientVer') });
 
-      if (spec.langauge)
-        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'language'], spec.langauge, domain, 'Lang') });
+      if (spec.language)
+        headers.push({ key: CALL_INFO, value: getCallInfoHeader([UID, 'language'], spec.language, domain, 'Lang') });
     }
 
     if (isTest)
