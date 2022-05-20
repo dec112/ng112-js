@@ -390,10 +390,20 @@ export class Conversation {
     // define at which states message can be sent
     // this might differ between PSAP and CLIENT
     // also consider conversation state while PSAP is handing over to another PSAP
-    let queue = this.hasBeenStarted ?
-      [...this._queue] :
-      // START messages can always be sent
-      [...this._queue.filter(x => x.message.type === EmergencyMessageType.START)];
+    let queue: QueueItem[];
+
+    if (this.hasBeenStarted) {
+      queue = [...this._queue];
+    } else {
+      queue = [...this._queue.filter(x => (
+        // START messages can always be sent
+        x.message.type === EmergencyMessageType.START) ||
+        // additionally, a PSAP can send STOP messages for non-started conversation
+        // as it may reject incoming conversations due to various reasons
+        // TODO: add regression test to avoid any errors here
+        (this.endpointType === EndpointType.PSAP && x.message.type === EmergencyMessageType.STOP)
+      )];
+    }
 
     // take first item out of queue and send it
     while (queue.length > 0) {
