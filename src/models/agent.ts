@@ -3,7 +3,7 @@ import { DEC112Mapper, DEC112Specifics } from '../namespaces/dec112';
 import { EmergencyMapper } from '../namespaces/emergency';
 import { Namespace, Mapper, NamespaceSpecifics } from '../namespaces/interfaces';
 import { Conversation, ConversationState, StateObject } from './conversation';
-import { ConversationConfiguration, DequeueRegistration, DequeueRegistrationRequest, DequeueRegistrationResponse, QueueState, QueueStateNotification, Subscriber } from './interfaces';
+import { ConversationConfiguration, DequeueRegistration, DequeueRegistrationRequest, DequeueRegistrationResponse, ListenerNotifier, QueueState, QueueStateNotification, Subscriber } from './interfaces';
 import { CustomSipHeaders, Store, AgentMode } from './store';
 import { VCard } from './vcard';
 import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
@@ -15,6 +15,16 @@ import { SipResponseOptions } from '../adapters/sip-adapter';
 import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
 import { HttpAdapter } from './http-adapter';
 import { EndpointType, SendMessageObject } from '..';
+
+/**
+ * This interface is used for deferred execution of any conversation listeners
+ * It is important for PSAPs to not immediately notify conversation listeners and only do this
+ * after the first message has also been processed
+ */
+export interface CreateConversationObject {
+  conversation: Conversation,
+  notifyListeners: ListenerNotifier,
+}
 
 // TODO: We need a callback that is called for every change in a conversation
 // if recovery-related data has changed
@@ -239,15 +249,30 @@ export class Agent {
 
     if (conversationId) {
       let conversation = this.conversations.find(x => x.id == conversationId);
+      let ccObject: CreateConversationObject | undefined = undefined;
 
       // we only want to start new conversations if there are active listeners.
       // otherwise it does not make sense.
       // e.g. this should prevent a mobile device from receiving incoming conversations.
-      if (!conversation && this._conversationListeners.size > 0)
-        conversation = this.createConversation(evt, undefined, mapper);
+      if (!conversation && this._conversationListeners.size > 0) {
+        ccObject = this.createConversation(evt, undefined, mapper);
+        conversation = ccObject.conversation;
+      }
 
-      if (conversation)
-        conversation.handleMessageEvent(evt);
+      if (conversation) {
+        const messageNotifier = conversation.handleMessageEvent(evt);
+
+        // TODO: add a unit test to verify that once PSAPs are notified about a new converstion
+        // also the first message has already been processed and is included in the conversation object
+        // TODO: also verify that the message listener is never called before the conversation listener
+        
+        // notify conversation listeners BEFORE notifying message listeners
+        if (ccObject)
+          ccObject.notifyListeners();
+
+        // notifying message listeners
+        messageNotifier();
+      }
       else {
         this._logger.warn('Rejected incoming message. No corresponding conversation found and no active conversation listeners listening. Is something wrong with the setup?', evt);
         rejectIfDefined(evt, {
@@ -367,21 +392,28 @@ export class Agent {
     mapper?: Mapper,
   ): Conversation;
   /**
-   * Creates a new configuration on top of the underlying agent
+   * @private
+   * 
+   * Internal method, do not use from outside ng112-js
    * 
    * @param event A new message event for an incoming message 
    * @param mapper The mapper to use for this conversation
+   * 
+   * @returns CreateConversationObject
+   * It is used for deferred execution of any conversation listeners
+   * It is important for PSAPs to not immediately notify conversation listeners and only do this
+   * after the first message has also been processed
    */
   createConversation(
     event: NewMessageEvent,
     configuration?: ConversationConfiguration,
     mapper?: Mapper,
-  ): Conversation;
+  ): CreateConversationObject;
   createConversation(
     value: any,
     configuration?: ConversationConfiguration,
     mapper: Mapper = this._mapper.default,
-  ): Conversation {
+  ): Conversation | CreateConversationObject {
     let conversation: Conversation | undefined = undefined;
     let event: NewMessageEvent | undefined = undefined;
 
@@ -407,26 +439,37 @@ export class Agent {
     }
 
     if (conversation) {
+      const _conversation = conversation;
       this.conversations.push(conversation);
 
       const stopListener = (state: StateObject) => {
-        if (!conversation || state.value !== ConversationState.STOPPED)
+        if (state.value !== ConversationState.STOPPED)
           return;
 
-        conversation.removeStateListener(stopListener);
-        const index = this.conversations.indexOf(conversation);
+        _conversation.removeStateListener(stopListener);
+        const index = this.conversations.indexOf(_conversation);
 
         if (index !== -1)
           this.conversations.splice(index, 1);
       }
       // this callback ensures that once a conversation is STOPPED, it is removed from our global conversations list.
-      conversation.addStateListener(stopListener);
+      _conversation.addStateListener(stopListener);
 
-      for (const callback of this._conversationListeners) {
-        callback(conversation, event);
+      const notifyListeners = () => {
+        for (const callback of this._conversationListeners) {
+          callback(_conversation, event);
+        }
       }
 
-      return conversation;
+      // type check to check value is of type NewMessageEvent -> means internal use of library
+      if (typeof value === 'object') {
+        return {
+          conversation: _conversation,
+          notifyListeners,
+        }
+      }
+      else
+        return conversation;
     }
     else
       throw new Error('Argument 1 has to be either of type "NewMessageEvent" or of type "string".');

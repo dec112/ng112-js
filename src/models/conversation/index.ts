@@ -8,7 +8,7 @@ import { Message, Origin, MessageState, MessageError, Binary } from '../message'
 import { CALL_INFO, REPLY_TO, ROUTE, CONTENT_TYPE } from '../../constants/headers';
 import { TEXT_PLAIN } from '../../constants/content-types';
 import { MultipartPart } from '../multipart';
-import { ConversationConfiguration, EndpointType } from '../interfaces';
+import { ConversationConfiguration, EndpointType, ListenerNotifier } from '../interfaces';
 import { clearInterval, setInterval, Timeout } from '../../utils';
 import { VCard } from '../vcard';
 import { CustomSipHeader } from '../custom-sip-header';
@@ -359,12 +359,16 @@ export class Conversation {
     }
   }
 
-  private _addNewMessage = (message: Message) => {
+  // returns a function that triggers notification of listeners
+  // important for deferred notification of listeners
+  private _addNewMessage = (message: Message): ListenerNotifier => {
     this._messages.push(message);
 
-    for (const listener of this._messageListeners) {
-      listener(message);
-    }
+    return () => {
+      for (const listener of this._messageListeners) {
+        listener(message);
+      }
+    };
   }
 
   private _notifyQueue = async () => {
@@ -643,7 +647,14 @@ export class Conversation {
         () => { message.state = MessageState.ERROR },
       );
 
-    this._addNewMessage(message);
+
+    const messageNotifier = this._addNewMessage(message);
+    // notification listener must be executed explicitly
+    // _addNewMessage does not inform listeners by default
+    // this could be done by a direct invocation of the return value
+    // however I think it's better to do it more explicitly with a separate variable
+    messageNotifier();
+
     this._notifyQueue();
 
     return message;
@@ -651,8 +662,10 @@ export class Conversation {
 
   /**
    * This function is only used internally and should not be called from outside the library
+   * 
+   * @returns A function which notifies all attached message listeners (can be used for deferred notifications)
    */
-  handleMessageEvent = (evt: NewMessageEvent): void => {
+  handleMessageEvent = (evt: NewMessageEvent): ListenerNotifier => {
     if (!this._created)
       this._created = new Date();
 
@@ -663,8 +676,7 @@ export class Conversation {
 
     const { type: messageType } = message;
 
-    let stateCallback: (() => void) | undefined = undefined;
-
+    let stateCallback: ListenerNotifier | undefined = undefined;
     if (EmergencyMessageType.isStopped(messageType))
       stateCallback = this._setState({
         type: Transition.STOP,
@@ -682,6 +694,7 @@ export class Conversation {
         origin,
       });
 
+    let messageNotifier: ListenerNotifier | undefined = undefined
     if (origin === Origin.REMOTE) {
       if (req.hasHeader(REPLY_TO))
         // this is type safe as we've already checked whether this header exists or not
@@ -691,17 +704,21 @@ export class Conversation {
 
       this._notifyQueue();
 
-      this._addNewMessage(new Message({
+      messageNotifier = this._addNewMessage(new Message({
         ...message,
         conversation: this,
       }));
     }
 
-    // this is called at the end of the function as we first want to notify listeners about the new message
-    // only to inform them afterwards about the state change
-    // however, listeners always have the possibility of retrieving the state from the conversation object at any time
-    if (stateCallback)
-      stateCallback();
+    return () => {
+      if (messageNotifier)
+        messageNotifier();
+      // this is called at the end of the function as we first want to notify listeners about the new message
+      // only to inform them afterwards about the state change
+      // however, listeners always have the possibility of retrieving the state from the conversation object at any time
+      if (stateCallback)
+        stateCallback();
+    }
   }
 
   // TODO: find a better name

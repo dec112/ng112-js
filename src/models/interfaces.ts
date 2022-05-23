@@ -121,3 +121,8 @@ export interface QueueStateNotification {
 export interface Subscriber {
   sipUri: string,
 }
+
+/**
+ * Inform listeners of a given service about a change
+ */
+export type ListenerNotifier = () => void;
