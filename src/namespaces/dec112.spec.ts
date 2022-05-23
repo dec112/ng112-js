@@ -8,6 +8,13 @@ import { MessagePartsParams } from './interfaces';
 
 const logger = new Logger(LogLevel.NONE);
 
+const mapper = new DEC112Mapper(logger, new DEC112Specifics({
+  clientVersion: '1.2.3',
+  language: 'de',
+  registrationId: '098-765-432-21',
+  deviceId: '123-456-789',
+}));
+
 describe('Generating headers', () => {
   const defaultParams: MessagePartsParams = {
     endpointType: EndpointType.CLIENT,
@@ -42,12 +49,6 @@ describe('Generating headers', () => {
   });
 
   it('can use custom values', () => {
-    const mapper = new DEC112Mapper(logger, new DEC112Specifics({
-      clientVersion: '1.2.3',
-      language: 'de',
-      registrationId: '098-765-432-21',
-      deviceId: '123-456-789',
-    }));
     const parts = mapper.createSipParts({
       ...defaultParams,
       isTest: true,
@@ -67,4 +68,28 @@ describe('Generating headers', () => {
     expect(parts.headers).toContainEqual<Header>({ key: "X-Dec112-Silent", value: "True" });
     expect(parts.headers).toContainEqual<Header>({ key: "X-Dec112-Test", value: "True" });
   });
+});
+
+describe('Checking SIP headers', () => {
+  it('correctly identifies DEC112 calls by their call id header', () => {
+    const headers: string[] = [
+      'Call-Info: <urn:dec112:uid:callid:HikuhzM8Md65cFdpRreTJIcXUCgNvc:service.dec112.at>; purpose=dec112-CallId',
+      'Call-Info: <urn:dec112:uid:msgid:1:service.dec112.at>; purpose=dec112-MsgId',
+      'Call-Info: <urn:dec112:uid:msgtype:13:service.dec112.at>; purpose=dec112-MsgType',
+      'Call-Info: <urn:dec112:uid:regid:1234567890:service.dec112.at>; purpose=dec112-RegId',
+    ]
+
+    expect(mapper.isCompatible(headers)).toBe(true);
+  })
+
+  it('does not wrongly detect ETSI calls as DEC112 calls just because some DEC112 headers are present', () => {
+    const headers: string[] = [
+      'Call-Info: <urn:emergency:uid:callid:PwoTTnJlCh0tVsVVnTx4CXNenn23N0:dec112.at>; purpose=EmergencyCallData.CallId',
+      'Call-Info: <urn:emergency:service:uid:msgid:1:dec112.at>; purpose=EmergencyCallData.MsgId',
+      'Call-Info: <urn:emergency:service:uid:msgtype:257:dec112.at>; purpose=EmergencyCallData.MsgType',
+      'Call-Info: <urn:dec112:endpoint:test:service.dec112.at>;purpose=dec112-ServiceId',
+    ]
+
+    expect(mapper.isCompatible(headers)).toBe(false);
+  })
 });

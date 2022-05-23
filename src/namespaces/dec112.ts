@@ -20,8 +20,6 @@ const getCallIdHeaderValue = (callId: string, domain: string) => getCallInfoHead
 const getMessageIdHeaderValue = (messageId: string, domain: string) => getCallInfoHeader(['uid', 'msgid'], messageId, domain, 'MsgId');
 const getMessageTypeHeaderValue = (messageType: string, domain: string) => getCallInfoHeader(['uid', 'msgtype'], messageType, domain, 'MsgType');
 
-const getAnyHeaderValue = (value: string, domain: string) => getCallInfoHeader(['.+'], value, domain, '.+');
-
 export interface DEC112Config {
   /**
    * @deprecated
@@ -69,8 +67,8 @@ export class DEC112Mapper extends EmergencyMapper {
   supportsPsapStartMessage = (): boolean => false;
 
   isCompatible = (headers: string[]): boolean =>
-    // checks if at least one element satisfies DEC112 call info headers
-    headers.some(h => getRegEx(getAnyHeaderValue).test(h));
+    // checks if DEC112 callid header is present
+    headers.some(h => getRegEx(getCallIdHeaderValue).test(h));
 
   getCallIdFromHeaders = (headers: string[]): string | undefined => regexHeaders(headers, getRegEx(getCallIdHeaderValue));
   
