@@ -468,8 +468,12 @@ export class Agent {
           notifyListeners,
         }
       }
-      else
+      else {
+        // external use of library
+        // IMPORTANT: Notify listeners before returning conversation
+        notifyListeners();
         return conversation;
+      }
     }
     else
       throw new Error('Argument 1 has to be either of type "NewMessageEvent" or of type "string".');
