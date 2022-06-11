@@ -312,7 +312,9 @@ export class Conversation {
         // however, not sticking to multipart types can lead to problems in DEC112 environments
         // as not every PSAP will support handling mime types different than multiparts
         // therefore, as a safety precaution, we always send multipart mime bodies
-        this.mapper.getNamespace() !== Namespace.DEC112
+        // however if we are in a DEC112 environment as a PSAP it is even preferred to not have multiparts
+        // as not all clients may support multiparts for receiving text messages. Tricky, tricky :-)
+        false === (this.mapper.getNamespace() === Namespace.DEC112 && this.endpointType === EndpointType.CLIENT)
       ) {
         const part = multipart.parts[0];
         contentType = part.headers.find(x => x.key === CONTENT_TYPE)?.value ?? TEXT_PLAIN;
