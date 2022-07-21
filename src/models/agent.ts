@@ -93,6 +93,13 @@ export interface AgentConfiguration {
    */
   password: string,
   /**
+   * User agent string that will be appended to ng112-js' default user agent string
+   * 
+   * @example at.dec112.app.emergency/1.1.3
+   * @example your-application/1.2.3 some-framework/2.5.3
+   */
+  userAgent: string,
+  /**
    * The user's well known identity. \
    * Providing a display name is HIGHLY RECOMMENDED! \
    * Examples:
@@ -116,12 +123,6 @@ export interface AgentConfiguration {
    * Object for customizing SIP headers
    */
   customSipHeaders?: CustomSipHeaders,
-  /**
-   * User agent string that will be appended to ng112-js' default user agent string
-   * 
-   * @example your-application/1.2.3 some-framework/2.5.3
-   */
-  userAgent?: string,
   /**
    * Specifies what kind of endpoint the agent should represent
    */
@@ -265,7 +266,7 @@ export class Agent {
         // TODO: add a unit test to verify that once PSAPs are notified about a new converstion
         // also the first message has already been processed and is included in the conversation object
         // TODO: also verify that the message listener is never called before the conversation listener
-        
+
         // notify conversation listeners BEFORE notifying message listeners
         if (ccObject)
           ccObject.notifyListeners();
