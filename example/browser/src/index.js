@@ -100,6 +100,7 @@ const disable = (element, value) => {
   }
 
   const call = el('txtCall', config.call);
+  const callId = el('txtCallId', config.callId);
   const isTest = el('cbIsTest', config.isTest);
   const isActive = el('cbIsActive', config.isActive);
 
@@ -320,6 +321,7 @@ const disable = (element, value) => {
 
     conversation = agent.createConversation(call.value, {
       isTest: isTest.checked,
+      id: callId.value || undefined,
     });
 
     conversation.start({
