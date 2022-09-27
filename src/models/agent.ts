@@ -12,7 +12,7 @@ import { Logger } from './logger';
 import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
 import { getPackageInfo, getPidfLo, timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
-import { BAD_REQUEST, NOT_FOUND, OK } from '../constants/status-codes';
+import { BAD_REQUEST, NOT_FOUND } from '../constants/status-codes';
 import { HttpAdapter } from './http-adapter';
 import { EndpointType, SendMessageObject } from '..';
 
@@ -638,10 +638,10 @@ export class Agent {
    */
   notifySubscribers = (uri: string, length: number, maxLength: number, state: QueueState) => {
     const notification: QueueStateNotification = {
-      QueueStateEventUri: uri,
-      QueueStateEventQueueLength: length,
-      QueueStateEventMaxLength: maxLength,
-      QueueStateValuesCode: state,
+      queueUri: uri,
+      queueLength: length,
+      queueMaxLength: maxLength,
+      state: state,
     };
 
     const stringified = JSON.stringify(notification);
@@ -660,18 +660,19 @@ export class Agent {
     console.warn('You are using ng112-js dequeue registration. This interface is not stable.\nDO NOT USE THIS IN PRODUCTION!');
 
     const req: DequeueRegistrationRequest = {
-      DequeueRegistrationDequeuer: this._store.originSipUri,
-      DequeueRegistrationQueueUri: registration.uri,
-      DequeueRegistrationExpirationTime: registration.expires,
+      dequeuerUri: this._store.originSipUri,
+      queueUri: registration.uri,
+      expirationTime: registration.expires,
     };
 
     if (registration.preference)
-      req.DequeueRegistrationDequeuePreference = registration.preference;
+      req.dequeuePreference = registration.preference;
 
     const res: DequeueRegistrationResponse = await this._store.getHttpAdapter().post(registration.endpoint, req);
 
-    if (res.DequeueRegistrationStatusCode === OK && res.DequeueRegistrationExpirationTime > 0) {
-      registration.expires = res.DequeueRegistrationExpirationTime;
+    // TODO: check if we need to handle 4xx and 5xx HTTP errors here
+    if (res.expirationTime > 0) {
+      registration.expires = res.expirationTime;
 
       // TODO: automatic renewal
       this._dequeueRegistrations.push(registration);

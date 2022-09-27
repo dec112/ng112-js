@@ -71,30 +71,26 @@ export interface DequeueRegistrationRequest {
   /**
    * SIP URI of queue to register on
    */
-  DequeueRegistrationQueueUri: string;
+  queueUri: string;
   /**
-   * SIP URI of dequeuer (where to send 
+   * SIP URI of dequeuer (where to send calls)
    */
-  DequeueRegistrationDequeuer: string;
+  dequeuerUri: string;
   /**
    * Requested time in seconds this registration will expire 
    */
-  DequeueRegistrationExpirationTime: number;
+  expirationTime: number;
   /**
    * Integer from 1 - 5 indicating queuing preference. 5 indicating highest preference
    */
-  DequeueRegistrationDequeuePreference?: number;
+  dequeuePreference?: number;
 }
 
 export interface DequeueRegistrationResponse {
   /**
    * Time in seconds this registration will expire
    */
-  DequeueRegistrationExpirationTime: number;
-  /**
-   * Status Code
-   */
-  DequeueRegistrationStatusCode: number;
+  expirationTime: number;
 }
 
 export type QueueState = 'active' | 'inactive' | 'disabled';
@@ -103,19 +99,19 @@ export interface QueueStateNotification {
   /**
    * SIP URI of queue 
    */
-  QueueStateEventUri: string;
+  queueUri: string;
   /**
    * Integer indicating current number of calls on the queue 
    */
-  QueueStateEventQueueLength: number;
+  queueLength: number;
   /**
    * Integer indicating maximum length of queue 
    */
-  QueueStateEventMaxLength: number;
+  queueMaxLength: number;
   /**
    * Enumeration of current queue state (e.g. Active/Inactive/Disabled) 
    */
-  QueueStateValuesCode: QueueState;
+  state: QueueState;
 }
 
 export interface Subscriber {
