@@ -92,9 +92,19 @@ export class Conversation {
    * according to spec, 30 characters is the longest allowed string
    */
   public readonly id: string;
+  
+  /**
+   * The display name that's used for outgoing message
+   * This property is public intentionally, as PSAPs should have the possibility
+   * for setting this property, even if the conversation is already running
+   * 
+   * However, don't change displayName during an ongoing conversation
+   * as this can lead to unexpected behaviour!
+   * Use one and only one displayName throughout a conversation!
+   */
+  public displayName?: string;
 
   private _heartbeatInterval?: Timeout;
-  private _displayName?: string;
 
   private _queue: QueueItem[];
   private _messageListeners: Set<(message: Message) => void> = new Set();
@@ -198,7 +208,7 @@ export class Conversation {
     config?: ConversationConfiguration,
   ) {
     this._messageId = config?.messageId ?? 1;
-    this._displayName = config?.displayName;
+    this.displayName = config?.displayName;
     this._logger = this._store.logger;
     this._queue = [];
 
@@ -329,7 +339,7 @@ export class Conversation {
       await this._agent.message(this.targetUri, body, {
         contentType,
         extraHeaders: extraHeaders.map(h => getHeaderString(h)),
-        displayName: this._displayName,
+        displayName: this.displayName,
       });
 
       resolve();
