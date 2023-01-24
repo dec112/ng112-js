@@ -298,6 +298,10 @@ Generate documentation by using the following command. It will be saved in folde
 npm run docs
 ```
 
+## Thank You!
+
+Thanks to all Open Source contributors this project builds on. Special thanks to the team behind [JsSIP](https://github.com/versatica/JsSIP), which is the most important part of this project!
+
 ---
 
 This project was bootstrapped with [TSDX](https://tsdx.io/)
