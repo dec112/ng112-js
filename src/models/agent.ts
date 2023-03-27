@@ -9,7 +9,7 @@ import { VCard } from './vcard';
 import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
-import { NewMessageEvent, SipAdapter, SipAdapterConfig } from '../adapters';
+import { NewMessageEvent, Origin, SipAdapter, SipAdapterConfig } from '../adapters';
 import { getPackageInfo, getPidfLo, timedoutPromise } from '../utils';
 import { SipResponseOptions } from '../adapters/sip-adapter';
 import { BAD_REQUEST, NOT_FOUND } from '../constants/status-codes';
@@ -252,10 +252,16 @@ export class Agent {
       let conversation = this.conversations.find(x => x.id == conversationId);
       let ccObject: CreateConversationObject | undefined = undefined;
 
-      // we only want to start new conversations if there are active listeners.
-      // otherwise it does not make sense.
-      // e.g. this should prevent a mobile device from receiving incoming conversations.
-      if (!conversation && this._conversationListeners.size > 0) {
+      if (
+        !conversation &&
+        // we only want to start new conversations if there are active listeners.
+        // otherwise it does not make sense.
+        // e.g. this should prevent a mobile device from receiving incoming conversations.
+        this._conversationListeners.size > 0 &&
+        // only create a new conversation if it is a message sent by remote
+        // opening a new conversation by a locally sent message does not make sense
+        evt.request.origin === Origin.REMOTE
+      ) {
         ccObject = this.createConversation(evt, undefined, mapper);
         conversation = ccObject.conversation;
       }
