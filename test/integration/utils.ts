@@ -1,7 +1,15 @@
-import { Conversation, Message, Origin } from '../../dist/node';
+import {
+  Conversation,
+  Message,
+  Origin,
+
+  XMLCompat,
+} from '../../dist/node';
 
 export const initializeTests = () => {
   jest.setTimeout(60000);
+
+  XMLCompat.initialize(XMLCompat.getNodeImpl());
 }
 
 export const createOneTimeListener = (conversation: Conversation): (callback: (message: Message) => void) => Promise<void> => {

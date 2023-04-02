@@ -10,7 +10,7 @@ import { TEXT_PLAIN } from '../../constants/content-types';
 import { MultipartPart } from '../multipart';
 import { ConversationConfiguration, EndpointType, ListenerNotifier } from '../interfaces';
 import { clearInterval, setInterval, Timeout } from '../../utils';
-import { VCard } from '../vcard';
+import { VCard } from 'vcard-xml';
 import { CustomSipHeader } from '../custom-sip-header';
 import { Logger } from '../logger';
 import { NewMessageEvent, SipAdapter } from '../../adapters';

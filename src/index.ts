@@ -20,7 +20,7 @@ export {
   KeyId,
   Gender,
   VCard,
-} from './models/vcard';
+} from 'vcard-xml';
 
 export {
   EmergencyMessageType,
@@ -67,7 +67,7 @@ export {
   Point,
   SimpleLocation,
   Tuple,
-} from 'pidf-lo/dist/node';
+} from 'pidf-lo';
 
 export {
   Multipart,
@@ -76,3 +76,7 @@ export {
 
 export * from './adapters';
 export * as Utils from './utils';
+
+export {
+  XMLCompat,
+} from './compatibility';

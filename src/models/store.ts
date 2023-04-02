@@ -3,7 +3,7 @@ import { Conversation } from './conversation';
 import { CustomSipHeader } from './custom-sip-header';
 import { HttpAdapter } from './http-adapter';
 import { Logger } from './logger';
-import { VCard } from './vcard';
+import { VCard } from 'vcard-xml';
 
 export interface CustomSipHeaders {
   /**

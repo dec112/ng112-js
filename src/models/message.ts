@@ -2,7 +2,7 @@ import { PidfLo } from 'pidf-lo';
 import { getRandomString, Header } from '../utils';
 import { Conversation } from './conversation';
 import { CRLF } from './multipart';
-import { VCard } from './vcard';
+import { VCard } from 'vcard-xml';
 import { NewMessageEvent } from '../adapters';
 import { Multipart } from '..';
 import { CALL_SUB, PIDF_LO, TEXT_HTML, TEXT_PLAIN, TEXT_URI_LIST } from '../constants/content-types';

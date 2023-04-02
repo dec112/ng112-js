@@ -24,7 +24,7 @@
     "prepublishOnly": "npm run docs-deploy && npm run build"
   },
   "devDependencies": {
-    "@xmldom/xmldom": "^0.7.5",
+    "@xmldom/xmldom": "^0.8.7",
     "find-root": "^1.1.0",
     "jssip": "^3.7.5",
     "ng112-js-sip-adapter-jssip": "^0.6.2",
@@ -39,7 +39,8 @@
   },
   "dependencies": {
     "@xstate/fsm": "^1.6.2",
-    "pidf-lo": "^0.9.1"
+    "pidf-lo": "^0.9.3",
+    "vcard-xml": "^0.1.0"
   },
   "keywords": [
     "emergency",

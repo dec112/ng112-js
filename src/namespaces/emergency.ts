@@ -1,9 +1,9 @@
 import { getRandomString, Header } from '../utils';
-import { XMLCompat } from 'pidf-lo/dist/node';
+import { XMLCompat } from 'pidf-lo';
 import { PIDF_LO, TEXT_PLAIN, CALL_SUB, TEXT_URI_LIST, TEXT_HTML } from '../constants/content-types';
 import { CALL_INFO, CONTENT_ID, CONTENT_TYPE, GEOLOCATION, GEOLOCATION_ROUTING, HISTORY_INFO, REPLY_TO } from '../constants/headers';
 import { CRLF } from '../models/multipart';
-import { VCARD_XML_NAMESPACE } from '../models/vcard';
+import { VCARD_XML_NAMESPACE } from 'vcard-xml';
 import { MessageParts, MessagePartsParams, Namespace, Mapper } from './interfaces'
 import { NewMessageEvent } from '../adapters';
 import { Message, MessageConfig, MessageState, nextUniqueRandomId } from '../models/message';

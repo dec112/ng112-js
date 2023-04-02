@@ -5,8 +5,8 @@ import { Namespace, Mapper, NamespaceSpecifics } from '../namespaces/interfaces'
 import { Conversation, ConversationState, StateObject } from './conversation';
 import { ConversationConfiguration, DequeueRegistration, DequeueRegistrationRequest, DequeueRegistrationResponse, ListenerNotifier, QueueState, QueueStateNotification, Subscriber } from './interfaces';
 import { CustomSipHeaders, Store, AgentMode } from './store';
-import { VCard } from './vcard';
-import { PidfLo, SimpleLocation } from 'pidf-lo/dist/node';
+import { VCard } from 'vcard-xml';
+import { PidfLo, SimpleLocation } from 'pidf-lo';
 import { CustomSipHeader } from './custom-sip-header';
 import { Logger } from './logger';
 import { NewMessageEvent, Origin, SipAdapter, SipAdapterConfig } from '../adapters';
