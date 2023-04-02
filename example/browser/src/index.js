@@ -9,6 +9,7 @@ import {
   Utils,
   XMLCompat,
   VCard,
+  KeyId,
 } from 'ng112-js';
 import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip';
 import { SipJsAdapter } from "ng112-js-sip-adapter-sipjs";
@@ -118,7 +119,7 @@ const disable = (element, value) => {
   const iframe = el('iframe');
   const message = el('txtMessage');
   const send = el('btnSend');
-  
+
   const headerConfig = config.headers;
   const headers = el('txtHeaders', headerConfig ? headerConfig.join('\\n') : undefined);
 
@@ -135,6 +136,21 @@ const disable = (element, value) => {
     return text;
   }
 
+  const getExtraHeaders = () => {
+    const headersString = headers.value;
+    const extraHeaders = [];
+    if (headersString) {
+      for (const line of headersString.split('\n')) {
+        const h = Utils.parseHeader(line);
+
+        if (h)
+          extraHeaders.push(h);
+      }
+    }
+
+    return extraHeaders;
+  }
+
   // try to unregister if window is unloaded
   window.onbeforeunload = () => unregister.click();
 
@@ -149,6 +165,7 @@ const disable = (element, value) => {
       longitude: parseFloat(longitude.value),
       radius: parseFloat(radius.value),
       method: locationMethod.value,
+      timestamp: new Date(),
     });
   }
 
@@ -316,7 +333,12 @@ const disable = (element, value) => {
       const vcard = new VCard();
 
       for (const prop in config.vcard) {
-        vcard.add(prop, config.vcard[prop]);
+        let value = config.vcard[prop];
+
+        if (prop === KeyId.BIRTHDAY)
+          value = new Date(value);
+
+        vcard.add(prop, value);
       }
 
       agent.updateVCard(vcard);
@@ -329,6 +351,7 @@ const disable = (element, value) => {
 
     conversation.start({
       text: popMessageText(),
+      extraHeaders: getExtraHeaders(),
     }).promise;
   });
   disable(start, true);
@@ -371,22 +394,11 @@ const disable = (element, value) => {
       }];
     }
 
-    const headersString = headers.value;
-    const extraHeaders = [];
-    if (headersString) {
-      for (const line of headersString.split('\n')) {
-        const h = Utils.parseHeader(line);
-
-        if (h)
-          extraHeaders.push(h);
-      }
-    }
-
     conversation.sendMessage({
       text: popMessageText(),
       binaries,
       uris,
-      extraHeaders,
+      extraHeaders: getExtraHeaders(),
     });
   });
   disable(send, true);
