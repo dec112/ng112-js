@@ -4,7 +4,7 @@ import {
   Origin,
 
   XMLCompat,
-} from '../../dist/node';
+} from '../..';
 
 export const initializeTests = () => {
   jest.setTimeout(60000);

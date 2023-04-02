@@ -1,4 +1,3 @@
-// @ts-expect-error
 import findRoot from 'find-root';
 import path from 'path';
 import fs from 'fs';
@@ -9,7 +8,7 @@ import { TEXT_PLAIN } from '../constants/content-types';
 
 describe('Multipart parsing', () => {
   it('should parse strangely built multiparts', () => {
-    const invalidDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'multipart-invalid.txt'), { encoding: 'utf-8' });
+    const invalidDoc = fs.readFileSync(path.join(findRoot(__dirname), 'test', 'res', 'multipart', 'multipart-invalid.txt'), { encoding: 'utf-8' });
     // look, this boundary is quite weird
     const parsed = Multipart.parse(invalidDoc, 'Content-Type: multipart/mixed;boundary=----------UxCETVhBhhfxiD5G');
 
@@ -60,7 +59,7 @@ describe('Multipart parsing', () => {
   });
 
   it('should not parse complete garbage', () => {
-    const invalidDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'multipart-garbage.txt'), { encoding: 'utf-8' });
+    const invalidDoc = fs.readFileSync(path.join(findRoot(__dirname), 'test', 'res', 'multipart', 'multipart-garbage.txt'), { encoding: 'utf-8' });
     const parsed = Multipart.parse(invalidDoc, 'Content-Type: multipart/mixed;boundary=UxCETVhBhhfxiD5G');
 
     expect(parsed.parts).toHaveLength(1);
@@ -70,7 +69,7 @@ describe('Multipart parsing', () => {
   });
 
   it('should not split at boundaries that are not at the beginning of the line', () => {
-    const validDoc = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'multipart', 'valid-multipart_1.txt'), { encoding: 'utf-8' });
+    const validDoc = fs.readFileSync(path.join(findRoot(__dirname), 'test', 'res', 'multipart', 'valid-multipart_1.txt'), { encoding: 'utf-8' });
     const parsed = Multipart.parse(validDoc, 'Content-Type: multipart/mixed;boundary=bounds');
 
     expect(parsed.parts).toHaveLength(1);

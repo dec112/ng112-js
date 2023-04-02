@@ -1,5 +1,13 @@
-import { Agent } from "ng112-js/dist/node";
+import { Agent, XMLCompat } from "ng112-js";
 import { JsSipAdapter } from "ng112-js-sip-adapter-jssip";
+
+export const startExample = () => {
+  // initialize the XML compatibility layer with your desired implementation
+  // The package already ships with an implementation for 
+  //   -> node: using the @xmldom/xmldom package
+  //   -> browser: using the inbuilt browser DOM interfaces
+  XMLCompat.initialize(XMLCompat.getNodeImpl());
+}
 
 export const createAgent = async (): Promise<Agent> => {
   const agent = new Agent({

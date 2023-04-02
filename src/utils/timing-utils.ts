@@ -12,7 +12,6 @@ export const setInterval = (timeout: number, callback: () => unknown): Timeout =
 }
 
 export const clearInterval = (interval: Timeout): void => {
-  // @ts-expect-error
   getGlobal().clearInterval(interval);
 }
 

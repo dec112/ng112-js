@@ -1,10 +1,12 @@
-import { createAgent, endExample } from './util';
+import { createAgent, endExample, startExample } from './util';
 import fs from 'fs';
 import path from 'path';
 // @ts-ignore
 import findRoot from 'find-root';
 
 it('Shows how to send binaries', async () => {
+  startExample();
+  
   const agent = await createAgent();
 
   const conversation = agent.createConversation('sip:144@dec112.eu');
@@ -15,7 +17,7 @@ it('Shows how to send binaries', async () => {
   // we initialize this 
   let buffer: ArrayBuffer;
   try {
-    buffer = fs.readFileSync(path.join(findRoot(), 'test', 'res', 'images', 'dec112.svg')).buffer;
+    buffer = fs.readFileSync(path.join(findRoot(__dirname), 'test', 'res', 'images', 'dec112.svg')).buffer;
   } catch {
     // oh no, we could not read the file
     throw new Error('We could not read the file.');

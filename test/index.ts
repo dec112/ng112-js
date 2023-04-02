@@ -1,8 +1,8 @@
-import { Agent, SipAdapter } from '../dist/node';
+import { Agent, SipAdapter } from '..';
 import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip';
 // import { SipJsAdapter } from 'ng112-js-sip-adapter-sipjs';
 
-export * from '../dist/node';
+export * from '..';
 
 export const getAgents = () => {
   const adapters: ((config: any) => SipAdapter)[] = [

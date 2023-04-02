@@ -3,7 +3,9 @@
   "version": "2.0.0-dev.47",
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/main/index.js",
+  "module": "dist/module/index.js",
+  "types": "dist/main/index.d.ts",
   "files": [
     "dist"
   ],
@@ -12,34 +14,37 @@
     "url": "git@github.com:dec112/ng112-js.git"
   },
   "scripts": {
-    "start": "ENV_TYPE=browser tsdx watch --format esm --name index",
-    "build": "node ./scripts/build.js",
-    "build:browser": "ENV_TYPE=browser tsdx build --target web --format esm --name index",
-    "build:node": "ENV_TYPE=node tsdx build --target node --format cjs --name index",
+    "start": "tsc --watch",
+    "build": "npm run build:main && npm run build:module",
+    "build:main": "tsc --module commonjs --outDir ./dist/main",
+    "build:module": "tsc --module esnext --outDir ./dist/module",
     "docs": "typedoc",
     "docs-deploy": "node scripts/docs.deploy.js",
     "test": "sh ./scripts/test.sh",
-    "test:tsdx": "tsdx test",
-    "test:clear-cache": "./node_modules/jest/bin/jest.js --clearCache",
-    "prepublishOnly": "npm run docs-deploy && npm run build"
+    "test:start-env": "sh ./scripts/start-test-env.sh",
+    "test:stop-env": "sh ./scripts/stop-test-env.sh",
+    "test:jest": "npm run build && NODE_ENV=development jest",
+    "prepublishOnly": "NODE_ENV=production npm run docs-deploy && npm run build"
   },
   "devDependencies": {
+    "@types/find-root": "^1.1.2",
+    "@types/jest": "^29.5.0",
     "@xmldom/xmldom": "^0.8.7",
     "find-root": "^1.1.0",
+    "jest": "^29.5.0",
     "jssip": "^3.7.5",
     "ng112-js-sip-adapter-jssip": "^0.6.2",
     "ng112-js-sip-adapter-sipjs": "^0.5.0",
-    "rollup-plugin-modify": "^3.0.0",
     "sip.js": "^0.20.0",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.0.3",
-    "typedoc": "^0.22.10",
-    "typedoc-plugin-missing-exports": "^0.22.6",
-    "typescript": "^4.2.2"
+    "ts-jest": "^29.0.5",
+    "tslib": "^2.5.0",
+    "typedoc": "^0.23.28",
+    "typedoc-plugin-missing-exports": "^1.0.0",
+    "typescript": "^4.9.5"
   },
   "dependencies": {
     "@xstate/fsm": "^1.6.2",
-    "pidf-lo": "^0.9.3",
+    "pidf-lo": "^0.9.4",
     "vcard-xml": "^0.1.0"
   },
   "keywords": [

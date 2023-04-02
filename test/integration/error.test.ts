@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, Origin, MessageError, ConversationState, StateObject } from '../../dist/node';
+import { Agent, Origin, MessageError, ConversationState, StateObject } from '../..';
 import { initializeTests } from './utils';
 
 initializeTests();

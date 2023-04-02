@@ -7,10 +7,13 @@ import {
   LocationMethod,
   Origin,
   Utils,
+  XMLCompat,
   VCard,
-} from 'ng112-js/dist/browser';
+} from 'ng112-js';
 import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip';
 import { SipJsAdapter } from "ng112-js-sip-adapter-sipjs";
+
+XMLCompat.initialize(XMLCompat.getWebImpl());
 
 const availableSipLibraries = {
   jssip: 'JsSIP',

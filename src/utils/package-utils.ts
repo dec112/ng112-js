@@ -1,4 +1,4 @@
-const PKG = require('../../package.json');
+import packageJson from '../package.json';
 
 interface PackageInfo {
   name: string,
@@ -6,4 +6,8 @@ interface PackageInfo {
   license: string,
 }
 
-export const getPackageInfo = (): PackageInfo => PKG;
+export const getPackageInfo = (): PackageInfo => ({
+  name: packageJson.name,
+  version: packageJson.version,
+  license: packageJson.license,
+});

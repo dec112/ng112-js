@@ -1,8 +1,10 @@
-import { Agent, LogLevel } from "ng112-js/dist/node";
+import { Agent, LogLevel } from "ng112-js";
 import { JsSipAdapter } from "ng112-js-sip-adapter-jssip";
-import { endExample } from './util';
+import { endExample, startExample } from './util';
 
 it('Shows the creation of ng112-js instance with different SIP stacks', async () => {
+  startExample();
+
   // using JsSIP
   new Agent({
     sipAdapterFactory: JsSipAdapter.factory,

@@ -53,7 +53,7 @@ import * from 'ng112-js/dist/browser';
 ### Node Environments
 
 ```typescript
-import * from 'ng112-js/dist/node';
+import * from 'ng112-js';
 ```
 
 ## Examples
@@ -70,11 +70,15 @@ import {
   DEC112Specifics,
   LocationMethod,
   Origin,
+  XMLCompat,
   VCard,
-} from 'ng112-js/dist/browser';
+} from 'ng112-js';
 import { 
   SipJsAdapter, 
 } from 'ng112-js-sip-adapter-sipjs';
+
+// if xmldom interface is available (e.g. on web browsers)
+XMLCompat.initialize(XMLCompat.getWebImpl());
 
 // define connection to SIP proxy (originating ESRP)
 const agent = new Agent({
@@ -175,10 +179,15 @@ import {
   Agent,
   Origin,
   ConversationState,
-} from 'ng112-js/dist/node';
+  XMLCompat,
+} from 'ng112-js';
 import { 
   JsSipAdapter, 
-} from 'ng112-js-sip-adapter-jssip/dist/node';
+} from 'ng112-js-sip-adapter-jssip';
+
+// if xmldom interface is NOT available (e.g. on node environments)
+// also don't forget to install required peer dependency @xmldom/xmldom
+XMLCompat.initialize(XMLCompat.getNodeImpl());
 
 // define connection to SIP proxy (terminating ESRP)
 const agent = new Agent({

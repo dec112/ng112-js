@@ -9,7 +9,7 @@ import {
   Point,
   StateObject,
   version,
-} from 'ng112-js/dist/node';
+} from 'ng112-js';
 import { setTimeout } from 'timers';
 import { Config } from './config';
 import { log } from './log';

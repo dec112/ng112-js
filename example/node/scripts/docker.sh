@@ -20,7 +20,7 @@ cp ../../package-lock.json temp/package-lock.json
 
 # install only production dependencies
 echo "Install ng112-js dependencies"
-(cd temp && npm i --only=prod)
+(cd temp && npm i --omit=dev)
 
 echo "Building local sources"
 npm run build

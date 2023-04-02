@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, ConversationState, EmergencyMessageType, Message, MessageState, Origin, Namespace, StateObject, MessageError } from '../../dist/node';
+import { Agent, ConversationState, EmergencyMessageType, Message, MessageState, Origin, Namespace, StateObject, MessageError } from '../..';
 import { createOneTimeListener, initializeTests } from './utils';
 
 initializeTests();

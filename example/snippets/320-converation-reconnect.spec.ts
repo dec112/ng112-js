@@ -1,5 +1,5 @@
-import { Origin } from 'ng112-js/dist/node';
-import { createAgent, endExample } from './util';
+import { Origin } from 'ng112-js';
+import { createAgent, endExample, startExample } from './util';
 
 // this is just a method stub for writing to the device storage
 const persistObject = (name: string, obj: any) => {
@@ -14,6 +14,8 @@ const retreiveObject = (name: string): any => {
 }
 
 it('Shows how to reconnect to an already existing conversation', async () => {
+  startExample();
+  
   // the first section of this example should present a normal conversation
   // where important data is already persisted
   // this ensures the converation can be recovered later on
