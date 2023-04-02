@@ -44,8 +44,8 @@
   },
   "dependencies": {
     "@xstate/fsm": "^1.6.2",
-    "pidf-lo": "^1.0.0",
-    "vcard-xml": "^0.1.0"
+    "pidf-lo": "^1.0.1",
+    "vcard-xml": "^1.0.0"
   },
   "keywords": [
     "emergency",
