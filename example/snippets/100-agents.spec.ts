@@ -10,6 +10,7 @@ it('Shows the creation of ng112-js instance with different SIP stacks', async ()
     endpoint: 'ws://dec112.at',
     password: 'password',
     user: 'user',
+    userAgent: 'ng112-js-example-snippet/1.0.0',
     // specify handlers for debug output
     debug: {
       // if you specify a LogLevel, logs will be printed to console

@@ -8,6 +8,7 @@ export const createAgent = async (): Promise<Agent> => {
     endpoint: 'ws://dec112.at',
     password: 'password',
     user: 'user',
+    userAgent: 'ng112-js-example-snippet/1.0.0',
   });
 
   try {

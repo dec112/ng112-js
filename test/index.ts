@@ -18,6 +18,7 @@ export const getAgents = () => {
     user: 'user',
     password: '',
     displayName: 'Alice Smith',
+    userAgent: 'ng112-test-script/1.0.0',
     debug: {
       // default: true,
       // sipAdapter: true,

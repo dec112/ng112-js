@@ -9,13 +9,14 @@ it('Shows how to initialize an agent for a DEC112 environment', async () => {
     endpoint: 'ws://dec112.at',
     password: 'password',
     user: 'user',
+    userAgent: 'ng112-js-example-snippet/1.0.0',
     // DEC112 environments require a verified telephone number, due to legal requirements.
     displayName: '004366412345678',
     namespaceSpecifics: new DEC112Specifics({
       // registration id (registration API version 2)
       registrationId: 'registrationId',
       // user device language (ISO639-1 two letter language code; optional)
-      langauge: 'en',
+      language: 'en',
       // client version (e.g. version of application, where ng112-js is used in; optional)
       clientVersion: '1.0.4',
     }),
