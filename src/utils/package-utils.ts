@@ -1,4 +1,4 @@
-import packageJson from '../package.json';
+import packageJson from '../__package.json';
 
 interface PackageInfo {
   name: string,
