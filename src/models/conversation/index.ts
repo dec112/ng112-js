@@ -616,9 +616,7 @@ export class Conversation {
       // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
       // However, DEC112 does not specify this
 
-      // TODO: somehow prevent not multiple START messages are sent
-      // this is currently possible, e.g. if the PSAP takes very long to respond and a user fires another message
-
+      
       // this is just a convenience function that API consumers don't have to explicitly START the conversation
       // e.g. if they just send an IN_CHAT message it is converted to a START message
       // only applies to PSAPs and only if they support the PSAP start message!
@@ -627,7 +625,10 @@ export class Conversation {
         !this.hasBeenStarted &&
         this._endpointType === EndpointType.PSAP &&
         EmergencyMessageType.isStarted(type)
-      )
+        )
+        // TODO: prevent sending of multiple START messages
+        // this is currently possible on PSAP sides
+        // maybe this can be prevented with another state in our state machine
         type = EmergencyMessageType.START;
 
       messageParam.type = type;
