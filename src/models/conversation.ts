@@ -409,8 +409,13 @@ export class Conversation {
     // both a client and a server's first message has to be START message
     // except if one wants to STOP, TRANSFER, REDIRECT a conversation
     // or if the conversation is inactive
-    // TODO: check if this is according to standard
-    if (!this._hasBeenStarted && !EmergencyMessageType.isInterrupted(type)) {
+    // here we implicitly send start messages if endpoint type is PSAP
+    // as this is very important for a correct call setup
+    if (
+      !this._hasBeenStarted &&
+      this._endpointType === ConversationEndpointType.PSAP &&
+      !EmergencyMessageType.isInterrupted(type)
+    ) {
       // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
       // However, DEC112 does not specify this
 

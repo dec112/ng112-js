@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ---
+## [1.9.2] - 2023-04-25
+### Fixed
+- Sending duplicate start messages if endpoint type is CLIENT
+
 ## [1.9.1] - 2022-03-12
 ### Fixed
 - User agent string representation
