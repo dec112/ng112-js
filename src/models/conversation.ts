@@ -411,6 +411,9 @@ export class Conversation {
     // or if the conversation is inactive
     // here we implicitly send start messages if endpoint type is PSAP
     // as this is very important for a correct call setup
+    // however, we do not do this for clients
+    // as this might lead to multiple START messages for the same call
+    // which is not allowed
     if (
       !this._hasBeenStarted &&
       this._endpointType === ConversationEndpointType.PSAP &&
@@ -418,9 +421,6 @@ export class Conversation {
     ) {
       // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
       // However, DEC112 does not specify this
-
-      // TODO: somehow prevent not multiple START messages are sent
-      // this is currently possible, e.g. if the PSAP takes very long to respond and a user fires another message
       type = EmergencyMessageType.START;
     }
 
