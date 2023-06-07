@@ -92,7 +92,7 @@ export class Conversation {
    * according to spec, 30 characters is the longest allowed string
    */
   public readonly id: string;
-  
+
   /**
    * The display name that's used for outgoing message
    * This property is public intentionally, as PSAPs should have the possibility
@@ -114,6 +114,13 @@ export class Conversation {
   private _lastSentLocation?: PidfLo = undefined;
   private _lastSentVCard?: VCard = undefined;
   private _lastSentDID?: string = undefined;
+
+  private _hasSentStartMessage: boolean = false;
+  public get hasSentStartMessage() { return this._hasSentStartMessage }
+  // value is disregarded, this variable can only be set once
+  // TODO: This mechanism (not sending 2 start messages) should be enforced
+  // by our state machine and not by a separate variable!
+  public set hasSentStartMessage(_: boolean) { this._hasSentStartMessage = true; }
 
   private _state: ConversationStateMachine;
   public get hasBeenStarted(): boolean { return this._state.state.context.hasBeenStarted; }
@@ -616,7 +623,7 @@ export class Conversation {
       // According to ETSI TS 103 698 PSAP have to respond with an initial "START" message
       // However, DEC112 does not specify this
 
-      
+
       // this is just a convenience function that API consumers don't have to explicitly START the conversation
       // e.g. if they just send an IN_CHAT message it is converted to a START message
       // only applies to PSAPs and only if they support the PSAP start message!
@@ -625,7 +632,7 @@ export class Conversation {
         !this.hasBeenStarted &&
         this._endpointType === EndpointType.PSAP &&
         EmergencyMessageType.isStarted(type)
-        )
+      )
         // TODO: prevent sending of multiple START messages
         // this is currently possible on PSAP sides
         // maybe this can be prevented with another state in our state machine
@@ -634,6 +641,13 @@ export class Conversation {
       messageParam.type = type;
       message = this.createLocalMessage(messageParam);
     }
+
+    // do not allow sending of start message multiple times
+    if (message.type === EmergencyMessageType.START)
+      if (this.hasSentStartMessage)
+        throw new Error('Start message must not be sent multiple times');
+      else
+        this.hasSentStartMessage = true;
 
     this._updateMessagePropsIfIsClient(message);
 
