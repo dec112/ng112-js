@@ -86,6 +86,13 @@ export class Conversation {
   private _lastSentLocation?: PidfLo = undefined;
   private _lastSentVCard?: VCard = undefined;
 
+  private _hasSentStartMessage: boolean = false;
+  public get hasSentStartMessage() { return this._hasSentStartMessage }
+  // value is disregarded, this variable can only be set once
+  // TODO: This mechanism (not sending 2 start messages) should be enforced
+  // by our state machine and not by a separate variable!
+  public set hasSentStartMessage(_: boolean) { this._hasSentStartMessage = true; }
+
   private _hasBeenStarted: boolean = false;
 
   /**
@@ -458,6 +465,18 @@ export class Conversation {
     promise
       .then(() => message.state = MessageState.SUCCESS)
       .catch(() => message.state = MessageState.ERROR);
+
+    // do not allow sending of start message multiple times
+    if (type === EmergencyMessageType.START)
+      if (this.hasSentStartMessage)
+        // special case to keep compatibility with version 1 of ng112-js
+        // if START message has already been sent we proceed without an error
+        // but don't actually send the message
+        // the message will actually just be ignored
+        // version 2 of ng112-js will throw an error in this case
+        return message;
+      else
+        this.hasSentStartMessage = true;
 
     this._addNewMessage(message);
     this._notifyQueue();
