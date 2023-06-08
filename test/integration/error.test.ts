@@ -102,4 +102,57 @@ describe('ng112-js errors', () => {
     // if not explicitly specified in `dispose`
     expect(conversation.state).toEqual(okState);
   });
+
+  it.each<Agent>(getAgents())('throws an error if start message is sent twice', async (agent: Agent) => {
+    const target = 'sip:default@service.dec112.home';
+    await agent.initialize();
+
+    const conversation = agent.createConversation(target);
+
+    await conversation.start().promise;
+    await expect(async () => {
+      await conversation.start().promise;
+    }).rejects;
+  });
+
+  it.each<Agent>(getAgents())('lets you restart a message if it has failed in the first place', async (agent: Agent) => {
+    const target = 'sip:non-existent@service.dec112.home';
+    await agent.initialize();
+
+    const conversation = agent.createConversation(target);
+    const positiveMock = jest.fn();
+
+    let startMessage = conversation.start();
+
+    try {
+      await startMessage.promise;
+      positiveMock();
+    } catch (_ex) {
+      const ex = _ex as MessageError;
+
+      expect(ex.statusCode).toBe(404);
+      expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toBe('Not Found');
+    }
+
+    expect(positiveMock).not.toHaveBeenCalled();
+    const errorState: StateObject = {
+      origin: Origin.REMOTE,
+      value: ConversationState.ERROR,
+    };
+    expect(conversation.state).toEqual(errorState);
+
+    conversation.targetUri = 'sip:default@service.dec112.home';
+
+    // now we should be able to start the conversation again
+    await startMessage.resend().promise;
+
+    const okState: StateObject = {
+      origin: Origin.REMOTE,
+      value: ConversationState.STARTED,
+    };
+    expect(conversation.state).toEqual(okState);
+
+    await agent.dispose();
+  });
 });

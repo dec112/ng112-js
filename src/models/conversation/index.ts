@@ -115,12 +115,10 @@ export class Conversation {
   private _lastSentVCard?: VCard = undefined;
   private _lastSentDID?: string = undefined;
 
-  private _hasSentStartMessage: boolean = false;
-  public get hasSentStartMessage() { return this._hasSentStartMessage }
-  // value is disregarded, this variable can only be set once
   // TODO: This mechanism (not sending 2 start messages) should be enforced
   // by our state machine and not by a separate variable!
-  public set hasSentStartMessage(_: boolean) { this._hasSentStartMessage = true; }
+  private _hasSentStartMessage: boolean = false;
+  public get hasSentStartMessage() { return this._hasSentStartMessage }
 
   private _state: ConversationStateMachine;
   public get hasBeenStarted(): boolean { return this._state.state.context.hasBeenStarted; }
@@ -642,13 +640,6 @@ export class Conversation {
       message = this.createLocalMessage(messageParam);
     }
 
-    // do not allow sending of start message multiple times
-    if (message.type === EmergencyMessageType.START)
-      if (this.hasSentStartMessage)
-        throw new Error('Start message must not be sent multiple times');
-      else
-        this.hasSentStartMessage = true;
-
     this._updateMessagePropsIfIsClient(message);
 
     const promise = new Promise<void>((resolve, reject) => {
@@ -663,6 +654,19 @@ export class Conversation {
 
     message.promise = promise;
 
+    // this flag ensures that if start message sending goes wrong
+    // it resets the "hasSentStartMessage" flag in order to again alow
+    // sending if the start message
+    // this is important such that "resend" can be used properly
+    const isStartMessage = message.type === EmergencyMessageType.START;
+    // do not allow sending of start message multiple times
+    // TODO: this should be solved via a separate state in our state machine
+    if (isStartMessage)
+      if (this.hasSentStartMessage)
+        throw new Error('Start message must not be sent multiple times');
+      else
+        this._hasSentStartMessage = true;
+
     promise
       // don't use `catch` here!
       // this leads to problems in order of execution in case of errors
@@ -671,7 +675,14 @@ export class Conversation {
         // success
         () => { message.state = MessageState.SUCCESS },
         // error
-        () => { message.state = MessageState.ERROR },
+        () => {
+          message.state = MessageState.ERROR;
+
+          if (isStartMessage)
+            // important: reset the "hasSentStartMessage" flag
+            // such that "resend" can be used properly
+            this._hasSentStartMessage = false;
+        },
       );
 
 
