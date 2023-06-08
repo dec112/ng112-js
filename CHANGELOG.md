@@ -53,12 +53,13 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - Ability to override agent's default display name at `Conversation` level.
 - Interfaces for easily fetching SIP information like TO, FROM and ROUTE headers.
 - *Experimental support* for binaries.
-- *Experimental support* for dequeue registration on top of SIP subscribe/notify
+- *Experimental support* for dequeue registration on top of SIP subscribe/notify.
 ### Fixed
 - Conversation state only changes if the state value itself changes. If origin is different but state is the same, it won't trigger a state change.
 - Message start logic in PSAP environments.
 - VCard firstname and lastname. They were switched without being noticed by anyone, oops :-)
 - Fixed typo for language property in DEC112 Mapper.
+- START message can now only be sent once.
 
 ---
 
