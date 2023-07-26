@@ -215,6 +215,9 @@ const disable = (element, value) => {
       customSipHeaders: {
         from: from.value,
       },
+      debug: (...args) => {
+        console.log(...args); 
+      }
     });
 
     agent.addConversationListener((newConversation) => {
