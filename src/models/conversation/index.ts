@@ -649,11 +649,23 @@ export class Conversation {
     const isStartMessage = message.type === EmergencyMessageType.START;
     // do not allow sending of start message multiple times
     // TODO: this should be solved via a separate state in our state machine
-    if (isStartMessage)
+    if (isStartMessage) {
       if (this.hasSentStartMessage)
         throw new Error('Start message must not be sent multiple times');
       else
         this._hasSentStartMessage = true;
+
+      // check if SDK user has set vcard and location
+      // and write log messages accordingly
+
+      // it's not necessary to have a vcard, but it's better to have it
+      if (!message.vcard)
+        this._logger.log('Start message does not have a VCard');
+
+      // location is indeed quite important that's why we log a warning here
+      if (!message.location)
+        this._logger.warn('Start message does not have a location');
+    }
 
     const promise = new Promise<void>((resolve, reject) => {
       // this code is called before the outer function returns the message object
