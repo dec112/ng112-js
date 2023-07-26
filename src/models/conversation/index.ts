@@ -642,18 +642,6 @@ export class Conversation {
 
     this._updateMessagePropsIfIsClient(message);
 
-    const promise = new Promise<void>((resolve, reject) => {
-      // this code is called before the outer function returns the message object
-      // so it is perfectly safe :-)
-      this._queue.push({
-        message,
-        resolve,
-        reject,
-      });
-    });
-
-    message.promise = promise;
-
     // this flag ensures that if start message sending goes wrong
     // it resets the "hasSentStartMessage" flag in order to again alow
     // sending if the start message
@@ -667,6 +655,17 @@ export class Conversation {
       else
         this._hasSentStartMessage = true;
 
+    const promise = new Promise<void>((resolve, reject) => {
+      // this code is called before the outer function returns the message object
+      // so it is perfectly safe :-)
+      this._queue.push({
+        message,
+        resolve,
+        reject,
+      });
+    });
+
+    message.promise = promise;
     promise
       // don't use `catch` here!
       // this leads to problems in order of execution in case of errors
