@@ -280,7 +280,7 @@ const disable = (element, value) => {
         from: from.value,
       },
       debug: {
-        default: ((level, ...values) => {
+        default: ((...values) => {
           // TODO: distinguish between levels
           console.log(...values);
         })
