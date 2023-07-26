@@ -450,6 +450,35 @@ export class Conversation {
 
     this._updateMessagePropsIfIsClient(message);
 
+    if (type === EmergencyMessageType.START) {
+      // do not allow sending of start message multiple times
+      if (this.hasSentStartMessage) {
+        // special case to keep compatibility with version 1 of ng112-js
+        // if START message has already been sent we proceed without an error
+        // but don't actually send the message
+        // the message will actually just be ignored
+        // version 2 of ng112-js will throw an error in this case
+        this._logger.error('Duplicate start message!');
+
+        // this promise will never be resolved!
+        message.promise = new Promise<void>(() => { });
+        return message;
+      }
+      else
+        this.hasSentStartMessage = true;
+
+      // check if SDK user has set vcard and location
+      // and write log messages accordingly
+
+      // it's not necessary to have a vcard, but it's better to have it
+      if (!message.vcard)
+        this._logger.log('Start message does not have a VCard');
+
+      // location is indeed quite important that's why we log a warning here
+      if (!message.location)
+        this._logger.warn('Start message does not have a location');
+    }
+
     const promise = new Promise<OutgoingEvent>((resolve, reject) => {
       // this code is called before the outer function returns the message object
       // so it is perfectly safe :-)
@@ -465,18 +494,6 @@ export class Conversation {
     promise
       .then(() => message.state = MessageState.SUCCESS)
       .catch(() => message.state = MessageState.ERROR);
-
-    // do not allow sending of start message multiple times
-    if (type === EmergencyMessageType.START)
-      if (this.hasSentStartMessage)
-        // special case to keep compatibility with version 1 of ng112-js
-        // if START message has already been sent we proceed without an error
-        // but don't actually send the message
-        // the message will actually just be ignored
-        // version 2 of ng112-js will throw an error in this case
-        return message;
-      else
-        this.hasSentStartMessage = true;
 
     this._addNewMessage(message);
     this._notifyQueue();
