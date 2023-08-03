@@ -42,25 +42,6 @@ As node.js does not come with native support for xml manipulation, you will have
 Please also note the install requirements of the respective SIP adapters (README.md) \
 `ng112-js-sip-adapter-jssip` will need an additional package, if it is used in node.js environments!
 
-## Usage
-
-`ng112-js` implementation slightly differs in node.js or browser environments. \
-E.g. in browser environments there is a native XMLDom implementation that is lacking in node.js.
-
-Therefore, there are separate builds for node.js and browser environments.
-
-### Browser Environments
-
-```typescript
-import * from 'ng112-js/dist/browser';
-```
-
-### Node Environments
-
-```typescript
-import * from 'ng112-js';
-```
-
 ## Examples
 
 Most complete examples can be found in both browser and node example projects in `./example/browser` and `./example/node`.
@@ -287,6 +268,16 @@ agent.addConversationListener((conversation) => {
 
 ```
 
+### More examples!
+
+More examples can be found in the `snippets` subfolder located at `./example/snippets`.
+
+This includes the following use-cases:
+* Heartbeat configuration
+* Sending custom multipart mime bodys (including CAP [Common Alerting Protocol])
+* Resending messages
+* Restarting conversations (e.g. after an application crash)
+
 ## Local Build
 
 ```shell
@@ -315,7 +306,3 @@ npm run docs
 ## Thank You!
 
 Thanks to all Open Source contributors this project builds on. Special thanks to the team behind [JsSIP](https://github.com/versatica/JsSIP), which is the most important part of this project!
-
----
-
-This project was bootstrapped with [TSDX](https://tsdx.io/)
