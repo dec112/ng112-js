@@ -383,39 +383,42 @@ export class Agent {
     }
   }
 
-  // TODO: Also support URNs
-  // Requires a change in JSSIP library to also accept URNs as a valid target
-  /**
-   * Creates a new configuration on top of the underlying agent
-   * 
-   * @param target The target SIP uri conversation should be established with\ 
-   * Currently, URNs are **not** supported! This is due to a limitation within the JSSIP library.
-   * @param configuration Additional configuration object
-   * @param mapper The mapper to use for this conversation
-   */
   createConversation(
     target: string,
     configuration?: ConversationConfiguration,
     mapper?: Mapper,
   ): Conversation;
-  /**
-   * @private
-   * 
-   * Internal method, do not use from outside ng112-js
-   * 
-   * @param event A new message event for an incoming message 
-   * @param mapper The mapper to use for this conversation
-   * 
-   * @returns CreateConversationObject
-   * It is used for deferred execution of any conversation listeners
-   * It is important for PSAPs to not immediately notify conversation listeners and only do this
-   * after the first message has also been processed
-   */
+
+  // do not use typedoc here as this messes up with documentation
+  // the plugin somehow has its problems with overloaded methods
+  // /**
+  //  * @private
+  //  * 
+  //  * Internal method, do not use from outside ng112-js
+  //  * 
+  //  * @returns CreateConversationObject
+  //  * It is used for deferred execution of any conversation listeners
+  //  * It is important for PSAPs to not immediately notify conversation listeners and only do this
+  //  * after the first message has also been processed
+  //  */
   createConversation(
     event: NewMessageEvent,
     configuration?: ConversationConfiguration,
     mapper?: Mapper,
   ): CreateConversationObject;
+
+  // TODO: Also support URNs
+  // Requires a change in JSSIP library to also accept URNs as a valid target
+
+  /**
+   * Creates a new configuration on top of the underlying agent
+   * 
+   * @param target The target SIP uri conversation should be established with \ 
+   * Currently, URNs are **not** supported! This is due to a limitation within the JSSIP library.
+   * @param event A new message event for an incoming message 
+   * @param configuration Additional configuration object
+   * @param mapper The mapper to use for this conversation
+   */
   createConversation(
     value: any,
     configuration?: ConversationConfiguration,
