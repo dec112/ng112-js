@@ -13,6 +13,7 @@ import {
 } from 'ng112-js';
 import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip';
 import { SipJsAdapter } from "ng112-js-sip-adapter-sipjs";
+import { getCapMultipart } from './cap';
 
 XMLCompat.initialize(XMLCompat.getWebImpl());
 
@@ -107,6 +108,7 @@ const disable = (element, value) => {
   const callId = el('txtCallId', config.callId);
   const isTest = el('cbIsTest', config.isTest);
   const isActive = el('cbIsActive', config.isActive);
+  const useCap = el('cbUseCap', config.useCap);
 
   const start = el('btnStart');
   const end = el('btnEnd');
@@ -349,9 +351,14 @@ const disable = (element, value) => {
       id: callId.value || undefined,
     });
 
+    const extraParts = [];
+    if (useCap.checked)
+      extraParts.push(getCapMultipart());
+
     conversation.start({
       text: popMessageText(),
       extraHeaders: getExtraHeaders(),
+      extraParts,
     }).promise;
   });
   disable(start, true);

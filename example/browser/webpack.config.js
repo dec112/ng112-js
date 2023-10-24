@@ -11,6 +11,15 @@ module.exports = {
     static: path.join(__dirname, 'public'),
     port: 8082
   },
+  resolve: {
+    fallback: {
+      // these packages are needed by cap-ts
+      // as it's built for node-js environments
+      "stream": require.resolve('stream-browserify'),
+      "timers": require.resolve('timers-browserify'),
+      "buffer": require.resolve('buffer'),
+    },
+  },
   module: {
     rules: [
       {
