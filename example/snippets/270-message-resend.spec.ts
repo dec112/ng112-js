@@ -14,7 +14,7 @@ it('Shows how to resend a message', async () => {
     // should be awaited!
     // IMPORTANT: to not cause any id collisions this message is
     // a NEW object with a NEW message id!
-    const secondStartMsg = firstStartMsg.resend();
+    firstStartMsg.resend();
   });
 
   endExample();
