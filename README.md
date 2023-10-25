@@ -19,7 +19,7 @@ Maintainer: Gabriel Unterholzer (gabriel.unterholzer@dec112.at)
 
 Many thanks to [Netidee](https://www.netidee.at) who funded parts of this software project in call #17 (DEC4IoT)!
 
-<img align="right" src="https://raw.githubusercontent.com/dec112/ng112-js/main/assets/netidee.jpeg" height="150" />
+<img src="https://raw.githubusercontent.com/dec112/ng112-js/main/assets/netidee.jpeg" height="150" />
 
 
 ## Installation
