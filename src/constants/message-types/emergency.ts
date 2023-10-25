@@ -17,7 +17,13 @@ export abstract class EmergencyMessageType {
   static REDIRECT = setup(nthBit(5));
   // static RESERVED1 = setup(nthBit(6));
   // static RESERVED2 = setup(nthBit(7))
-  static INACTIVE = setup(nthBit(8));
+
+  /**
+   * ATTENTION! The INACTIVE bit is not initialized with version bit
+   * This is due to that this bit is only used in conjunction with HEARTBEAT and MUST NOT be used alone!
+   * This way, we can easily add and remove it to the HEARTBEAT bit
+   */
+  static INACTIVE = nthBit(8);
 
   /**
    * Returns true, if conversation is started or in chat
@@ -41,7 +47,6 @@ export abstract class EmergencyMessageType {
    * * UNKNOWN
    * * TRANSFER
    * * REDIRECT
-   * * INACTIVE
    * 
    * @param bitmask ETSI TS 103 698 message type bitmask
    */
@@ -51,8 +56,7 @@ export abstract class EmergencyMessageType {
     // `hasBits` would always return true here
     bitmask === EmergencyMessageType.UNKNOWN ||
     hasBits(bitmask, EmergencyMessageType.TRANSFER) ||
-    hasBits(bitmask, EmergencyMessageType.REDIRECT) ||
-    hasBits(bitmask, EmergencyMessageType.INACTIVE);
+    hasBits(bitmask, EmergencyMessageType.REDIRECT);
 
   /**
    * Returns true, if message is of type HEARTBEAT

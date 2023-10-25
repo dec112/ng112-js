@@ -1,9 +1,13 @@
 {
   "name": "ng112-js-example-browser",
-  "version": "0.2.2",
+  "version": "0.4.0",
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dec112/ng112-js.git"
+  },
   "scripts": {
     "start": "webpack-cli serve",
     "build": "NODE_ENV=production sh scripts/build.sh",
@@ -11,11 +15,16 @@
     "deploy": "sh scripts/deploy.sh"
   },
   "devDependencies": {
-    "webpack": "^5.70.0",
-    "webpack-cli": "^4.1.0",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.6.0"
   },
   "dependencies": {
-    "ng112-js": "file:../.."
+    "@dec112/cap-ts": "^0.3.1",
+    "buffer": "^6.0.3",
+    "ng112-js": "file:../..",
+    "ng112-js-sip-adapter-jssip": "^0.6.2",
+    "ng112-js-sip-adapter-sipjs": "^0.5.1",
+    "stream-browserify": "^3.0.0",
+    "timers-browserify": "^2.0.12"
   }
 }

@@ -1,13 +1,30 @@
 import {
   Agent,
+  AgentMode,
   ConversationState,
   DEC112Specifics,
   EmergencyMessageType,
-  Gender,
   LocationMethod,
   Origin,
+  Utils,
+  XMLCompat,
   VCard,
-} from 'ng112-js/dist/browser';
+  KeyId,
+} from 'ng112-js';
+import { JsSipAdapter } from 'ng112-js-sip-adapter-jssip';
+import { SipJsAdapter } from "ng112-js-sip-adapter-sipjs";
+import { getCapMultipart } from './cap';
+
+XMLCompat.initialize(XMLCompat.getWebImpl());
+
+const availableSipLibraries = {
+  jssip: 'JsSIP',
+  sipjs: 'SIP.js',
+};
+const sipFactories = {
+  jssip: JsSipAdapter.factory,
+  sipjs: SipJsAdapter.factory,
+};
 
 const el = (id, defaultValue) => {
   const el = document.getElementById(id);
@@ -51,11 +68,20 @@ const disable = (element, value) => {
 
   const endpoint = el('txtEndpoint', config.endpoint);
   const domain = el('txtDomain', config.domain);
+  const sipLibrary = el('selSipLibrary');
+
+  for (const prop in availableSipLibraries) {
+    const opt = document.createElement('option');
+    opt.value = prop;
+    opt.textContent = availableSipLibraries[prop];
+
+    sipLibrary.appendChild(opt);
+  }
 
   const user = el('txtUser', config.user);
   const password = el('txtPassword', config.password);
   const from = el('txtFrom', config.from);
-  const displayName = el('txtDisplayName');
+  const displayName = el('txtDisplayName', config.displayName);
 
   const registration = el('txtRegistration', config.registrationId);
   const registrationApiVersionName = 'reg-api-version';
@@ -79,7 +105,10 @@ const disable = (element, value) => {
   }
 
   const call = el('txtCall', config.call);
+  const callId = el('txtCallId', config.callId);
   const isTest = el('cbIsTest', config.isTest);
+  const isActive = el('cbIsActive', config.isActive);
+  const useCap = el('cbUseCap', config.useCap);
 
   const start = el('btnStart');
   const end = el('btnEnd');
@@ -88,9 +117,15 @@ const disable = (element, value) => {
   const unregister = el('btnUnregister');
 
   const uri = el('txtUri');
+  const file = el('file');
   const iframe = el('iframe');
   const message = el('txtMessage');
   const send = el('btnSend');
+
+  const headerConfig = config.headers;
+  const headers = el('txtHeaders', headerConfig ? headerConfig.join('\\n') : undefined);
+
+  const remoteSipUri = el('txtRemoteSipUri');
   const remoteDisplayName = el('txtRemoteDisplayName');
 
   const chatarea = el('chatarea');
@@ -101,6 +136,21 @@ const disable = (element, value) => {
     const text = message.value;
     message.value = '';
     return text;
+  }
+
+  const getExtraHeaders = () => {
+    const headersString = headers.value;
+    const extraHeaders = [];
+    if (headersString) {
+      for (const line of headersString.split('\n')) {
+        const h = Utils.parseHeader(line);
+
+        if (h)
+          extraHeaders.push(h);
+      }
+    }
+
+    return extraHeaders;
   }
 
   // try to unregister if window is unloaded
@@ -117,10 +167,24 @@ const disable = (element, value) => {
       longitude: parseFloat(longitude.value),
       radius: parseFloat(radius.value),
       method: locationMethod.value,
+      timestamp: new Date(),
     });
   }
 
+  const updateMode = async () => {
+    if (!agent)
+      return;
+
+    agent.setMode(
+      isActive.checked ? AgentMode.ACTIVE : AgentMode.INACTIVE
+    );
+  }
+
   const handleNewMessage = (msg) => {
+    if (msg.event && msg.event.accept)
+      // e.g. SIP.js requires you to explicitly accept an incoming message
+      msg.event.accept();
+
     lastMessageDate = new Date();
     if (EmergencyMessageType.isHeartbeat(msg.type))
       return;
@@ -146,7 +210,7 @@ const disable = (element, value) => {
     if (msg.location && msg.location.simple) {
       const loc = msg.location.simple;
 
-      if (loc)
+      if (loc && loc.latitude && loc.longitude)
         addInfos.push(`${loc.latitude.toFixed(2)}/${loc.longitude.toFixed(2)}`);
     }
 
@@ -166,7 +230,10 @@ const disable = (element, value) => {
 
       msg.promise
         .then(() => spanStatus.textContent = 'sent')
-        .catch(() => spanStatus.textContent = 'could not send message');
+        .catch((err) => {
+          console.error(err);
+          spanStatus.textContent = 'could not send message'
+        });
     }
 
     const spanId = document.createElement('span');
@@ -182,7 +249,8 @@ const disable = (element, value) => {
       iframe.setAttribute('src', msg.uris[0]);
     }
 
-    remoteDisplayName.textContent = `(${msg.conversation.remoteDisplayName || 'Unknown'})`;
+    remoteSipUri.textContent = msg.conversation.remoteSipUri;
+    remoteDisplayName.textContent = `<${msg.conversation.remoteDisplayName || 'Unknown'}>`;
   }
 
   register.addEventListener('click', async () => {
@@ -196,28 +264,30 @@ const disable = (element, value) => {
     let namespaceSpecifics = undefined;
 
     if (regApiVersion && reg) {
-      namespaceSpecifics = new DEC112Specifics(
-        regApiVersion == 1 ? reg : undefined,
-        regApiVersion == 2 ? reg : undefined,
-        undefined,
-        undefined,
-      );
+      namespaceSpecifics = new DEC112Specifics({
+        deviceId: regApiVersion == 1 ? reg : undefined,
+        registrationId: regApiVersion == 2 ? reg : undefined,
+      });
     }
 
     agent = new Agent({
+      sipAdapterFactory: sipFactories[sipLibrary.value],
       endpoint: endpoint.value,
       domain: domain.value,
       user: user.value,
       password: password.value,
-      // debug: true,
       namespaceSpecifics,
       displayName: displayName.value,
       customSipHeaders: {
         from: from.value,
       },
-      debug: (...args) => {
-        console.log(...args); 
-      }
+      debug: {
+        default: ((...values) => {
+          // TODO: distinguish between levels
+          console.log(...values);
+        })
+      },
+      userAgent: 'ng112-js-example-browser',
     });
 
     agent.addConversationListener((newConversation) => {
@@ -259,12 +329,18 @@ const disable = (element, value) => {
     chatarea.innerHTML = '';
 
     updateLocation();
+    updateMode();
 
     if (config.vcard) {
       const vcard = new VCard();
 
       for (const prop in config.vcard) {
-        vcard.add(prop, config.vcard[prop]);
+        let value = config.vcard[prop];
+
+        if (prop === KeyId.BIRTHDAY)
+          value = new Date(value);
+
+        vcard.add(prop, value);
       }
 
       agent.updateVCard(vcard);
@@ -272,10 +348,17 @@ const disable = (element, value) => {
 
     conversation = agent.createConversation(call.value, {
       isTest: isTest.checked,
+      id: callId.value || undefined,
     });
+
+    const extraParts = [];
+    if (useCap.checked)
+      extraParts.push(getCapMultipart());
 
     conversation.start({
       text: popMessageText(),
+      extraHeaders: getExtraHeaders(),
+      extraParts,
     }).promise;
   });
   disable(start, true);
@@ -286,11 +369,11 @@ const disable = (element, value) => {
 
     conversation.stop({
       text: popMessageText(),
-    }).promise;
+    });
   });
   disable(end, true);
 
-  send.addEventListener('click', () => {
+  send.addEventListener('click', async () => {
     if (!conversation)
       return;
 
@@ -300,12 +383,34 @@ const disable = (element, value) => {
       uris = [uri.value];
     }
 
+    let binaries = undefined;
+    const currentFile = file.files[0];
+
+    if (currentFile) {
+      const fileBin = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          resolve(evt.target.result);
+        }
+        reader.readAsArrayBuffer(currentFile);
+      });
+
+      binaries = [{
+        mimeType: currentFile.type,
+        value: fileBin,
+      }];
+    }
+
     conversation.sendMessage({
       text: popMessageText(),
+      binaries,
       uris,
+      extraHeaders: getExtraHeaders(),
     });
   });
   disable(send, true);
+
+  isActive.addEventListener('change', () => updateMode());
 
   setInterval(() => {
     let res;

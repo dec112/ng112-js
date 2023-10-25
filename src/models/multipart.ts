@@ -71,6 +71,8 @@ export class Multipart {
       res.push(`--${boundary}--`);
 
     return {
+      // TODO: property headers is currently unused
+      // decide to either remove or use it :-)
       headers,
       contentType: `${MULTIPART_MIXED}; boundary=${boundary}`,
       // https://tools.ietf.org/html/rfc5322#section-2.1.1
@@ -79,14 +81,30 @@ export class Multipart {
     };
   }
 
-  getPartsByContentType = (contentType: string): MultipartPart[] => {
-    return this._parts.filter((x) => {
-      return x.headers.findIndex((y) => y.key === CONTENT_TYPE && y.value === contentType) !== -1;
+  getPartsByContentTypes = (contentTypes: string[]): MultipartPart[] => {
+    return this._parts.filter(x => {
+      const ct = x.headers.find(h => h.key === CONTENT_TYPE)
+
+      if (ct)
+        // don't use equality here
+        // content types can also contain charsets or other things we might not want to consider
+        return contentTypes.find(type => ct.value.indexOf(type) !== -1) !== undefined;
+      else
+        return false;
     });
-  };
+  }
+
+  removeByContentType = (contentType: string): void => {
+    this._parts = this._parts.filter(p =>
+      p.headers.findIndex(x =>
+        x.key === CONTENT_TYPE &&
+        x.value === contentType
+      ) === -1
+    );
+  }
 
   static parse = (input: string, multipartHeader: string): Multipart => {
-    const multipartRegex = new RegExp(`${MULTIPART_MIXED}; boundary=(.+)`).exec(multipartHeader);
+    const multipartRegex = new RegExp(`${MULTIPART_MIXED};\\s*boundary=[-]*([^-]+)`).exec(multipartHeader);
 
     if (!multipartRegex || multipartRegex.length < 2)
       throw new Error('Multipart header malformed.');
@@ -94,7 +112,9 @@ export class Multipart {
     const multi = new Multipart();
     const boundary = multipartRegex[1];
 
-    const parts = split(input, new RegExp(`-+${boundary}-*`));
+    // ^ -> boundary must be at the beginning of the line
+    // m -> multiline -> ensures ^ matches every new line
+    const parts = split(input, new RegExp(`^-+${boundary}-*\w*$`, 'm'));
 
     for (const part of parts) {
       const lines = split(part, CRLF);
@@ -128,10 +148,12 @@ export class Multipart {
         }
       }
 
-      multi.add({
-        body,
-        headers,
-      });
+      // only consider multiparts with some body in it
+      if (body !== '')
+        multi.add({
+          body,
+          headers,
+        });
     }
 
     return multi;

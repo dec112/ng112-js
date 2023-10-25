@@ -16,22 +16,36 @@ export class Logger {
     public logCallback?: (level: number, ...values: any[]) => unknown,
   ) { }
 
-  private _logIt = (level: number, fallbackCallback: (...values: any[]) => unknown, ...values: any[]) => {
-    if (this.level === LogLevel.NONE || (level & this.level) === 0)
+  private _log = (level: number, fallbackCallback: (...values: any[]) => unknown, ...values: any[]) => {
+    if (!this.isActive() || (level & this.level) === 0)
       return;
 
-    if (this.logCallback)
+    if (this.logCallback) {
       this.logCallback(level, ...values);
+    }
     else
       fallbackCallback('ng112-js', ...values);
-  }
-
-  private _log = (level: number, fallbackCallback: () => unknown, ...values: any[]) => {
-
-    this._logIt(level, fallbackCallback, ...values);
   }
 
   log = (...values: any[]) => this._log(LogLevel.LOG, (...values: any[]) => console.log(...values), ...values);
   warn = (...values: any[]) => this._log(LogLevel.WARN, (...values: any[]) => console.warn(...values), ...values);
   error = (...values: any[]) => this._log(LogLevel.ERROR, (...values: any[]) => console.error(...values), ...values);
+
+  isActive = (): boolean => this.level !== LogLevel.NONE;
+  isExternal = (): boolean => !!this.logCallback;
+  isFallback = (): boolean => !this.logCallback;
+
+  static getFromConfig = (config?: boolean | number | ((level: number, ...values: any[]) => unknown)) => {
+    let debugFunction: ((level: number, ...values: any[]) => unknown) | undefined = undefined;
+    if (config === true)
+      config = LogLevel.ALL;
+    else if (typeof config === 'function') {
+      debugFunction = config;
+      config = LogLevel.ALL;
+    }
+    else if (!config)
+      config = LogLevel.NONE;
+
+    return new Logger(config, debugFunction);
+  }
 }

@@ -1,17 +1,18 @@
 export type Timeout = number | NodeJS.Timeout;
 
+const getGlobal = () => {
+  if (typeof self !== 'undefined') return self;
+  if (typeof window !== 'undefined') return window;
+  if (typeof global !== 'undefined') return global;
+  throw new Error('unable to locate global object');
+};
+
 export const setInterval = (timeout: number, callback: () => unknown): Timeout => {
-  if (typeof window !== 'undefined')
-    return window.setInterval(callback, timeout);
-  else
-    return globalThis.setInterval(callback, timeout);
+  return getGlobal().setInterval(callback, timeout);
 }
 
 export const clearInterval = (interval: Timeout): void => {
-  if (typeof interval === 'number')
-    window.clearInterval(interval);
-  else
-    globalThis.clearInterval(interval);
+  getGlobal().clearInterval(interval);
 }
 
 /**
@@ -22,7 +23,7 @@ export const clearInterval = (interval: Timeout): void => {
  */
 export const timedoutPromise = <T>(promise: Promise<T>, timeout: number): Promise<T> => {
   return new Promise<T>(async (resolve, reject) => {
-    const t = setTimeout(reject, timeout);
+    const t = setTimeout(() => reject(), timeout);
     try {
       resolve(await promise);
     } catch (e) {

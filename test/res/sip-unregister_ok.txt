@@ -1,9 +1,0 @@
-SIP/2.0 200 OK
-{{VIA}};rport=46758;received=77.117.224.161
-To: <sip:user@dec112.at>;tag=bf8638324618dc61059d4c604476fea1.412f0000
-From: <sip:user@dec112.at>;{{FROM_TAG}}
-{{CALL_ID}}
-CSeq: 20 REGISTER
-Server: kamailio (5.5.0-dev3 (x86_64/linux))
-Content-Length: 0
-

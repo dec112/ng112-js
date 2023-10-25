@@ -1,0 +1,10 @@
+
+
+
+---------somethingElse
+Content-Type: text/plain;charset=UTF-8
+
+Some text
+
+
+<invalidVCard>

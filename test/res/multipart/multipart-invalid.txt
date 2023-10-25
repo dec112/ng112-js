@@ -1,0 +1,24 @@
+
+
+
+------------UxCETVhBhhfxiD5G
+Content-Type: text/plain;charset=UTF-8
+
+Some text
+
+
+
+------------UxCETVhBhhfxiD5G
+Content-Type: text/plain
+
+--dangerous
+------------UxCETVhBhhfxiD5G
+Content-Type: application/pidf+xml
+Content-ID: <F7nDS11A7H9fK4Df@dec112.app>
+
+<invalidXML>
+------------UxCETVhBhhfxiD5G
+Content-Type: application/addCallSub+xml
+
+<invalidVCard>
+------------UxCETVhBhhfxiD5G--

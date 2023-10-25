@@ -1,5 +1,5 @@
 import { getAgents } from '..';
-import { Agent, Origin, ConversationState, StateObject, MessageFailedEvent } from '../../dist/node';
+import { Agent, Origin, MessageError, ConversationState, StateObject } from '../..';
 import { initializeTests } from './utils';
 
 initializeTests();
@@ -16,10 +16,11 @@ describe('ng112-js errors', () => {
       await conversation.start().promise;
       positiveMock();
     } catch (_ex) {
-      const ex = _ex as MessageFailedEvent;
+      const ex = _ex as MessageError;
 
-      expect(ex.originator).toEqual(Origin.REMOTE);
-      expect(ex.response.status_code).toBe(404);
+      expect(ex.statusCode).toBe(404);
+      expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toBe('Not Found');
     }
 
     expect(positiveMock).not.toHaveBeenCalled();
@@ -38,10 +39,11 @@ describe('ng112-js errors', () => {
       await conversation.start().promise;
       positiveMock();
     } catch (_ex) {
-      const ex = _ex as MessageFailedEvent;
+      const ex = _ex as MessageError;
 
-      expect(ex.response.status_code).toBeGreaterThanOrEqual(400);
-      expect(ex.originator).toEqual(Origin.REMOTE);
+      expect(ex.statusCode).toBeGreaterThanOrEqual(400);
+      expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toContain('Unresolvable destination');
     }
 
     expect(positiveMock).not.toHaveBeenCalled();
@@ -57,9 +59,7 @@ describe('ng112-js errors', () => {
 
     await conversation.start().promise;
 
-    // this is a private property, therefore typescript complains
-    // @ts-expect-error
-    conversation._targetUri = 'sip:non-existent@service.dec112.home';
+    conversation.targetUri = 'sip:non-existent@service.dec112.home';
     const positiveMock = jest.fn();
 
     try {
@@ -68,10 +68,11 @@ describe('ng112-js errors', () => {
       }).promise;
       positiveMock();
     } catch (_ex) {
-      const ex = _ex as MessageFailedEvent;
-      
-      expect(ex.originator).toEqual(Origin.REMOTE);
-      expect(ex.response.status_code).toBe(404);
+      const ex = _ex as MessageError;
+
+      expect(ex.statusCode).toBe(404);
+      expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toBe('Not Found');
     }
 
     expect(positiveMock).not.toHaveBeenCalled();
@@ -82,9 +83,7 @@ describe('ng112-js errors', () => {
     };
     expect(conversation.state).toEqual(errorState);
 
-    // this is a private property, therefore typescript complains
-    // @ts-expect-error
-    conversation._targetUri = target;
+    conversation.targetUri = target;
 
     // now we should be able to resume the conversation again
     await conversation.sendMessage({
@@ -99,10 +98,61 @@ describe('ng112-js errors', () => {
 
     await agent.dispose();
 
-    const stopState: StateObject = {
-      origin: Origin.LOCAL,
-      value: ConversationState.STOPPED,
+    // should not automatically stop conversation
+    // if not explicitly specified in `dispose`
+    expect(conversation.state).toEqual(okState);
+  });
+
+  it.each<Agent>(getAgents())('throws an error if start message is sent twice', async (agent: Agent) => {
+    const target = 'sip:default@service.dec112.home';
+    await agent.initialize();
+
+    const conversation = agent.createConversation(target);
+
+    await conversation.start().promise;
+    await expect(async () => {
+      await conversation.start().promise;
+    }).rejects;
+  });
+
+  it.each<Agent>(getAgents())('lets you restart a message if it has failed in the first place', async (agent: Agent) => {
+    const target = 'sip:non-existent@service.dec112.home';
+    await agent.initialize();
+
+    const conversation = agent.createConversation(target);
+    const positiveMock = jest.fn();
+
+    let startMessage = conversation.start();
+
+    try {
+      await startMessage.promise;
+      positiveMock();
+    } catch (_ex) {
+      const ex = _ex as MessageError;
+
+      expect(ex.statusCode).toBe(404);
+      expect(ex.origin).toBe(Origin.REMOTE);
+      expect(ex.reason).toBe('Not Found');
+    }
+
+    expect(positiveMock).not.toHaveBeenCalled();
+    const errorState: StateObject = {
+      origin: Origin.REMOTE,
+      value: ConversationState.ERROR,
     };
-    expect(conversation.state).toEqual(stopState);
+    expect(conversation.state).toEqual(errorState);
+
+    conversation.targetUri = 'sip:default@service.dec112.home';
+
+    // now we should be able to start the conversation again
+    await startMessage.resend().promise;
+
+    const okState: StateObject = {
+      origin: Origin.REMOTE,
+      value: ConversationState.STARTED,
+    };
+    expect(conversation.state).toEqual(okState);
+
+    await agent.dispose();
   });
 });

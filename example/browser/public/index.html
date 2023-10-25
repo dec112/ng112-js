@@ -22,14 +22,19 @@
     <fieldset>
       <legend>Connection Data</legend>
 
-      <div class="row">
+      <div class="row color-container">
+        <label class="four columns">
+          SIP Library
+          <select id="selSipLibrary"></select>
+        </label>
+
         <label class="four columns">
           Domain
           <input id="txtDomain" type="url" placeholder="service.dec112.eu" />
         </label>
 
-        <label class="eight columns">
-          Websocket Endpoint
+        <label class="four columns">
+          Endpoint
           <input id="txtEndpoint" type="url" placeholder="ws://example.com" />
         </label>
       </div>
@@ -38,7 +43,7 @@
     <fieldset>
       <legend>User Data</legend>
 
-      <div class="row">
+      <div class="row color-container">
         <div class="four columns">
           <label>
             User
@@ -83,16 +88,34 @@
     <fieldset>
       <legend>Call Actions</legend>
 
-      <div class="row">
-        <label class="four columns">
-          Call
-          <input id="txtCall" type="text" placeholder="sip:1234@dec112.eu" />
-        </label>
+      <div class="row color-container">
+        <div class="four columns">
+          <label>
+            Call
+            <input id="txtCall" type="text" placeholder="sip:1234@dec112.eu" />
+          </label>
+          <label>
+            Call Id
+            <input id="txtCallId" type="text" placeholder="qweryu123" />
+          </label>
+        </div>
 
-        <label class="two columns">
-          Is Test?
-          <input id="cbIsTest" type="checkbox" />
-        </label>
+        <div class="two columns">
+          <label>
+            Is Test?
+            <input id="cbIsTest" type="checkbox" />
+          </label>
+
+          <label>
+            Is Active?
+            <input id="cbIsActive" type="checkbox" />
+          </label>
+
+          <label>
+            Use CAP?
+            <input id="cbUseCap" type="checkbox" />
+          </label>
+        </div>
 
         <div class="two columns">
           <label>Last Message</label>
@@ -112,7 +135,7 @@
     <fieldset>
       <legend>Geo Data</legend>
 
-      <div class="row">
+      <div class="row color-container">
         <div class="four columns">
           <label>
             Latitude
@@ -148,19 +171,41 @@
         <iframe hidden id="iframe" src="" style="width: 100%; height: 300px;"
           allow="camera; microphone; fullscreen; display-capture"></iframe>
       </div>
-      <div class="twelve columns">
+    </div>
+
+    <div class="row">
+      <div class="four columns">
         <fieldset>
-          <label>
-            URI
-            <input id="txtUri" type="url" />
-          </label>
-          <label>
-            Message
-            <span id="txtRemoteDisplayName"></span>
-            <textarea id="txtMessage" class="message-area"></textarea>
-          </label>
+          <legend>Extra parts</legend>
+
+          <div class="color-container">
+            <label>
+              URI
+              <input id="txtUri" type="url" />
+            </label>
+            <label>
+              File
+              <input id="file" type="file" />
+            </label>
+          </div>
         </fieldset>
       </div>
+      <div class="eight columns">
+        <label>
+          Additional headers
+          <textarea id="txtHeaders" class="text-area"
+            placeholder="Call-Info: &lt;did:test:1234&gt; [one header per line]"></textarea>
+        </label>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>
+        Message
+        <span id="txtRemoteDisplayName"></span>
+        <span id="txtRemoteSipUri"></span>
+        <textarea id="txtMessage" class="text-area"></textarea>
+      </label>
     </div>
 
     <div class="row">

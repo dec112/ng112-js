@@ -13,8 +13,8 @@ describe('Store', () => {
     expect(store.getHeartbeatInterval()).toBe(5000);
 
     // test intervals that are out of range
-    expect(() => store.setHeartbeatInterval(20001)).toThrow();
-    expect(() => store.setHeartbeatInterval(-1)).toThrow();
+    expect(() => store.setHeartbeatInterval(20001)).not.toThrow();
+    expect(() => store.setHeartbeatInterval(-1)).not.toThrow();
 
     // if no parameter is provided we expect it to be reset to default value
     store.setHeartbeatInterval();

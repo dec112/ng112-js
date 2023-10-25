@@ -5,22 +5,28 @@ export {
   Agent,
   AgentConfiguration,
   AgentState,
+  DebugConfig,
 } from './models/agent';
 
 export {
+  Binary,
   Message,
+  MessageError,
   MessageState,
   Origin,
 } from './models/message';
 
 export {
-  VCard,
+  KeyId,
   Gender,
-} from './models/vcard';
+  VCard,
+} from 'vcard-xml';
 
 export {
   EmergencyMessageType,
 } from './constants/message-types/emergency';
+
+export * from './constants/headers'
 
 export {
   Conversation,
@@ -30,45 +36,47 @@ export {
 } from './models/conversation';
 
 export {
-  DEC112Specifics,
-} from './namespaces';
+  AgentMode,
+} from './models/store';
 
 export {
-  MessageFailedEvent,
+  EndpointType,
 } from './models/interfaces';
 
 export {
-  Header,
-} from './utils';
+  DEC112Specifics,
+  EmergencySpecifics,
+  Mapper,
+  Namespace,
+  NamespaceSpecifics,
+} from './namespaces';
 
 export {
+  Logger,
   LogLevel,
 } from './models/logger';
 
-import PidfLoCompat from './compatibility/pidf-lo';
-
-const {
+export {
+  Civic,
+  CivicAddress,
   Circle,
   Device,
   LocationMethod,
   Person,
   PidfLo,
   Point,
-  Tuple,
-} = PidfLoCompat;
-
-export {
-  Circle,
-  Device,
-  LocationMethod,
-  Person,
-  PidfLo,
-  Point,
-  Tuple,
-};
-
-// this is only a typescript interface
-// therefore we directly export it from the pidf-lo module
-export {
   SimpleLocation,
+  Tuple,
 } from 'pidf-lo';
+
+export {
+  Multipart,
+  MultipartPart,
+} from './models/multipart';
+
+export * from './adapters';
+export * as Utils from './utils';
+
+export {
+  XMLCompat,
+} from './compatibility';

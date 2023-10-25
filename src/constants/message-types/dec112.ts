@@ -1,4 +1,6 @@
+import { Multipart } from '../..';
 import { hasBits, nthBit } from '../../utils';
+import { TEXT_HTML, TEXT_PLAIN } from '../content-types';
 import { EmergencyMessageType } from './emergency';
 
 interface MessageTypeModifiers {
@@ -21,7 +23,6 @@ export const fromEmergencyMessageType = (
 
   if (
     hasBits(mt, EmergencyMessageType.IN_CHAT) ||
-    hasBits(mt, EmergencyMessageType.INACTIVE) ||
     hasBits(mt, EmergencyMessageType.HEARTBEAT)
   )
     res = IN_CHAT;
@@ -56,7 +57,7 @@ export const fromEmergencyMessageType = (
   return res;
 }
 
-export const toEmergencyMessageType = (dec112MessageType: number, messageText?: string) => {
+export const toEmergencyMessageType = (dec112MessageType: number, multipart?: Multipart) => {
   let res = 0;
 
   if (hasBits(dec112MessageType, STOP))
@@ -64,7 +65,10 @@ export const toEmergencyMessageType = (dec112MessageType: number, messageText?: 
   else if (hasBits(dec112MessageType, START))
     res = EmergencyMessageType.START;
   else if (hasBits(dec112MessageType, IN_CHAT)) {
-    if (messageText)
+    // check if multipart contains some text elements
+    // if so it's an IN_CHAT message
+    // otherwise it's heartbeat
+    if (multipart?.getPartsByContentTypes([TEXT_HTML, TEXT_PLAIN]))
       res = EmergencyMessageType.IN_CHAT;
     else
       res = EmergencyMessageType.HEARTBEAT;

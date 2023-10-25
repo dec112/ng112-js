@@ -1,44 +1,42 @@
-import { IncomingMessage } from 'jssip/lib/SIPMessage';
-import type { PidfLo } from 'pidf-lo';
-import { ConversationEndpointType } from '../models/conversation';
-import { Message } from '../models/message';
+import { Message, MessageConfig } from '../models/message';
+import { NewMessageEvent } from '../adapters';
+import { Multipart } from '../models/multipart';
 import { Header } from '../utils';
 import { OmitStrict } from '../utils/ts-utils';
+import { EndpointType } from '../models/interfaces';
 
-export interface NamespaceSpecifics { }
+export interface NamespaceSpecifics {
+  getDomain(): string;
+}
 
 export interface MessageParts {
   headers: Header[],
-  contentType: string,
-  body: string,
+  multipart: Multipart,
 }
 
-export type MessagePartsParams = OmitStrict<Message,
-  'origin' |
-  'state' |
-  'promise' |
-  'dateTime' |
-  'conversation' |
-  'uniqueId'
-> & {
+export interface MessagePartsParams {
+  message: Message,
   targetUri: string,
-  conversationId: string,
-  endpointType: ConversationEndpointType,
+  endpointType: EndpointType,
   isTest: boolean,
+  isSilent: boolean,
   replyToSipUri: string,
 }
 
-export interface NamespacedConversation {
-  createMessageParts(params: MessagePartsParams): MessageParts;
+export enum Namespace {
+  DEC112 = 'DEC112',
+  ETSI = 'ETSI',
+}
 
-  tryParsePidfLo(value: string): PidfLo | undefined;
+export interface Mapper {
+  createSipParts(params: MessagePartsParams): MessageParts;
+  parseMessageFromEvent(evt: NewMessageEvent): OmitStrict<MessageConfig, 'conversation'>;
 
-  getName(): string;
+  getNamespace(): Namespace;
   supportsPsapStartMessage(): boolean;
   isCompatible(headers: string[]): boolean;
 
   getCallIdFromHeaders(headers: string[]): string | undefined;
-  getMessageIdFromHeaders(headers: string[]): string | undefined;
-  getMessageTypeFromHeaders(headers: string[], messageText?: string): number | undefined;
-  getIsTestFromHeaders(sipMessage: IncomingMessage): boolean;
+  getIsTestFromEvent(evt: NewMessageEvent): boolean;
+  getIsSilentFromEvent(evt: NewMessageEvent): boolean;
 }

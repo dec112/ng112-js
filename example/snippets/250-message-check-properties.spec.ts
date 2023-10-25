@@ -1,7 +1,9 @@
-import { Origin, EmergencyMessageType, MessageState } from '../../src';
-import { createAgent, endExample } from './util';
+import { Origin, EmergencyMessageType, MessageState } from 'ng112-js';
+import { createAgent, endExample, startExample } from './util';
 
 it('Shows how to check for different message properties', async () => {
+  startExample();
+  
   const agent = await createAgent();
 
   const conversation = agent.createConversation('sip:144@dec112.eu');

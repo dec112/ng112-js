@@ -1,3 +1,13 @@
+export interface NameAddrHeader {
+  /**
+   * Display name
+   */
+  displayName?: string,
+  /**
+   * The raw URI, without display name
+   */
+  uri: string,
+}
 export interface Header {
   key: string,
   value: string,
@@ -32,5 +42,22 @@ export const parseHeader = (header: string): Header | undefined => {
   return {
     key: parsed[1],
     value: parsed[2],
+  };
+}
+
+export const parseNameAddrHeaderValue = (value: string): NameAddrHeader | undefined => {
+  const parsed = /([^<]*)<([\w\d:@\.;=\-\/#]+)>/.exec(value);
+
+  if (!parsed || parsed.length === 1)
+    return;
+
+  if (parsed.length === 3 )
+    return {
+      displayName: parsed[1].trim() ? parsed[1].trim() : undefined,
+      uri: parsed[2],
+    };
+
+  return {
+    uri: parsed[1],
   };
 }

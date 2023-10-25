@@ -4,13 +4,23 @@ This javascript library should help integrating browser and node environments wi
 
 It handles SIP communication, message types, heartbeats, PIDF-LO, VCards, Multipart MIME and should finally provide a comprehensive implementation of the aformentioned ETSI standards.
 
-Please keep in mind this is still in development and does not cover standards entirely!
+Please keep in mind this library is still in development and does not cover standards entirely!
 
-SIP communication is powered by [JsSIP](https://jssip.net/) under the hood.
+SIP communication can be handeled by a SIP stack of your choice. \
+By default, `ng112-js` comes with adapters for:
+* [JsSIP](https://jssip.net/): https://github.com/dec112/ng112-js-sip-adapter-jssip
+* [SIP.js](https://sipjs.com/): https://github.com/dec112/ng112-js-sip-adapter-sipjs
+
+If you want to write your own adapter, take a look at one of the linked adapters to get an idea how they are implemented.
 
 License: GNU AGPL-3.0 \
 Proprietary licenses are available on request. \
 Maintainer: Gabriel Unterholzer (gabriel.unterholzer@dec112.at)
+
+Many thanks to [Netidee](https://www.netidee.at) who funded parts of this software project in call #17 (DEC4IoT)!
+
+<img align="right" src="https://raw.githubusercontent.com/dec112/ng112-js/main/assets/netidee.jpeg" height="150" />
+
 
 ## Installation
 
@@ -18,52 +28,19 @@ Maintainer: Gabriel Unterholzer (gabriel.unterholzer@dec112.at)
 npm install ng112-js
 ```
 
-### Browser Environments
+In addition, you will also have to install one of the available SIP adapters. \
+Let's use the JsSIP adapter in this example:
 
-```typescript
-import * from 'ng112-js/dist/browser';
+```shell
+npm install ng112-js-sip-adapter-jssip
 ```
 
-### Node Environments
+### Special requirements for node.js
 
-```typescript
-import * from 'ng112-js/dist/node';
-```
+As node.js does not come with native support for xml manipulation, you will have to install package `@xmldom/xmldom` which is a peer-dependency of `pidf-lo`.
 
-In addition, node environments will also need to install `jssip-node-websocket`, which is a peer dependency of `ng112-js`
-
-```bash
-npm install jssip-node-websocket
-```
-
-## Build issues
-
-Some environments may cause problems not being able to resolve JsSIP types correctly, as JsSIP does not come with types included, but they are provided by an additional package `@types/jssip`.
-
-Build output might look like this:
-
-```bash
-Error: node_modules/ng112-js/dist/types/models/message.d.ts:81:20 - error TS2503: Cannot find namespace 'JsSIP'.
-81     jssipMessage?: JsSIP.UserAgentNewMessageEvent;
-```
-
-In these cases add the following to the `compilerOptions` section in your `tsconfig.json`. \
-It will tell TypeScript the location where to look for jssip types:
-
-```json
-{
-  // [...]
-  "compilerOptions": {
-    // [...]
-    "paths": {
-      "jssip" : ["node_modules/@types/jssip"]
-    }
-  }
-}
-```
-
-
-More information on this: https://www.typescriptlang.org/tsconfig#paths
+Please also note the install requirements of the respective SIP adapters (README.md) \
+`ng112-js-sip-adapter-jssip` will need an additional package, if it is used in node.js environments!
 
 ## Examples
 
@@ -78,11 +55,20 @@ import {
   Agent,
   DEC112Specifics,
   LocationMethod,
+  Origin,
+  XMLCompat,
   VCard,
-} from 'ng112-js/dist/browser';
+} from 'ng112-js';
+import { 
+  SipJsAdapter, 
+} from 'ng112-js-sip-adapter-sipjs';
+
+// if xmldom interface is available (e.g. on web browsers)
+XMLCompat.initialize(XMLCompat.getWebImpl());
 
 // define connection to SIP proxy (originating ESRP)
 const agent = new Agent({
+  sipAdapterFactory: SipJsAdapter.factory,
   endpoint: 'wss://example.com',
   domain: 'example.com',
   user: 'user1234',
@@ -93,19 +79,23 @@ const agent = new Agent({
   // DEC112: required. Used to specify additional properties for DEC112 environments
   // either device id or registration id is required
   // in ETSI TS 103 698 environments, `namespaceSpecifics` must not be specified
-  namespaceSpecifics: new DEC112Specifics(
-    // device id (registration API version 1; deprecated)
-    undefined,
+  namespaceSpecifics: new DEC112Specifics({
     // registration id (registration API version 2)
-    'registrationId',
+    registrationId: 'registrationId',
     // user device language (ISO639-1 two letter language code; optional)
-    'en',
+    langauge: 'en',
     // client version (e.g. version of application, where ng112-js is used in; optional)
-    '1.0.4',
-  ),
-  // If `debug` is set to `true`, verbose log messages will be printed to the console
-  // If `debug` is set to a callback, this callback will be called for each debug statement
-  debug: false,
+    clientVersion: '1.0.4',
+  }),
+  debug: {
+    // If `debug` is set to `true`, verbose log messages will be printed to the console
+    // If `debug` is set to a callback, this callback will be called for each debug statement
+    // `default` spcifies behaviour for all debug messages that are generated by ng112-js directly
+    default: true,
+    // same possible values as for `default`
+    // Specifies, if log messages by used sipAdapter should be logged
+    sipAdapter: true,
+  },
 });
 
 // set the agent's vcard
@@ -138,6 +128,10 @@ const conversation = agent.createConversation('sip:144@dec112.at');
 conversation.addMessageListener((msg) => {
   // print message metadata
   console.log(`${msg.origin} (${msg.type}): ${msg.text}`);
+
+  // For some SIP stacks you will need to explicitly `accept` or `reject` incoming messages
+  if (msg.origin === Origin.REMOTE && msg.event && msg.event.accept)
+    msg.event.accept();
 });
 
 // initiate the emergency conversation
@@ -169,11 +163,21 @@ await agent.dispose();
 ```javascript
 import { 
   Agent,
+  Origin,
   ConversationState,
-} from 'ng112-js/dist/node';
+  XMLCompat,
+} from 'ng112-js';
+import { 
+  JsSipAdapter, 
+} from 'ng112-js-sip-adapter-jssip';
+
+// if xmldom interface is NOT available (e.g. on node environments)
+// also don't forget to install required peer dependency @xmldom/xmldom
+XMLCompat.initialize(XMLCompat.getNodeImpl());
 
 // define connection to SIP proxy (terminating ESRP)
 const agent = new Agent({
+  sipAdapterFactory: JsSipAdapter.factory,
   endpoint: 'wss://example.com',
   domain: 'example.com',
   user: 'psap1',
@@ -229,6 +233,10 @@ agent.addConversationListener((conversation) => {
         simpleLoc.method,
       )
     }
+
+    // For some SIP stacks you will need to explicitly `accept` or `reject` incoming messages
+    if (msg.origin === Origin.REMOTE && msg.event && msg.event.accept)
+      msg.event.accept();
   });
 
   // listen for conversation state updates
@@ -260,6 +268,31 @@ agent.addConversationListener((conversation) => {
 
 ```
 
+### More examples!
+
+More examples can be found in the `snippets` subfolder located at `./example/snippets`.
+
+This includes the following use-cases:
+* Heartbeat configuration
+* Sending custom multipart mime bodys (including CAP [Common Alerting Protocol])
+* Resending messages
+* Restarting conversations (e.g. after an application crash)
+
+## Local Build
+
+```shell
+npm run build
+```
+
+## Testing
+
+ng112-js testing relies on docker and docker-compose. Therefore you will need this programs to be installed to successfully run automated tests. \
+There is an example docker-compose.yml in the test directory. You'll need a Kamailio docker image and a NG112 compatible PSAP image to successfully run the integration tests.
+
+```shell
+npm run test
+```
+
 ## Documentation
 
 Documentation can be found at https://www.dec112.at/docs/ng112-js
@@ -267,17 +300,9 @@ Documentation can be found at https://www.dec112.at/docs/ng112-js
 Generate documentation by using the following command. It will be saved in folder `./docs`
 
 ```shell
-npm install
 npm run docs
 ```
 
-## Local Build
+## Thank You!
 
-```shell
-npm install
-npm run build
-```
-
----
-
-This project was bootstrapped with [TSDX](https://tsdx.io/)
+Thanks to all Open Source contributors this project builds on. Special thanks to the team behind [JsSIP](https://github.com/versatica/JsSIP), which is the most important part of this project!
