@@ -287,7 +287,7 @@ const disable = (element, value) => {
           console.log(...values);
         })
       },
-      userAgent: 'ng112-js-example-browser',
+      userAgent: 'ng112-js-web',
     });
 
     agent.addConversationListener((newConversation) => {

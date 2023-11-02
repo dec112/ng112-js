@@ -44,7 +44,7 @@ Please also note the install requirements of the respective SIP adapters (README
 
 ## Examples
 
-Most complete examples can be found in both browser and node example projects in `./example/browser` and `./example/node`.
+Most complete examples can be found in both web and node example projects in `./example/web` and `./example/node`.
 
 Examples of specific use-cases can be found in `./example/snippets`.
 

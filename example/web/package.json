@@ -1,5 +1,5 @@
 {
-  "name": "ng112-js-example-browser",
+  "name": "ng112-js-web",
   "version": "0.4.0",
   "license": "AGPL-3.0-only",
   "author": "Gabriel Unterholzer <gabriel.unterholzer@dec112.at> (https://www.dec112.at)",
@@ -11,7 +11,7 @@
   "scripts": {
     "start": "webpack-cli serve",
     "build": "NODE_ENV=production sh scripts/build.sh",
-    "docker": "npm run build && docker build -t ng112-js/browser .",
+    "docker": "npm run build && docker build -t ghcr.io/dec112/ng112-js-web .",
     "deploy": "sh scripts/deploy.sh"
   },
   "devDependencies": {
