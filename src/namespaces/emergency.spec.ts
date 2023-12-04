@@ -46,6 +46,17 @@ describe('Checking call info headers', () => {
   it.each(validDIDHeaders)('should be able to handle DID %s', (header) => {
     expect(mapper.getDIDFromHeaders([header])).toBe(validDID)
   });
+
+  it('should extract Call-Info headers from comma separated values', () => {
+    const headers = [
+      'Call-Info: <urn:emergency:uid:callid:12345:dec112.at>;purpose=EmergencyCallData.CallId,' +
+      '<urn:emergency:service:uid:msgid:5:dec112.at>;purpose=EmergencyCallData.MsgId,' +
+      '<urn:emergency:service:uid:msgtype:257:dec112.at>;purpose=EmergencyCallData.MsgType',
+    ];
+    expect(mapper.getCallIdFromHeaders(headers)).toBe('12345');
+    expect(mapper.getMessageTypeFromHeaders(headers)).toBe(EmergencyMessageType.START);
+    expect(mapper.getMessageIdFromHeaders(headers)).toBe('5');
+  });
 });
 
 describe('Generating Call-Info headers', () => {
