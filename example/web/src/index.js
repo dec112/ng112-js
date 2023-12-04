@@ -109,6 +109,7 @@ const disable = (element, value) => {
   const isTest = el('cbIsTest', config.isTest);
   const isActive = el('cbIsActive', config.isActive);
   const useCap = el('cbUseCap', config.useCap);
+  const isSipDebug = el('cbIsSipDebug', config.debug);
 
   const start = el('btnStart');
   const end = el('btnEnd');
@@ -285,7 +286,8 @@ const disable = (element, value) => {
         default: ((...values) => {
           // TODO: distinguish between levels
           console.log(...values);
-        })
+        }),
+        sipAdapter: isSipDebug.checked,
       },
       userAgent: 'ng112-js-web',
     });
