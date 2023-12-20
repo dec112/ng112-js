@@ -5,7 +5,7 @@ const isProduction = environment === 'production';
 
 module.exports = {
   mode: environment || 'development',
-  devtool: isProduction ? undefined : 'inline-source-map',
+  devtool: 'inline-source-map',
   devServer: {
     host: '0.0.0.0',
     static: path.join(__dirname, 'public'),
