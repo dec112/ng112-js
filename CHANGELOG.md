@@ -60,6 +60,7 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - VCard firstname and lastname. They were switched without being noticed by anyone, oops :-)
 - Fixed typo for language property in DEC112 Mapper.
 - START message can now only be sent once.
+- Correct parsing of SIP Reply-To header (especially if they contain a NameAddressHeader)
 
 ---
 

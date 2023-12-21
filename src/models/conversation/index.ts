@@ -745,9 +745,16 @@ export class Conversation {
 
     let messageNotifier: ListenerNotifier | undefined = undefined
     if (origin === Origin.REMOTE) {
-      if (req.hasHeader(REPLY_TO))
-        // this is type safe as we've already checked whether this header exists or not
-        this.targetUri = req.getHeader(REPLY_TO) as string;
+      const replyToHeader = req.getHeader(REPLY_TO);
+      if (replyToHeader) {
+        const parsedReplyTo = parseNameAddrHeaderValue(replyToHeader);
+        if (parsedReplyTo) {
+          this.targetUri = parsedReplyTo.uri;
+          this._logger.log(`${REPLY_TO}: ${this.targetUri}`);
+        } else {
+          this._logger.warn(`${REPLY_TO} can not be parsed`);
+        }
+      }
 
       this._setPropsFromIncomingMessage(req);
 

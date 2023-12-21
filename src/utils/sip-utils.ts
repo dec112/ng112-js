@@ -51,7 +51,7 @@ export const parseNameAddrHeaderValue = (value: string): NameAddrHeader | undefi
   if (!parsed || parsed.length === 1)
     return;
 
-  if (parsed.length === 3 )
+  if (parsed.length === 3)
     return {
       displayName: parsed[1].trim() ? parsed[1].trim() : undefined,
       uri: parsed[2],
