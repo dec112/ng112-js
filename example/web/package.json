@@ -23,7 +23,7 @@
     "buffer": "^6.0.3",
     "ng112-js": "file:../..",
     "ng112-js-sip-adapter-jssip": "^0.6.4",
-    "ng112-js-sip-adapter-sipjs": "^0.5.1",
+    "ng112-js-sip-adapter-sipjs": "^0.5.2",
     "stream-browserify": "^3.0.0",
     "timers-browserify": "^2.0.12"
   }
