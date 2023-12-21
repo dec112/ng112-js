@@ -45,19 +45,27 @@ export const parseHeader = (header: string): Header | undefined => {
   };
 }
 
+/**
+ * Parses a header value that is a NameAddr.
+ * Also works for plain URIs.
+ * Take into account that this function does not check for validity of the URI!
+ * 
+ * @param value a header value
+ * @returns parsed object (or undefined)
+ */
 export const parseNameAddrHeaderValue = (value: string): NameAddrHeader | undefined => {
-  const parsed = /([^<]*)<([\w\d:@\.;=\-\/#]+)>/.exec(value);
+  const parsed = /([^<]*)<([^>]+)>/.exec(value);
 
-  if (!parsed || parsed.length === 1)
-    return;
-
-  if (parsed.length === 3)
+  if (parsed && parsed.length === 3)
     return {
       displayName: parsed[1].trim() ? parsed[1].trim() : undefined,
-      uri: parsed[2],
+      uri: parsed[2].trim(),
     };
+  else if (/^[^<>]+$/.exec(value)) {
+    return {
+      uri: value.trim(),
+    };
+  }
 
-  return {
-    uri: parsed[1],
-  };
+  return;
 }

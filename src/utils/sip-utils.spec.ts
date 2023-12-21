@@ -6,7 +6,7 @@ describe('SIP utils', () => {
       displayName: undefined,
       uri: 'sip:default@some.psap.com;transport=tcp;lr'
     });
-    
+
     expect(parseNameAddrHeaderValue(' <sip:with-some-special-chars.com/api/v1>')).toEqual({
       displayName: undefined,
       uri: 'sip:with-some-special-chars.com/api/v1'
@@ -23,6 +23,13 @@ describe('SIP utils', () => {
     expect(parseNameAddrHeaderValue('<urn:dec112:uid:msgid:1:service.dec112.at>; purpose=dec112-MsgId\r\n')).toEqual({
       displayName: undefined,
       uri: 'urn:dec112:uid:msgid:1:service.dec112.at',
+    });
+  });
+
+  it('should parse normal SIP URIs headers', () => {
+    expect(parseNameAddrHeaderValue(' sip:default@something;transport=tls ')).toEqual({
+      displayName: undefined,
+      uri: 'sip:default@something;transport=tls',
     });
   });
 });
