@@ -21,6 +21,10 @@ Many thanks to [Netidee](https://www.netidee.at) who funded parts of this softwa
 
 <img src="https://raw.githubusercontent.com/dec112/ng112-js/main/assets/netidee.jpeg" height="150" />
 
+This project has received funding from the European Union’s Horizon 2020 research and innovation program through the [NGI TRUSTCHAIN program](https://trustchain.ngi.eu/) under cascade funding agreement No 101093274.
+
+<img src="https://raw.githubusercontent.com/dec112/ng112-js/main/assets/ngi-trustchain.png" height="150" />
+
 
 ## Installation
 
