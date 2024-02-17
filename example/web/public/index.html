@@ -18,190 +18,192 @@
   <main class="container">
     <h1>ng112-js web chat</h1>
 
+    <div id="configSection">
+      <fieldset>
+        <legend>Connection Data</legend>
 
-    <fieldset>
-      <legend>Connection Data</legend>
-
-      <div class="row color-container">
-        <label class="four columns">
-          SIP Library
-          <select id="selSipLibrary"></select>
-        </label>
-
-        <label class="four columns">
-          Domain
-          <input id="txtDomain" type="url" placeholder="service.dec112.eu" />
-        </label>
-
-        <label class="four columns">
-          Endpoint
-          <input id="txtEndpoint" type="url" placeholder="ws://example.com" />
-        </label>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>User Data</legend>
-
-      <div class="row color-container">
-        <div class="four columns">
-          <label>
-            User
-            <input id="txtUser" type="text" placeholder="123456qwerty" />
+        <div class="row color-container">
+          <label class="four columns">
+            SIP Library
+            <select id="selSipLibrary"></select>
           </label>
-          <label>
-            Password
-            <input id="txtPassword" type="text" placeholder="xxxxxxxxx" />
+
+          <label class="four columns">
+            Domain
+            <input id="txtDomain" type="url" placeholder="service.dec112.eu" />
           </label>
-          <label>
-            From
-            <input id="txtFrom" type="text" placeholder="sip:user@domain.com" />
+
+          <label class="four columns">
+            Endpoint
+            <input id="txtEndpoint" type="url" placeholder="ws://example.com" />
           </label>
         </div>
+      </fieldset>
 
-        <div class="four columns">
-          <label>SIP Debug-Mode
-            <input id="cbIsSipDebug" type="checkbox" />
-          </label>
+      <fieldset>
+        <legend>User Data</legend>
 
-          <br /> 
+        <div class="row color-container">
+          <div class="four columns">
+            <label>
+              User
+              <input id="txtUser" type="text" placeholder="123456qwerty" />
+            </label>
+            <label>
+              Password
+              <input id="txtPassword" type="text" placeholder="xxxxxxxxx" />
+            </label>
+            <label>
+              From
+              <input id="txtFrom" type="text" placeholder="sip:user@domain.com" />
+            </label>
+          </div>
 
-          <label>Registration API v1
-            <input type="radio" name="reg-api-version" value="1" />
-          </label>
-          <label>Registration API v2
-            <input type="radio" name="reg-api-version" value="2" />
-          </label>
-        </div>
+          <div class="four columns">
+            <label>SIP Debug-Mode
+              <input id="cbIsSipDebug" type="checkbox" />
+            </label>
 
-        <div class="four columns">
-          <label>
-            Display Name
-            <input id="txtDisplayName" type="text" placeholder="Alice Smith" />
-          </label>
-          <label>
-            Reg ID
-            <input id="txtRegistration" type="text" placeholder="123456qwerty" />
-          </label>
-          <div>
-            <button id="btnRegister" class="button-primary">Register</button>
-            <button id="btnUnregister" class="button">Unregister</button>
+            <br />
+
+            <label>Registration API v1
+              <input type="radio" name="reg-api-version" value="1" />
+            </label>
+            <label>Registration API v2
+              <input type="radio" name="reg-api-version" value="2" />
+            </label>
+          </div>
+
+          <div class="four columns">
+            <label>
+              Display Name
+              <input id="txtDisplayName" type="text" placeholder="Alice Smith" />
+            </label>
+            <label>
+              Reg ID
+              <input id="txtRegistration" type="text" placeholder="123456qwerty" />
+            </label>
+            <div>
+              <button id="btnRegister" class="button-primary">Register</button>
+              <button id="btnUnregister" class="button">Unregister</button>
+            </div>
           </div>
         </div>
-      </div>
-    </fieldset>
+      </fieldset>
 
-    <fieldset>
-      <legend>Call Actions</legend>
+      <fieldset>
+        <legend>Call Actions</legend>
 
-      <div class="row color-container">
-        <div class="four columns">
-          <label>
-            Call
-            <input id="txtCall" type="text" placeholder="sip:1234@dec112.eu" />
-          </label>
-          <label>
-            Call Id
-            <input id="txtCallId" type="text" placeholder="qweryu123" />
-          </label>
-        </div>
+        <div class="row color-container">
+          <div class="four columns">
+            <label>
+              Call
+              <input id="txtCall" type="text" placeholder="sip:1234@dec112.eu" />
+            </label>
+            <label>
+              Call Id
+              <input id="txtCallId" type="text" placeholder="qweryu123" />
+            </label>
+          </div>
 
-        <div class="two columns">
-          <label>
-            Is Test?
-            <input id="cbIsTest" type="checkbox" />
-          </label>
+          <div class="two columns">
+            <label>
+              Is Test?
+              <input id="cbIsTest" type="checkbox" />
+            </label>
 
-          <label>
-            Is Active?
-            <input id="cbIsActive" type="checkbox" />
-          </label>
+            <label>
+              Is Active?
+              <input id="cbIsActive" type="checkbox" />
+            </label>
 
-          <label>
-            Use CAP?
-            <input id="cbUseCap" type="checkbox" />
-          </label>
-        </div>
+            <label>
+              Use CAP?
+              <input id="cbUseCap" type="checkbox" />
+            </label>
+          </div>
 
-        <div class="two columns">
-          <label>Last Message</label>
-          <div id="lastMessage"></div>
-        </div>
+          <div class="two columns">
+            <label>Last Message</label>
+            <div id="lastMessage"></div>
+          </div>
 
-        <div class="four columns">
-          <div>
-            <button id="btnStart" class="button-primary">Start</button>
-            <button id="btnEnd" class="button">End</button>
+          <div class="four columns">
+            <div id="conversationControlPanel">
+              <button id="btnStart" class="button-primary">Start</button>
+              <button id="btnEnd" class="button">End</button>
+            </div>
           </div>
         </div>
-      </div>
 
-    </fieldset>
+      </fieldset>
 
-    <fieldset>
-      <legend>Geo Data</legend>
+      <fieldset>
+        <legend>Geo Data</legend>
 
-      <div class="row color-container">
-        <div class="four columns">
-          <label>
-            Latitude
-            <input id="txtLatitude" type="number" placeholder="48.1799778" />
+        <div class="row color-container">
+          <div class="four columns">
+            <label>
+              Latitude
+              <input id="txtLatitude" type="number" placeholder="48.1799778" />
+            </label>
+
+            <label>
+              Longitude
+              <input id="txtLongitude" type="number" placeholder="16.341437" />
+            </label>
+          </div>
+
+          <label class="four columns">
+            Radius
+            <input id="txtRadius" type="number" placeholder="10" />
           </label>
 
+          <div class="four columns">
+            <label>
+              Method
+              <select id="selLocationMethod">
+              </select>
+            </label>
+
+            <button id="btnUpdateLocation" class="button-primary">Update Location</button>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <div class="row">
+        <div class="four columns">
+          <fieldset>
+            <legend>Extra parts</legend>
+
+            <div class="color-container">
+              <label>
+                URI
+                <input id="txtUri" type="url" />
+              </label>
+              <label>
+                File
+                <input id="file" type="file" />
+              </label>
+            </div>
+          </fieldset>
+        </div>
+        <div class="eight columns">
           <label>
-            Longitude
-            <input id="txtLongitude" type="number" placeholder="16.341437" />
+            Additional headers
+            <textarea id="txtHeaders" class="text-area"
+              placeholder="Call-Info: &lt;did:test:1234&gt; [one header per line]"></textarea>
           </label>
         </div>
-
-        <label class="four columns">
-          Radius
-          <input id="txtRadius" type="number" placeholder="10" />
-        </label>
-
-        <div class="four columns">
-          <label>
-            Method
-            <select id="selLocationMethod">
-            </select>
-          </label>
-
-          <button id="btnUpdateLocation" class="button-primary">Update Location</button>
-        </div>
-
       </div>
-    </fieldset>
+    </div>
+
 
     <div class="row">
       <div class="twelve columns">
         <iframe hidden id="iframe" src="" style="width: 100%; height: 300px;"
           allow="camera; microphone; fullscreen; display-capture"></iframe>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="four columns">
-        <fieldset>
-          <legend>Extra parts</legend>
-
-          <div class="color-container">
-            <label>
-              URI
-              <input id="txtUri" type="url" />
-            </label>
-            <label>
-              File
-              <input id="file" type="file" />
-            </label>
-          </div>
-        </fieldset>
-      </div>
-      <div class="eight columns">
-        <label>
-          Additional headers
-          <textarea id="txtHeaders" class="text-area"
-            placeholder="Call-Info: &lt;did:test:1234&gt; [one header per line]"></textarea>
-        </label>
       </div>
     </div>
 

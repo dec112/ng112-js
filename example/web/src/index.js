@@ -61,9 +61,13 @@ const disable = (element, value) => {
   }
 
   // config can be overwritten by individual query parameters
-  for (const key in config) {
-    if (searchParams.has(key))
-      config[key] = searchParams.get(key);
+  for (const [key, value] of searchParams.entries()) {
+    // do not consider the config key as it is just there
+    // for specifying the config to load
+    if (key === 'config')
+      continue;
+
+    config[key] = value;
   }
 
   const endpoint = el('txtEndpoint', config.endpoint);
@@ -296,16 +300,16 @@ const disable = (element, value) => {
       conversation = newConversation;
 
       conversation.addMessageListener(handleNewMessage);
-      conversation.messages.forEach(handleNewMessage);
-      conversation.addStateListener((stateObj) => {
-        const isStarted = stateObj.value === ConversationState.STARTED;
+    conversation.messages.forEach(handleNewMessage);
+    conversation.addStateListener((stateObj) => {
+      const isStarted = stateObj.value === ConversationState.STARTED;
 
-        if (!isStarted) {
-          conversation = undefined;
-          lastMessageDate = undefined;
-        }
+      if (!isStarted) {
+        conversation = undefined;
+        lastMessageDate = undefined;
+      }
 
-        disable(send, !isStarted);
+      disable(send, !isStarted);
         disable(end, !isStarted);
         disable(start, isStarted);
       });
@@ -313,117 +317,128 @@ const disable = (element, value) => {
 
     await agent.initialize();
 
-    disable(register, true);
-    disable(unregister, false);
-    disable(start, false);
-  });
+  disable(register, true);
+  disable(unregister, false);
+  disable(start, false);
+});
 
-  unregister.addEventListener('click', async () => {
-    await agent.dispose();
+unregister.addEventListener('click', async () => {
+  await agent.dispose();
 
-    disable(start, true);
-    disable(unregister, true);
-    disable(register, false);
-  });
-  disable(unregister, true);
-
-  start.addEventListener('click', () => {
-    chatarea.innerHTML = '';
-
-    updateLocation();
-    updateMode();
-
-    if (config.vcard) {
-      const vcard = new VCard();
-
-      for (const prop in config.vcard) {
-        let value = config.vcard[prop];
-
-        if (prop === KeyId.BIRTHDAY)
-          value = new Date(value);
-
-        vcard.add(prop, value);
-      }
-
-      agent.updateVCard(vcard);
-    }
-
-    conversation = agent.createConversation(call.value, {
-      isTest: isTest.checked,
-      id: callId.value || undefined,
-    });
-
-    const extraParts = [];
-    if (useCap.checked)
-      extraParts.push(getCapMultipart());
-
-    conversation.start({
-      text: popMessageText(),
-      extraHeaders: getExtraHeaders(),
-      extraParts,
-    }).promise;
-  });
   disable(start, true);
+  disable(unregister, true);
+  disable(register, false);
+});
+disable(unregister, true);
 
-  end.addEventListener('click', () => {
-    if (!conversation)
-      return;
+start.addEventListener('click', () => {
+  chatarea.innerHTML = '';
 
-    conversation.stop({
-      text: popMessageText(),
-    });
+  updateLocation();
+  updateMode();
+
+  if (config.vcard) {
+    const vcard = new VCard();
+
+    for (const prop in config.vcard) {
+      let value = config.vcard[prop];
+
+      if (prop === KeyId.BIRTHDAY)
+        value = new Date(value);
+
+      vcard.add(prop, value);
+    }
+
+    agent.updateVCard(vcard);
+  }
+
+  conversation = agent.createConversation(call.value, {
+    isTest: isTest.checked,
+    id: callId.value || undefined,
   });
-  disable(end, true);
 
-  send.addEventListener('click', async () => {
-    if (!conversation)
-      return;
+  const extraParts = [];
+  if (useCap.checked)
+    extraParts.push(getCapMultipart());
 
-    let uris = undefined;
+  conversation.start({
+    text: popMessageText(),
+    extraHeaders: getExtraHeaders(),
+    extraParts,
+  }).promise;
+});
+disable(start, true);
 
-    if (uri.value) {
-      uris = [uri.value];
-    }
+end.addEventListener('click', () => {
+  if (!conversation)
+    return;
 
-    let binaries = undefined;
-    const currentFile = file.files[0];
-
-    if (currentFile) {
-      const fileBin = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          resolve(evt.target.result);
-        }
-        reader.readAsArrayBuffer(currentFile);
-      });
-
-      binaries = [{
-        mimeType: currentFile.type,
-        value: fileBin,
-      }];
-    }
-
-    conversation.sendMessage({
-      text: popMessageText(),
-      binaries,
-      uris,
-      extraHeaders: getExtraHeaders(),
-    });
+  conversation.stop({
+    text: popMessageText(),
   });
-  disable(send, true);
+});
+disable(end, true);
 
-  isActive.addEventListener('change', () => updateMode());
+send.addEventListener('click', async () => {
+  if (!conversation)
+    return;
 
-  setInterval(() => {
-    let res;
+  let uris = undefined;
 
-    if (lastMessageDate) {
-      res = parseInt(((new Date()).getTime() - lastMessageDate.getTime()) / 1000) + ' seconds ago';
-    }
-    else
-      res = '-';
+  if (uri.value) {
+    uris = [uri.value];
+  }
 
-    lastMessage.textContent = res;
-  }, 1000);
+  let binaries = undefined;
+  const currentFile = file.files[0];
 
-})();
+  if (currentFile) {
+    const fileBin = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        resolve(evt.target.result);
+      }
+      reader.readAsArrayBuffer(currentFile);
+    });
+
+    binaries = [{
+      mimeType: currentFile.type,
+      value: fileBin,
+    }];
+  }
+
+  conversation.sendMessage({
+    text: popMessageText(),
+    binaries,
+    uris,
+    extraHeaders: getExtraHeaders(),
+  });
+});
+disable(send, true);
+
+isActive.addEventListener('change', () => updateMode());
+
+setInterval(() => {
+  let res;
+
+  if (lastMessageDate) {
+    res = parseInt(((new Date()).getTime() - lastMessageDate.getTime()) / 1000) + ' seconds ago';
+  }
+  else
+    res = '-';
+
+  lastMessage.textContent = res;
+}, 1000);
+
+const configSection = el('configSection');
+const conversationControlPanel = el('conversationControlPanel');
+if (config.viewMode === 'simple') {
+  configSection.hidden = true;
+  // add the conversation control panel before the message box
+  message.parentNode.prepend(conversationControlPanel);
+
+  // in simple mode we directly have to click the register button
+  // as it is hidden from the user
+  register.click();
+}
+}) ();
