@@ -1,11 +1,24 @@
+html, body {
+  font-size: 16px;
+}
+
+h1 {
+  font-size: 3.5rem;
+}
+
 .text-area {
   width: 100%;
   height: 10em;
   resize: vertical;
 }
 
+.log-container {
+  max-height: 150px;
+  overflow-y: scroll;
+}
+
 .chat-area {
-  font-size: 1.5em;
+  font-size: 1em;
 }
 
 .subline {

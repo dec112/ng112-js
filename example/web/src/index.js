@@ -134,6 +134,7 @@ const disable = (element, value) => {
   const remoteDisplayName = el('txtRemoteDisplayName');
 
   const chatarea = el('chatarea');
+  const logContainer = el('logContainer');
 
   const lastMessage = el('lastMessage');
 
@@ -286,9 +287,13 @@ const disable = (element, value) => {
         from: from.value,
       },
       debug: {
-        default: ((...values) => {
+        default: ((level, ...values) => {
           // TODO: distinguish between levels
-          console.log(...values);
+          console.log(level, ...values);
+
+          const logEntry = document.createElement('li');
+          logEntry.textContent = `${level} ${values[0]}`;
+          logContainer.prepend(logEntry);
         }),
         sipAdapter: isSipDebug.checked,
       },
@@ -299,16 +304,16 @@ const disable = (element, value) => {
       conversation = newConversation;
 
       conversation.addMessageListener(handleNewMessage);
-    conversation.messages.forEach(handleNewMessage);
-    conversation.addStateListener((stateObj) => {
-      const isStarted = stateObj.value === ConversationState.STARTED;
+      conversation.messages.forEach(handleNewMessage);
+      conversation.addStateListener((stateObj) => {
+        const isStarted = stateObj.value === ConversationState.STARTED;
 
-      if (!isStarted) {
-        conversation = undefined;
-        lastMessageDate = undefined;
-      }
+        if (!isStarted) {
+          conversation = undefined;
+          lastMessageDate = undefined;
+        }
 
-      disable(send, !isStarted);
+        disable(send, !isStarted);
         disable(end, !isStarted);
         disable(start, isStarted);
       });
@@ -333,34 +338,34 @@ const disable = (element, value) => {
     chatarea.innerHTML = '';
 
     updateLocation();
-  updateMode();
+    updateMode();
 
-  if (config.vcard) {
-    const vcard = new VCard();
+    if (config.vcard) {
+      const vcard = new VCard();
 
-    for (const prop in config.vcard) {
-      let value = config.vcard[prop];
+      for (const prop in config.vcard) {
+        let value = config.vcard[prop];
 
-      if (prop === KeyId.BIRTHDAY)
-        value = new Date(value);
+        if (prop === KeyId.BIRTHDAY)
+          value = new Date(value);
 
-      vcard.add(prop, value);
+        vcard.add(prop, value);
+      }
+
+      agent.updateVCard(vcard);
     }
 
-    agent.updateVCard(vcard);
-  }
+    conversation = agent.createConversation(call.value, {
+      isTest: isTest.checked,
+      id: callId.value || undefined,
+    });
 
-  conversation = agent.createConversation(call.value, {
-    isTest: isTest.checked,
-    id: callId.value || undefined,
-  });
+    const extraParts = [];
+    if (useCap.checked)
+      extraParts.push(getCapMultipart());
 
-  const extraParts = [];
-  if (useCap.checked)
-    extraParts.push(getCapMultipart());
-
-  conversation.start({
-    text: popMessageText(),
+    conversation.start({
+      text: popMessageText(),
       extraHeaders: getExtraHeaders(),
       extraParts,
     }).promise;
@@ -379,33 +384,33 @@ const disable = (element, value) => {
     if (!conversation)
       return;
 
-  let uris = undefined;
+    let uris = undefined;
 
-  if (uri.value) {
-    uris = [uri.value];
-  }
+    if (uri.value) {
+      uris = [uri.value];
+    }
 
-  let binaries = undefined;
-  const currentFile = file.files[0];
+    let binaries = undefined;
+    const currentFile = file.files[0];
 
-  if (currentFile) {
-    const fileBin = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        resolve(evt.target.result);
-      }
-      reader.readAsArrayBuffer(currentFile);
-    });
+    if (currentFile) {
+      const fileBin = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          resolve(evt.target.result);
+        }
+        reader.readAsArrayBuffer(currentFile);
+      });
 
-    binaries = [{
-      mimeType: currentFile.type,
-      value: fileBin,
-    }];
-  }
+      binaries = [{
+        mimeType: currentFile.type,
+        value: fileBin,
+      }];
+    }
 
-  conversation.sendMessage({
-    text: popMessageText(),
-    binaries,
+    conversation.sendMessage({
+      text: popMessageText(),
+      binaries,
       uris,
       extraHeaders: getExtraHeaders(),
     });
@@ -415,10 +420,10 @@ const disable = (element, value) => {
     let res;
 
     if (lastMessageDate) {
-    res = parseInt(((new Date()).getTime() - lastMessageDate.getTime()) / 1000) + ' seconds ago';
-  }
-  else
-    res = '-';
+      res = parseInt(((new Date()).getTime() - lastMessageDate.getTime()) / 1000) + ' seconds ago';
+    }
+    else
+      res = '-';
 
     lastMessage.textContent = res;
   }
@@ -446,11 +451,12 @@ const disable = (element, value) => {
   const configSection = el('configSection');
   const conversationControlPanel = el('conversationControlPanel');
   if (config.viewMode === 'simple') {
-  configSection.hidden = true;
-  // add the conversation control panel before the message box
-  message.parentNode.prepend(conversationControlPanel);
+    configSection.hidden = true;
+    // add the conversation control panel before the message box
+    message.parentNode.prepend(conversationControlPanel);
+    logContainer.hidden = true;
 
-  // in simple mode we directly have to click the register button
+    // in simple mode we directly have to click the register button
     // as it is hidden from the user
     registerAgent();
   }
