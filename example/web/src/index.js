@@ -137,6 +137,8 @@ const disable = (element, value) => {
 
   const lastMessage = el('lastMessage');
 
+  let agent, conversation, lastMessageDate;
+
   const popMessageText = () => {
     const text = message.value;
     message.value = '';
@@ -157,11 +159,6 @@ const disable = (element, value) => {
 
     return extraHeaders;
   }
-
-  // try to unregister if window is unloaded
-  window.onbeforeunload = () => unregister.click();
-
-  let agent, conversation, lastMessageDate;
 
   const updateLocation = async () => {
     if (!agent)
@@ -258,7 +255,9 @@ const disable = (element, value) => {
     remoteDisplayName.textContent = `<${msg.conversation.remoteDisplayName || 'Unknown'}>`;
   }
 
-  register.addEventListener('click', async () => {
+  const registerAgent = async () => {
+    disable(register, true);
+
     const regApiVersionCheckbox = document.querySelector(`input[name="${registrationApiVersionName}"]:checked`)
     let regApiVersion = undefined;
 
@@ -317,24 +316,23 @@ const disable = (element, value) => {
 
     await agent.initialize();
 
-  disable(register, true);
-  disable(unregister, false);
-  disable(start, false);
-});
+    disable(unregister, false);
+    disable(start, false);
+  }
 
-unregister.addEventListener('click', async () => {
-  await agent.dispose();
+  const unregisterAgent = async () => {
+    disable(unregister, true);
 
-  disable(start, true);
-  disable(unregister, true);
-  disable(register, false);
-});
-disable(unregister, true);
+    await agent.dispose();
 
-start.addEventListener('click', () => {
-  chatarea.innerHTML = '';
+    disable(start, true);
+    disable(register, false);
+  }
 
-  updateLocation();
+  const startConversation = () => {
+    chatarea.innerHTML = '';
+
+    updateLocation();
   updateMode();
 
   if (config.vcard) {
@@ -363,25 +361,23 @@ start.addEventListener('click', () => {
 
   conversation.start({
     text: popMessageText(),
-    extraHeaders: getExtraHeaders(),
-    extraParts,
-  }).promise;
-});
-disable(start, true);
+      extraHeaders: getExtraHeaders(),
+      extraParts,
+    }).promise;
+  }
 
-end.addEventListener('click', () => {
-  if (!conversation)
-    return;
+  const endConversation = () => {
+    if (!conversation)
+      return;
 
-  conversation.stop({
-    text: popMessageText(),
-  });
-});
-disable(end, true);
+    conversation.stop({
+      text: popMessageText(),
+    });
+  }
 
-send.addEventListener('click', async () => {
-  if (!conversation)
-    return;
+  const sendMessage = async () => {
+    if (!conversation)
+      return;
 
   let uris = undefined;
 
@@ -410,35 +406,52 @@ send.addEventListener('click', async () => {
   conversation.sendMessage({
     text: popMessageText(),
     binaries,
-    uris,
-    extraHeaders: getExtraHeaders(),
-  });
-});
-disable(send, true);
+      uris,
+      extraHeaders: getExtraHeaders(),
+    });
+  }
 
-isActive.addEventListener('change', () => updateMode());
+  const updateTime = () => {
+    let res;
 
-setInterval(() => {
-  let res;
-
-  if (lastMessageDate) {
+    if (lastMessageDate) {
     res = parseInt(((new Date()).getTime() - lastMessageDate.getTime()) / 1000) + ' seconds ago';
   }
   else
     res = '-';
 
-  lastMessage.textContent = res;
-}, 1000);
+    lastMessage.textContent = res;
+  }
 
-const configSection = el('configSection');
-const conversationControlPanel = el('conversationControlPanel');
-if (config.viewMode === 'simple') {
+  // try to unregister if window is unloaded
+  window.onbeforeunload = () => unregisterAgent();
+
+  register.addEventListener('click', registerAgent);
+  unregister.addEventListener('click', unregisterAgent);
+  disable(unregister, true);
+
+  start.addEventListener('click', startConversation);
+  disable(start, true);
+
+  end.addEventListener('click', endConversation);
+  disable(end, true);
+
+  send.addEventListener('click', sendMessage);
+  disable(send, true);
+
+  isActive.addEventListener('change', () => updateMode());
+
+  setInterval(updateTime, 1000);
+
+  const configSection = el('configSection');
+  const conversationControlPanel = el('conversationControlPanel');
+  if (config.viewMode === 'simple') {
   configSection.hidden = true;
   // add the conversation control panel before the message box
   message.parentNode.prepend(conversationControlPanel);
 
   // in simple mode we directly have to click the register button
-  // as it is hidden from the user
-  register.click();
-}
-}) ();
+    // as it is hidden from the user
+    registerAgent();
+  }
+})();
