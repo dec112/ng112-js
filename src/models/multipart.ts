@@ -104,7 +104,10 @@ export class Multipart {
   }
 
   static parse = (input: string, multipartHeader: string): Multipart => {
-    const multipartRegex = new RegExp(`${MULTIPART_MIXED};\\s*boundary=[-]*([^-]+)`).exec(multipartHeader);
+    const multipartRegex = new RegExp(`${MULTIPART_MIXED
+      // replace all forward slashes with their escaped version
+      .replace('/', '\\/')
+      };\\s*boundary=[\-"]*([^"]+)`).exec(multipartHeader);
 
     if (!multipartRegex || multipartRegex.length < 2)
       throw new Error('Multipart header malformed.');

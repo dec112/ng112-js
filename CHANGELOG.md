@@ -61,6 +61,7 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - Fixed typo for language property in DEC112 Mapper.
 - START message can now only be sent once.
 - Correct parsing of SIP Reply-To header (especially if they contain a NameAddressHeader)
+- Don't consider apostrophs as part of mime boundary.
 
 ---
 

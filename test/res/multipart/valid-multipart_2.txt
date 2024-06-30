@@ -1,0 +1,29 @@
+
+--unique-boundary-1
+Content-Type: text/plain
+
+Hello
+--unique-boundary-1
+Content-Type: application/pidf+xml
+Content-Id: <nnxwnwckqz98@prf>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<presence xmlns="urn:ietf:params:xml:ns:pidf" entity="pres:ggwhrd403om64g6wq">
+  <tuple id="gg2i5ziiy5l1cr7mo">
+    <status>
+      <geopriv xmlns="urn:ietf:params:xml:ns:pidf:geopriv10">
+        <location-info>
+          <gs:Circle xmlns:gml="http://www.opengis.net/gml" xmlns:gs="http://www.opengis.net/pidflo/1.0" srsName="urn:ogc:def:crs:EPSG::4326">
+            <gml:pos>28.3423871 -81.5263783</gml:pos>
+            <gs:radius uom="urn:ogc:def:uom:EPSG::9001">10.0</gs:radius>
+          </gs:Circle>
+        </location-info>
+        <usage-rules/>
+        <method>Manual</method>
+      </geopriv>
+    </status>
+    <timestamp>2024-06-29T17:37:00.943368+00:00</timestamp>
+  </tuple>
+</presence>
+
+--unique-boundary-1--

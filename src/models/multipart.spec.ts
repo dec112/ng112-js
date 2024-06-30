@@ -77,4 +77,13 @@ describe('Multipart parsing', () => {
     const text = parsed.getPartsByContentTypes([TEXT_PLAIN])[0].body;
     expect(text).toBe(`hello${CRLF} --bounds   ${CRLF}Content-Type: text/plain${CRLF}${CRLF}there`);
   });
+
+  it('should exclude apostrophs from boundary speicifcations', () => {
+    const validDoc = fs.readFileSync(path.join(findRoot(__dirname), 'test', 'res', 'multipart', 'valid-multipart_2.txt'), { encoding: 'utf-8' });
+    const parsed = Multipart.parse(validDoc, 'Content-Type: multipart/mixed;boundary="unique-boundary-1"');
+
+    expect(parsed.parts).toHaveLength(2);
+    expect(parsed.getPartsByContentTypes(['text/plain']).length).toBe(1);
+    expect(parsed.getPartsByContentTypes(['application/pidf+xml']).length).toBe(1);
+  });
 });
