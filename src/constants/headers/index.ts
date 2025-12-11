@@ -8,3 +8,4 @@ export const MIME_VERSION = 'MIME-Version';
 export const GEOLOCATION = 'Geolocation';
 export const GEOLOCATION_ROUTING = 'Geolocation-Routing';
 export const ROUTE = 'Route';
+export const P_ASSERTED_IDENTITY = 'P-Asserted-Identity';

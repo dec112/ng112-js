@@ -51,6 +51,7 @@ Rejecting the initial message of a conversation leads to the conversation being 
 - Ability to specify endpoint type for agent and each individual conversation.
 - Ability to specify custom user agent headers.
 - Ability to override agent's default display name at `Conversation` level.
+- Ability to change `targetUri` during a conversation by changing `FROM` header.
 - Interfaces for easily fetching SIP information like TO, FROM and ROUTE headers.
 - *Experimental support* for binaries.
 - *Experimental support* for dequeue registration on top of SIP subscribe/notify.

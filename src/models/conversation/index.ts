@@ -5,7 +5,7 @@ import { EmergencyMessageType } from '../../constants/message-types/emergency';
 import { Mapper, Namespace } from '../../namespaces/interfaces';
 import { Store, AgentMode } from '../store';
 import { Message, Origin, MessageState, MessageError, Binary } from '../message';
-import { CALL_INFO, REPLY_TO, ROUTE, CONTENT_TYPE } from '../../constants/headers';
+import { CALL_INFO, REPLY_TO, ROUTE, CONTENT_TYPE, P_ASSERTED_IDENTITY } from '../../constants/headers';
 import { TEXT_PLAIN } from '../../constants/content-types';
 import { MultipartPart } from '../multipart';
 import { ConversationConfiguration, EndpointType, ListenerNotifier } from '../interfaces';
@@ -180,6 +180,14 @@ export class Conversation {
    */
   public get created() { return this._created }
   private _created?: Date;
+
+  /**
+   * P-Asserted-Identity that was attached to the start message
+   * This header needs to be present in each and every SIP message
+   * sent by the other party
+   */
+  public get pAssertedIdentity() { return this._pAssertedIdentity; }
+  private _pAssertedIdentity?: string;
 
   /**
    * Defines, whether the call should be marked as test call
@@ -772,6 +780,7 @@ export class Conversation {
   // this sets fields from an incoming message
   private _setPropsFromIncomingMessage = (req: NewMessageRequest) => {
     const { to, from } = req;
+    this._remoteDisplayName = from.displayName;
 
     // This property is most useful for PSAPs
     // Usually, this property is set with the client's first message
@@ -803,7 +812,25 @@ export class Conversation {
       }
     }
 
-    this._remoteDisplayName = from.displayName;
+    const pAssId = req.getHeader(P_ASSERTED_IDENTITY);
+    // if P-Asserted-Identity is present, we can allow things like
+    // the client changing it's FROM header for failover scenarios
+    // The PAI header ensures that no other user is able
+    // to spoof/take over an existing call
+    if (pAssId) {
+      // PAI must only be set once!
+      if (!this._pAssertedIdentity) {
+        this._pAssertedIdentity = pAssId;
+      }
+
+      // check, if sent PAI and saved PAI header match
+      // only then, allow further actions on the conversation
+      if (pAssId === this._pAssertedIdentity) {
+        // targetUri can be influenced by the remote party
+        // by changing its FROM uri (e.g. for failover scenarios)
+        this.targetUri = from.uri.toString();
+      }
+    }
   }
 
   /**
