@@ -747,17 +747,6 @@ export class Conversation {
 
     let messageNotifier: ListenerNotifier | undefined = undefined
     if (origin === Origin.REMOTE) {
-      const replyToHeader = req.getHeader(REPLY_TO);
-      if (replyToHeader) {
-        const parsedReplyTo = parseNameAddrHeaderValue(replyToHeader);
-        if (parsedReplyTo) {
-          this.targetUri = parsedReplyTo.uri;
-          this._logger.log(`${REPLY_TO}: ${this.targetUri}`);
-        } else {
-          this._logger.warn(`${REPLY_TO} can not be parsed`);
-        }
-      }
-
       this._setPropsFromIncomingMessage(req);
 
       this._notifyQueue();
@@ -800,6 +789,18 @@ export class Conversation {
 
       if (routeHeader)
         this._routeUri = parseNameAddrHeaderValue(routeHeader)?.uri;
+    }
+
+    // For each message, check REPLY_TO header and set targetUri accordingly
+    const replyToHeader = req.getHeader(REPLY_TO);
+    if (replyToHeader) {
+      const parsedReplyTo = parseNameAddrHeaderValue(replyToHeader);
+      if (parsedReplyTo) {
+        this.targetUri = parsedReplyTo.uri;
+        this._logger.log(`${REPLY_TO}: ${this.targetUri}`);
+      } else {
+        this._logger.warn(`${REPLY_TO} can not be parsed`);
+      }
     }
 
     this._remoteDisplayName = from.displayName;
