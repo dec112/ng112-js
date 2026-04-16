@@ -25,6 +25,7 @@
     "ng112-js-sip-adapter-jssip": "^0.7.0",
     "ng112-js-sip-adapter-sipjs": "^0.5.2",
     "stream-browserify": "^3.0.0",
-    "timers-browserify": "^2.0.12"
+    "timers-browserify": "^2.0.12",
+    "url": "^0.11.4"
   }
 }

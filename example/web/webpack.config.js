@@ -18,6 +18,7 @@ module.exports = {
       "stream": require.resolve('stream-browserify'),
       "timers": require.resolve('timers-browserify'),
       "buffer": require.resolve('buffer'),
+      "url": require.resolve('url'),
     },
   },
   module: {
